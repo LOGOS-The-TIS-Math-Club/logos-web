@@ -1,0 +1,177 @@
+# Dependencies and package managers
+node_modules/
+.pnp/
+.pnp.*
+.npm/
+.pnpm-store/
+.yarn/*
+!.yarn/patches/
+!.yarn/plugins/
+!.yarn/releases/
+!.yarn/sdks/
+!.yarn/versions/
+jspm_packages/
+web_modules/
+
+# Next.js and Vercel
+.next/
+out/
+.vercel/
+
+# Build output and generated artifacts
+build/
+dist/
+storybook-static/
+*.tgz
+
+# TypeScript, linting, and tool caches
+*.tsbuildinfo
+next-env.d.ts
+.eslintcache
+.stylelintcache
+.prettier-cache
+.cache/
+.parcel-cache/
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.swc/
+.turbo/
+
+# Tests, coverage, and profiling
+coverage/
+.nyc_output/
+.vitest/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+cypress/downloads/
+cypress/screenshots/
+cypress/videos/
+.vscode-test/
+*.lcov
+*.prof
+*.pb.gz
+
+# PostgreSQL data and database exports
+.pgdata/
+pgdata/
+.postgres/
+postgres-data/
+postgres_data/
+.pgpass
+pgpass.conf
+.pg_service.conf
+*.dump
+*.pgdump
+*.backup
+*.sql.gz
+*.sql.zst
+
+# Environment files and application secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+service-account*.json
+token.json
+tokens.json
+
+# Logs, diagnostics, and runtime data
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+pids/
+*.pid
+*.pid.lock
+*.seed
+
+# Editors and local workspace settings
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.template.json
+!.vscode/launch.template.json
+!.vscode/tasks.json
+.history/
+.node_repl_history
+*.swp
+*.swo
+*~
+
+# macOS user and archive metadata
+.DS_Store
+.localized
+__MACOSX/
+.AppleDouble
+.LSOverride
+._*
+
+# macOS volume and network metadata
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.com.apple.timemachine.supported
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.hotfiles.btree
+.vol
+.file
+.disk_label*
+lost+found/
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Legacy macOS metadata
+Desktop DB
+Desktop DF
+TheFindByContentFolder
+TheVolumeSettingsFolder
+.FBCIndex
+.FBCSemaphoreFile
+.FBCLockFolder
+
+# macOS quota and Time Machine metadata
+.quota.group
+.quota.user
+.quota.ops.group
+.quota.ops.user
+Backups.backupdb/
+.MobileBackups/
+.MobileBackups.trash/
+MobileBackups.trash/
+tmbootpicker.efi
+
+# Windows metadata
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# Linux desktop metadata
+.directory
+.Trash-*
+.nfs*
