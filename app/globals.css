@@ -12,6 +12,8 @@
   --color-primary-foreground: var(--color-zinc-950);
 
   --color-secondary: var(--color-zinc-800);
+  --color-secondary-hover: var(--color-zinc-700);
+  --color-secondary-active: var(--color-zinc-600);
   --color-secondary-foreground: var(--color-zinc-100);
 
   --color-muted: var(--color-zinc-800);

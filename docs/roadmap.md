@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: [Phase 01](./phase-01.md)
+> - Current phase: [Phase 01](./phase-01.md) completed; Phase 02 planning has not started
 > - Last updated: 2026-08-30
 
 ## 1. Purpose
@@ -165,6 +165,8 @@ flowchart LR
 **Major scope:** Route layouts, loading/error states, typography baseline, semantic color tokens, spacing and interaction conventions, selective shadcn/ui primitives, and accessible component tests.
 
 **Completion point:** The shell and core primitives work across target screen sizes, keyboard navigation, focus states, and contrast checks without depending on authentication, database, or Workspace integrations.
+
+**Completion evidence:** Completed on 2026-08-30 through protected squash merge commit [`000aa25`](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/commit/000aa25c229c559ea6b20e69cd5e15ada147e6dd) ([pull request #6](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/6)). Passes 39 Vitest tests, 8 Playwright Chromium tests with zero Axe violations, clean synchronized `main` verification (`pnpm check`, `release:verify`, audit), all PR and post-merge CI/Security/Release Please workflows, and protected Vercel Preview at `https://logos-i2xjntd61-logos-tis.vercel.app` (HTTP 302 SSO redirect, `noindex`).
 
 ### Phase 02 — Data and environment foundation
 

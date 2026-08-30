@@ -21,7 +21,7 @@ export function AppShell({ children, className }: AppShellProps) {
         <Container className="flex h-16 items-center justify-between">
           <Link
             href="/"
-            className="rounded-component text-foreground hover:text-primary focus-visible:outline-focus text-base font-semibold tracking-tight transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
+            className="rounded-component text-foreground hover:text-primary focus-visible:outline-focus inline-flex min-h-11 items-center px-2 text-base font-semibold tracking-tight transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
           >
             LOGOS
           </Link>
@@ -30,7 +30,7 @@ export function AppShell({ children, className }: AppShellProps) {
               <li>
                 <Link
                   href="/"
-                  className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
+                  className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
                 >
                   Home
                 </Link>
