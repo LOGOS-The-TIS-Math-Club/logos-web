@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "test:e2e": "pnpm build && playwright test",
     "test:e2e:ci": "playwright test",
+    "release:verify": "node scripts/verify-release-config.mjs",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e:ci"
   },
   "dependencies": {
