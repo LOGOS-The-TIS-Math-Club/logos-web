@@ -1,6 +1,6 @@
 # LOGOS Web
 
-LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the Phase 01 interface and design-system foundation built upon the completed Phase 00 baseline: an accessible application shell, reusable UI primitives, dark-first semantic tokens adhering to the approved Mauve Precision aesthetic, route status templates, reproducible tooling, automated tests with accessibility scans, security checks, and protected preview delivery.
+LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the completed Phase 01 interface and design-system foundation built upon the completed Phase 00 baseline: an accessible application shell, reusable UI primitives, dark-first semantic tokens adhering to the approved Mauve Precision aesthetic, route status templates, reproducible tooling, automated tests with accessibility scans, security checks, and protected preview delivery.
 
 The source is available under the [MIT License](./LICENSE). No student data, production credentials, or club workflows belong in this phase.
 
@@ -64,7 +64,7 @@ scripts/                     Deterministic repository verification scripts
 docs/architecture.md         System-wide architecture authority
 docs/roadmap.md              Phase order and broad completion gates
 docs/phase-00.md             Completed project and delivery foundation
-docs/phase-01.md             Active interface and design-system foundation
+docs/phase-01.md             Completed interface and design-system foundation evidence
 proxy.ts                     Nonce-based CSP and baseline response headers
 vercel.json                  Singapore dynamic-function region
 ```
@@ -100,4 +100,4 @@ GitHub Free and Vercel Hobby are the only approved plans. Pull requests and `mai
 
 Phase 01 resolves the dark-only visual foundation and semantic Mauve Precision tokens without third-party component libraries. It does not configure light mode, automatic theme switching, theme toggle controls, shadcn/ui, Neon, Drizzle, a database, authentication, Google OAuth or Workspace APIs, Sentry, analytics, public Production delivery through the retained custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
 
-Read the [architecture](./docs/architecture.md), [roadmap](./docs/roadmap.md), [Phase 00 plan](./docs/phase-00.md), and active [Phase 01 plan](./docs/phase-01.md) before proposing changes that affect providers, security boundaries, data, or later phases.
+Read the [architecture](./docs/architecture.md), [roadmap](./docs/roadmap.md), [Phase 00 plan](./docs/phase-00.md), and completed [Phase 01 record](./docs/phase-01.md) before proposing changes that affect providers, security boundaries, data, or later phases.
