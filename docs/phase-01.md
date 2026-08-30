@@ -1,6 +1,6 @@
 # Phase 01 - Interface and Design-System Foundation
 
-> - Status: Ready
+> - Status: In progress
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
 > - Predecessor: [phase-00.md](./phase-00.md)
