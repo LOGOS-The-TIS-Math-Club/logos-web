@@ -1,6 +1,6 @@
 # Phase 00 — Project and Delivery Foundation
 
-> - Status: Planned
+> - Status: In progress
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
 > - Predecessor: None
@@ -17,7 +17,7 @@ Phase 00 introduces no club workflows and uses no student data or application-le
 
 ## 2. Expected outcome
 
-At completion, a contributor can clone the private repository, install the pinned toolchain, run the application, execute every quality check, and reproduce the verified Vercel Preview and main-branch deployments by following the documented commands.
+At completion, a contributor can clone the public open-source repository, install the pinned toolchain, run the application, execute every quality check, and reproduce the verified access-protected Vercel Preview delivery path by following the documented commands.
 
 The result is intentionally plain. It proves that the engineering foundation works without prematurely implementing the LOGOS design system, data model, authentication, or product features.
 
@@ -83,7 +83,7 @@ Official framework-generated structure and naming conventions are retained. Phas
 
 ### 4.4 GitHub quality and maintenance automation
 
-At planning time, the private repository belongs to the `LOGOS-The-TIS-Math-Club` organization on GitHub Free. GitHub does not provide protected branches or rulesets for private organization repositories on that plan. Before this phase can move to **Ready**, the organization must use a plan that supports protection for private repositories. GitHub Team is the architecture-compatible path; making the repository public would instead require an explicit architecture amendment and exposure review. See GitHub's [protected-branch availability](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/managing-a-branch-protection-rule).
+The repository uses GitHub Free and public visibility. This zero-cost architecture change was approved on 2026-08-30 after a read-only review of tracked files, complete reachable history, commit metadata, ignored and untracked files, public documentation, and possible secrets or student data. Gitleaks found no secrets. Public exposure does reveal the existing author email in commit metadata and the documented club, school-domain, sender-address, workflow, and security-architecture details; those disclosures were accepted without rewriting history.
 
 - Add pull-request and `main` GitHub Actions checks.
 - Use frozen-lockfile installation in CI.
@@ -97,7 +97,7 @@ At planning time, the private repository belongs to the `LOGOS-The-TIS-Math-Club
 - Configure weekly grouped Dependabot updates for pnpm and GitHub Actions.
 - Surface security updates without automatically merging major upgrades.
 - Configure Release Please for the approved Conventional Commit and SemVer workflow.
-- Verify that the repository remains private.
+- Verify that the repository remains public and contains only material approved for open-source exposure.
 - Normalize the local `origin` remote to the repository's canonical organization URL.
 - Protect `main` before this phase closes: require pull requests and required checks, block force pushes and deletion, and prohibit routine administrator bypass.
 
@@ -105,19 +105,19 @@ The exact required reviewer count and eligible break-glass actors remain deferre
 
 ### 4.5 Vercel delivery baseline
 
-Before this phase can move to **Ready**, confirm that this non-commercial school-club project is eligible for the intended Vercel plan and that the account can enable Vercel Authentication. If those conditions fail, hosting cost or platform selection requires an architecture decision before implementation continues.
+The project uses Vercel Hobby only. Official plan documentation permits non-commercial personal projects and provides Vercel Authentication with Standard Protection. Standard Protection leaves Production domains public, so the approved zero-cost design creates no Vercel Production deployment or domain through Phase 10.
 
 - Connect the GitHub repository to the intended Vercel project.
 - Limit the Vercel GitHub App authorization to this repository.
 - Configure the dynamic function region for Singapore (`sin1`).
-- Establish separate development, preview, and production environment categories.
-- Deploy and smoke-test the neutral application in Preview and in the main-branch deployment Vercel labels **Production**.
-- Keep Vercel Authentication enabled for every Preview and Production deployment through Phase 10, and apply `noindex, nofollow` as defense in depth.
+- Establish development and protected Preview delivery without creating a Production deployment or domain.
+- Deploy and smoke-test the neutral application in an access-protected pull-request Preview and an access-protected Preview built from `main`.
+- Keep Vercel Authentication Standard Protection enabled for every Preview and generated deployment URL, and apply `noindex, nofollow` as defense in depth.
 - Ensure preview receives no production database URL, OAuth token, Workspace credential, or student data.
 - If automated smoke tests require a deployment-protection bypass token, keep it as a narrowly scoped CI secret and withhold it from untrusted pull requests. Record its owner and rotation/revocation procedure; never place it in a URL, pull-request comment, trace, screenshot, log, or closeout evidence.
 - Keep analytics disabled until Phase 06 can enforce the public-route-only boundary.
 
-Merging `main` therefore creates a technical Production deployment, not a public launch. Phase 00 configures no public custom domain and introduces no production club data; Phase 11 alone authorizes removal of pre-launch protection.
+Merging `main` does not create a Vercel Production deployment during Phases 00–10. Phase 11 alone may designate `main` as the Production branch and create or expose a Production domain after its launch gate passes.
 
 ### 4.6 Documentation
 
@@ -151,19 +151,19 @@ Phase 00 does not include:
 
 ## 6. Deliverables and evidence
 
-| Deliverable | Expected evidence |
-| --- | --- |
-| Reproducible runtime | Runtime file or engine constraint, pinned pnpm metadata, and frozen-lockfile installation |
-| Conventional Next.js scaffold | App Router project that renders and builds successfully |
-| Strict code-quality configuration | Passing formatting, ESLint, and TypeScript checks |
-| Test harnesses | Passing Vitest/React Testing Library example and Playwright smoke test |
-| CI pipeline | Successful pull-request workflow covering every required check |
-| Repository automation | Dependabot and Release Please configurations recognized by GitHub |
-| Supply-chain baseline | Passing Git-history secret scan and high-severity dependency audit; Actions pinned and permissions minimized |
-| Protected production branch | Pull request and required-check rules active; ordinary force pushes, deletion, and routine bypass blocked |
-| Protected delivery | Working Vercel Preview and main-branch deployment behind authentication, with Singapore dynamic-region evidence |
-| Safe environment boundary | No production secrets, credentials, or student data in code, CI, or preview |
-| Contributor documentation | README accurately reproduces setup and verification |
+| Deliverable                       | Expected evidence                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Reproducible runtime              | Runtime file or engine constraint, pinned pnpm metadata, and frozen-lockfile installation                     |
+| Conventional Next.js scaffold     | App Router project that renders and builds successfully                                                       |
+| Strict code-quality configuration | Passing formatting, ESLint, and TypeScript checks                                                             |
+| Test harnesses                    | Passing Vitest/React Testing Library example and Playwright smoke test                                        |
+| CI pipeline                       | Successful pull-request workflow covering every required check                                                |
+| Repository automation             | Dependabot and Release Please configurations recognized by GitHub                                             |
+| Supply-chain baseline             | Passing Git-history secret scan and high-severity dependency audit; Actions pinned and permissions minimized  |
+| Protected production branch       | Pull request and required-check rules active; ordinary force pushes, deletion, and routine bypass blocked     |
+| Protected delivery                | Working pull-request and `main` Vercel Previews behind authentication, with Singapore dynamic-region evidence |
+| Safe environment boundary         | No production secrets, credentials, or student data in code, CI, or preview                                   |
+| Contributor documentation         | README accurately reproduces setup and verification                                                           |
 
 ## 7. Work order and commit checkpoints
 
@@ -261,8 +261,8 @@ Exact script composition may follow current official conventions, but each outco
 ### 10.4 Vercel verification
 
 - A pull request produces a working, access-protected Preview deployment.
-- A controlled merge produces the protected main-branch deployment Vercel labels Production without making it a public launch.
-- Both deployments use the committed build and package-manager settings and return `noindex, nofollow`.
+- A controlled `main` build produces another protected Preview and does not create or assign a Production domain.
+- Both Preview paths use the committed build and package-manager settings and return `noindex, nofollow`.
 - The dynamic health Route Handler succeeds, reveals no environment values, and provides redacted platform evidence that Singapore (`sin1`) handled the function.
 - No database, OAuth, Workspace integration, analytics, or real user data exists in either deployment.
 - Any CI bypass credential is narrowly scoped, unavailable to untrusted pull requests, absent from URLs and evidence, and has a tested revocation path that does not disable deployment protection.
@@ -275,12 +275,12 @@ Phase 00 is complete only when:
 - the pinned runtime, pnpm version, and lockfile reproduce the environment;
 - formatting, ESLint, strict TypeScript, unit/component tests, browser smoke tests, and production build all pass locally and in CI;
 - the minimal application loads without browser-console errors;
-- protected Vercel Preview and main-branch delivery work without production credentials or data, and the dynamic `sin1` route is evidenced;
+- protected pull-request and `main` Vercel Preview delivery work without production credentials or data, and the dynamic `sin1` route is evidenced;
 - required pull-request checks, force-push and deletion protection, and the no-routine-bypass policy are active;
 - Dependabot and Release Please are configured and recognized;
 - full-history secret scanning, runtime/development dependency review, Action SHA pinning, non-persistent checkout credentials, and least-privilege workflow permissions pass;
 - baseline response headers and `noindex, nofollow` are verified;
-- the repository remains private and contains no secrets, database exports, generated build output, or student information;
+- the repository remains public, passes renewed exposure review, and contains no secrets, database exports, generated build output, or student information;
 - the README and planning links are accurate;
 - implementation consists of multiple coherent Conventional Commits;
 - accepted work is squash-merged into a clean `main`.
@@ -304,7 +304,7 @@ Phase 01 begins from this verified foundation and owns the semantic Tailwind tok
 
 ## 13. Completion record
 
-This section is populated when the completion gate passes. Until then, the authoritative status remains **Planned**.
+This section is populated when the completion gate passes. Until then, the authoritative status remains **In progress**.
 
 The closeout record will contain:
 
