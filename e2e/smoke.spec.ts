@@ -106,6 +106,7 @@ test("handles 404 with meaningful not-found content and returns home", async ({
 
   expect(response?.status()).toBe(404);
   expect(browserErrors).toEqual([]);
+  await expect(page).toHaveTitle("Page Not Found | LOGOS Web");
 
   const headers = response?.headers() ?? {};
   expect(headers).toMatchObject(expectedHeaders);

@@ -13,7 +13,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "border-transparent bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
   secondary:
-    "border-transparent bg-secondary text-secondary-foreground hover:bg-surface active:bg-surface-raised",
+    "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary-hover active:bg-secondary-active",
   outline:
     "border-border bg-transparent text-foreground hover:bg-surface active:bg-surface-raised",
   ghost:

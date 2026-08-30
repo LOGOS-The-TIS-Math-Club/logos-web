@@ -53,6 +53,8 @@ describe("Button", () => {
     expect(screen.getByRole("button", { name: "Secondary" })).toHaveClass(
       "bg-secondary",
       "text-secondary-foreground",
+      "hover:bg-secondary-hover",
+      "active:bg-secondary-active",
     );
 
     rerender(<Button variant="outline">Outline</Button>);

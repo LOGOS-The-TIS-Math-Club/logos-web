@@ -62,6 +62,30 @@ describe("AppShell", () => {
     expect(homeLink).toHaveAttribute("href", "/");
   });
 
+  it("applies 44px target sizing conventions to header links", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    const logosLink = screen.getByRole("link", { name: "LOGOS" });
+    expect(logosLink).toHaveClass(
+      "inline-flex",
+      "min-h-11",
+      "items-center",
+      "px-2",
+    );
+
+    const homeLink = screen.getByRole("link", { name: "Home" });
+    expect(homeLink).toHaveClass(
+      "inline-flex",
+      "min-h-11",
+      "items-center",
+      "px-2",
+    );
+  });
+
   it("renders footer information with organization and license", () => {
     render(
       <AppShell>
