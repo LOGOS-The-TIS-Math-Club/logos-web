@@ -3,7 +3,7 @@
 > - Status: Foundational architecture map
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Repository: `LOGOS-The-TIS-Math-Club/logos-web`
-> - Visibility: Private
+> - Visibility: Public (open source)
 > - Last updated: 2026-08-30
 
 ## 1. Purpose and authority
@@ -589,10 +589,10 @@ External calls use timeouts, bounded exponential backoff, and idempotency where 
 
 - **Development** uses local or isolated development data and safe adapters/credentials.
 - **Preview** is created for pull requests, uses a schema-only Neon branch with synthetic data, and cannot reach production student or Workspace data.
-- **Production** uses production Neon, Auth, and explicitly scoped Workspace credentials.
+- **Production** uses production Neon, Auth, and explicitly scoped Workspace credentials after the Phase 11 launch gate.
 - Every Preview deployment remains protected by Vercel Authentication for the life of the project.
-- Before launch, Vercel Authentication also protects the environment Vercel labels Production, and all deployment pages use `noindex, nofollow`.
-- Phase 11 may remove Vercel Authentication only from Production and only after the launch gate passes. Authenticated application routes remain `noindex` after launch.
+- Vercel Hobby Standard Protection does not protect a Production domain. Through Phase 10, the project therefore creates only access-protected Preview deployments, including for `main`, and publishes no Vercel Production deployment. The existing `tislogos.org` registration may remain attached to the project without authorizing live Production delivery.
+- Phase 11 alone may map `main` to Vercel Production and expose the retained production domain after the launch gate passes. Authenticated application routes remain `noindex` after launch.
 - Any deployment-protection bypass credential is CI-only, narrowly scoped, independently revocable, unavailable to untrusted pull requests, and excluded from URLs and recorded evidence.
 
 ### Region model
@@ -636,13 +636,13 @@ Before production deployment, `main` is protected: required CI checks cannot be 
 
 ## 19. Git, delivery, and versioning
 
-- `main` is the production branch.
+- `main` is the protected integration branch and becomes the Vercel Production branch only at the Phase 11 launch gate.
 - Work occurs on short-lived feature/fix branches.
 - Pull requests receive Vercel previews and isolated Neon preview data.
 - Approved pull requests are squash-merged.
 - There is no permanent `develop` branch.
-- Merging to `main` deploys production.
-- The private repository and protected `main` branch prevent ordinary direct or force pushes from bypassing the required production gates.
+- Through Phase 10, merging to `main` creates an access-protected Vercel Preview rather than a Production deployment.
+- The public open-source repository and protected `main` branch prevent ordinary direct or force pushes from bypassing the required delivery gates.
 - Commit messages use the agreed simplified Conventional Commits convention.
 - Release Please derives changelogs, SemVer tags, and GitHub releases.
 - Dependabot groups routine pnpm and GitHub Actions updates weekly, while security updates surface immediately.
@@ -655,7 +655,9 @@ Production releases document meaningful milestones even though deployment may oc
 
 The system is designed for approximately 20 members and low request volume. Vercel and Neon free tiers are the operating target, not an uptime, quota, price, or long-term availability guarantee. Vercel Hobby eligibility for this school-club use must be verified before launch.
 
-The repository remains private and `main` remains protected. If the selected GitHub organization plan cannot enforce protection on a private repository, it must be upgraded to an eligible plan before Phase 00 can close. Making the repository public is an architecture change, not an implicit cost workaround.
+The repository is public under the MIT license and uses GitHub Free. Public visibility was approved after a tracked-file, history, metadata, ignored-file, and secret-exposure review. `main` remains protected with required pull requests and checks, force-push and deletion protection, and no routine administrator bypass. No paid GitHub plan or add-on is permitted.
+
+Vercel Hobby is the only approved hosting plan. Because Hobby cannot protect a Production domain with Vercel Authentication at no cost, no Vercel Production deployment is published before Phase 11. Retaining the existing domain registration does not change this boundary. This is an explicit zero-cost architecture decision, not a claim that Hobby provides paid All Deployments protection.
 
 The application avoids infrastructure that this scale does not justify. A second backend, microservices, Redis, a dedicated queue, a data warehouse, or enterprise administration requires evidence and an architecture review.
 
