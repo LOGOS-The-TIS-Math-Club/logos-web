@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: [Phase 00](./phase-00.md)
+> - Current phase: [Phase 01](./phase-01.md)
 > - Last updated: 2026-08-30
 
 ## 1. Purpose
@@ -158,7 +158,7 @@ flowchart LR
 
 ### Phase 01 — Interface and design-system foundation
 
-**File:** `phase-01.md`
+**File:** [phase-01.md](./phase-01.md)
 
 **Outcome:** A responsive, accessible application shell and reusable interface foundation using semantic tokens backed by the official Tailwind CSS color palette.
 
