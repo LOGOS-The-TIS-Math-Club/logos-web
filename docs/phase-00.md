@@ -304,7 +304,7 @@ Phase 01 begins from this verified foundation and owns the semantic Tailwind tok
 
 ## 13. Completion record
 
-Phase 00 completed on 2026-08-30. This record becomes effective on `main` through the protected squash merge of [pull request #1](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/1); GitHub's pull-request record is the durable link to the resulting squash commit.
+Phase 00 completed on 2026-08-30 through the protected squash merge of [pull request #1](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/1) as commit [`4895c941aa228a1a6601e25637561ad023d73d74`](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/commit/4895c941aa228a1a6601e25637561ad023d73d74).
 
 - **Version:** The private manifest remains `0.0.0`. The deterministic Release Please verification reports `0.1.0` as the first release proposal; no release was created merely to close this phase.
 - **Toolchain:** Node.js `24.20.0`, pnpm `11.24.0`, Next.js `16.3.3`, React and React DOM `19.2.8`, TypeScript `5.9.3`, Tailwind CSS `4.3.3`, Vitest `4.1.11`, and Playwright `1.62.1` are pinned or constrained as recorded in `package.json` and the lockfile.
