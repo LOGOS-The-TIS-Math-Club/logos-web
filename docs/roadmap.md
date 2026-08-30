@@ -73,7 +73,7 @@ Before implementation begins, the relevant `phase-##.md` is reviewed and brought
 - Pull requests receive CI checks and, when configured, Vercel and Neon previews.
 - Preview databases contain schema and synthetic fixtures only.
 - Approved pull requests are squash-merged with a simple Conventional Commit title.
-- Through Phase 10, every pull request and `main` commit receives only a Vercel Preview protected by Vercel Authentication, marked `noindex, nofollow`, disconnected from real student data, and absent from any Production or custom domain. Phase 11 alone may map `main` to Vercel Production and control public exposure.
+- Through Phase 10, every pull request and `main` commit receives only a Vercel Preview protected by Vercel Authentication, marked `noindex, nofollow`, disconnected from real student data, and not published through any Production or custom domain. The existing domain registration may remain attached to the provider project; Phase 11 alone may map `main` to Vercel Production and control public exposure.
 
 ### Commits
 

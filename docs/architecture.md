@@ -591,8 +591,8 @@ External calls use timeouts, bounded exponential backoff, and idempotency where 
 - **Preview** is created for pull requests, uses a schema-only Neon branch with synthetic data, and cannot reach production student or Workspace data.
 - **Production** uses production Neon, Auth, and explicitly scoped Workspace credentials after the Phase 11 launch gate.
 - Every Preview deployment remains protected by Vercel Authentication for the life of the project.
-- Vercel Hobby Standard Protection does not protect a Production domain. Through Phase 10, the project therefore creates only access-protected Preview deployments, including for `main`, and assigns no Vercel Production domain or custom domain.
-- Phase 11 alone may map `main` to Vercel Production and expose the production domain after the launch gate passes. Authenticated application routes remain `noindex` after launch.
+- Vercel Hobby Standard Protection does not protect a Production domain. Through Phase 10, the project therefore creates only access-protected Preview deployments, including for `main`, and publishes no Vercel Production deployment. The existing `tislogos.org` registration may remain attached to the project without authorizing live Production delivery.
+- Phase 11 alone may map `main` to Vercel Production and expose the retained production domain after the launch gate passes. Authenticated application routes remain `noindex` after launch.
 - Any deployment-protection bypass credential is CI-only, narrowly scoped, independently revocable, unavailable to untrusted pull requests, and excluded from URLs and recorded evidence.
 
 ### Region model
@@ -657,7 +657,7 @@ The system is designed for approximately 20 members and low request volume. Verc
 
 The repository is public under the MIT license and uses GitHub Free. Public visibility was approved after a tracked-file, history, metadata, ignored-file, and secret-exposure review. `main` remains protected with required pull requests and checks, force-push and deletion protection, and no routine administrator bypass. No paid GitHub plan or add-on is permitted.
 
-Vercel Hobby is the only approved hosting plan. Because Hobby cannot protect a Production domain with Vercel Authentication at no cost, no Vercel Production deployment or domain is created before Phase 11. This is an explicit zero-cost architecture decision, not a claim that Hobby provides paid All Deployments protection.
+Vercel Hobby is the only approved hosting plan. Because Hobby cannot protect a Production domain with Vercel Authentication at no cost, no Vercel Production deployment is published before Phase 11. Retaining the existing domain registration does not change this boundary. This is an explicit zero-cost architecture decision, not a claim that Hobby provides paid All Deployments protection.
 
 The application avoids infrastructure that this scale does not justify. A second backend, microservices, Redis, a dedicated queue, a data warehouse, or enterprise administration requires evidence and an architecture review.
 

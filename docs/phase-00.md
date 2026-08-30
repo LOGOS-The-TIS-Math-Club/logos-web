@@ -105,19 +105,19 @@ The exact required reviewer count and eligible break-glass actors remain deferre
 
 ### 4.5 Vercel delivery baseline
 
-The project uses Vercel Hobby only. Official plan documentation permits non-commercial personal projects and provides Vercel Authentication with Standard Protection. Standard Protection leaves Production domains public, so the approved zero-cost design creates no Vercel Production deployment or domain through Phase 10.
+The project uses Vercel Hobby only. Official plan documentation permits non-commercial personal projects and provides Vercel Authentication with Standard Protection. Standard Protection leaves Production domains public, so the approved zero-cost design publishes no Vercel Production deployment through Phase 10. The existing `tislogos.org` registration may remain attached to the project; retaining that provider configuration is distinct from assigning a live Production deployment to it.
 
 - Connect the GitHub repository to the intended Vercel project.
 - Limit the Vercel GitHub App authorization to this repository.
 - Configure the dynamic function region for Singapore (`sin1`).
-- Establish development and protected Preview delivery without creating a Production deployment or domain.
+- Establish development and protected Preview delivery without publishing a Production deployment through the retained domain.
 - Deploy and smoke-test the neutral application in an access-protected pull-request Preview and an access-protected Preview built from `main`.
 - Keep Vercel Authentication Standard Protection enabled for every Preview and generated deployment URL, and apply `noindex, nofollow` as defense in depth.
 - Ensure preview receives no production database URL, OAuth token, Workspace credential, or student data.
 - If automated smoke tests require a deployment-protection bypass token, keep it as a narrowly scoped CI secret and withhold it from untrusted pull requests. Record its owner and rotation/revocation procedure; never place it in a URL, pull-request comment, trace, screenshot, log, or closeout evidence.
 - Keep analytics disabled until Phase 06 can enforce the public-route-only boundary.
 
-Merging `main` does not create a Vercel Production deployment during Phases 00–10. Phase 11 alone may designate `main` as the Production branch and create or expose a Production domain after its launch gate passes.
+Merging `main` does not create a Vercel Production deployment during Phases 00–10. Phase 11 alone may designate `main` as the Production branch and expose the retained Production domain after its launch gate passes.
 
 ### 4.6 Documentation
 
@@ -147,7 +147,7 @@ Phase 00 does not include:
 - membership, applications, absence, attendance, warning, content-management, or leadership features;
 - user uploads;
 - real student records or copies of existing Forms and Sheets;
-- a custom domain or public production launch.
+- public Production delivery through the retained custom domain.
 
 ## 6. Deliverables and evidence
 

@@ -92,10 +92,10 @@ Local secrets belong only in ignored `.env.local` files when a later phase expli
 
 ## Delivery boundary
 
-GitHub Free and Vercel Hobby are the only approved plans. Pull requests and `main` receive access-protected Vercel Preview deployments in Singapore (`sin1`). Vercel Hobby cannot protect a Production domain at no cost, so no Vercel Production deployment or domain is created before the Phase 11 launch gate. Analytics remains disabled.
+GitHub Free and Vercel Hobby are the only approved plans. Pull requests and `main` receive access-protected Vercel Preview deployments in Singapore (`sin1`). Vercel Hobby cannot protect a Production domain at no cost, so no Production deployment is published before the Phase 11 launch gate. The existing `tislogos.org` registration may remain attached to the Vercel project, but retaining the domain is not authorization to serve a Production deployment through it. Analytics remains disabled.
 
 ## Intentionally deferred
 
-Phase 00 does not configure final visual design, shadcn/ui, Neon, Drizzle, a database, authentication, Google OAuth or Workspace APIs, Sentry, analytics, a custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
+Phase 00 does not configure final visual design, shadcn/ui, Neon, Drizzle, a database, authentication, Google OAuth or Workspace APIs, Sentry, analytics, public Production delivery through the retained custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
 
 Read the [architecture](./docs/architecture.md), [roadmap](./docs/roadmap.md), and [Phase 00 plan](./docs/phase-00.md) before proposing changes that affect providers, security boundaries, data, or later phases.
