@@ -14,4 +14,4 @@ This is a volunteer school-club project and cannot promise a commercial response
 
 ## Scope boundaries
 
-Phase 00 contains no authentication, database, student data, Google Workspace integration, or production deployment. Reports about those unimplemented systems are out of scope unless they concern committed documentation or delivery configuration.
+Through Phase 01, the repository contains no authentication, database, student data, Google Workspace integration, or production deployment. Reports about those unimplemented systems are out of scope unless they concern committed documentation or delivery configuration.

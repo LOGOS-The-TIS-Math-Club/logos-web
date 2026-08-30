@@ -1,6 +1,6 @@
 # LOGOS Web
 
-LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the Phase 00 engineering foundation: a deliberately neutral Next.js application, reproducible tooling, automated tests, security checks, and protected preview delivery.
+LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the Phase 01 interface and design-system foundation built upon the completed Phase 00 baseline: an accessible application shell, reusable UI primitives, dark-first semantic tokens adhering to the approved Mauve Precision aesthetic, route status templates, reproducible tooling, automated tests with accessibility scans, security checks, and protected preview delivery.
 
 The source is available under the [MIT License](./LICENSE). No student data, production credentials, or club workflows belong in this phase.
 
@@ -28,7 +28,7 @@ pnpm dev
 
 Open <http://localhost:3000>. The non-sensitive health route is available at <http://localhost:3000/health>.
 
-Phase 00 requires no environment variables. Do not create environment files unless a later approved phase documents the exact variables and ownership.
+Phase 01 requires no environment variables. Do not create environment files unless a later approved phase documents the exact variables and ownership.
 
 ## Verification
 
@@ -51,23 +51,25 @@ pnpm release:verify
 pnpm audit --audit-level high
 ```
 
-`pnpm test:e2e` builds the production application and runs the intentionally small Chromium smoke suite. CI installs Chromium separately and runs the same tests against `next start`.
+`pnpm test:e2e` builds the production application and runs the Chromium suite verifying landmarks, keyboard navigation, responsive viewports (320px to 1440px), horizontal overflow, reduced motion, security headers, and automated WCAG accessibility via `@axe-core/playwright`. CI installs Chromium separately and runs the same tests against `next start`.
 
 ## Project structure
 
 ```text
-app/                         App Router pages and route handlers
-e2e/                         Playwright smoke tests
+app/                         App Router pages, route handlers, and status templates
+components/                  Reusable UI primitives and application shell
+e2e/                         Playwright smoke and accessibility tests
 scripts/                     Deterministic repository verification scripts
 .github/workflows/           Read-only CI/security and isolated release automation
 docs/architecture.md         System-wide architecture authority
 docs/roadmap.md              Phase order and broad completion gates
-docs/phase-00.md             Active foundation plan and evidence
+docs/phase-00.md             Completed project and delivery foundation
+docs/phase-01.md             Active interface and design-system foundation
 proxy.ts                     Nonce-based CSP and baseline response headers
 vercel.json                  Singapore dynamic-function region
 ```
 
-The application uses the root-level `app/` convention, strict TypeScript, the `@/*` import alias, React Server Components by default, Tailwind CSS as an uncustomized styling foundation, and Turbopack through the standard Next.js commands.
+The application uses the root-level `app/` convention, strict TypeScript, the `@/*` import alias, React Server Components by default, Tailwind CSS with semantic Mauve Precision tokens referencing official Tailwind palette variables (dark default), and Turbopack through the standard Next.js commands.
 
 ## Contributions
 
@@ -96,6 +98,6 @@ GitHub Free and Vercel Hobby are the only approved plans. Pull requests and `mai
 
 ## Intentionally deferred
 
-Phase 00 does not configure final visual design, shadcn/ui, Neon, Drizzle, a database, authentication, Google OAuth or Workspace APIs, Sentry, analytics, public Production delivery through the retained custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
+Phase 01 resolves the dark-only visual foundation and semantic Mauve Precision tokens without third-party component libraries. It does not configure light mode, automatic theme switching, theme toggle controls, shadcn/ui, Neon, Drizzle, a database, authentication, Google OAuth or Workspace APIs, Sentry, analytics, public Production delivery through the retained custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
 
-Read the [architecture](./docs/architecture.md), [roadmap](./docs/roadmap.md), and [Phase 00 plan](./docs/phase-00.md) before proposing changes that affect providers, security boundaries, data, or later phases.
+Read the [architecture](./docs/architecture.md), [roadmap](./docs/roadmap.md), [Phase 00 plan](./docs/phase-00.md), and active [Phase 01 plan](./docs/phase-01.md) before proposing changes that affect providers, security boundaries, data, or later phases.

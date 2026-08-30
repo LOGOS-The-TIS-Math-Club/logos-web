@@ -13,13 +13,13 @@
 
 Establish a responsive, accessible application shell and reusable interface foundation for LOGOS Web following the approved Mauve Precision design direction. The phase defines a dark-first, dark-only semantic design token system backed exclusively by the official Tailwind CSS color palette, introduces lightweight and meticulously polished accessible UI primitives, establishes route-level loading, error, and not-found states, and proves responsive and keyboard navigation behaviors across target viewports without introducing database, authentication, or external provider dependencies. Future light mode is explicitly deferred.
 
-## 2. Design Gate Status and Approval Record
+## 2. Design Gate Status and Implementation State
 
 The design gate for Phase 01 is approved. The user has reviewed provisional proposals, explicitly rejected previous alternatives, and approved the Mauve Precision direction.
 
-With the design gate resolved, Phase 01 status is set to Ready. This status confirms that design choices are settled and the execution plan is authorized. It does not claim that implementation has started or completed.
+Phase 01 status remains **In progress**. Implementation and local verification are complete: Mauve Precision semantic tokens, core accessible UI primitives (`Container`, `SkipLink`, `Button`, `StatusBadge`, `AppShell`), route status templates, Vitest component tests (39 tests across 9 files), and Playwright Chromium tests (8 tests including AxeBuilder automated WCAG scans) are implemented and passing locally. Protected pull request acceptance, CI workflow execution, Vercel Preview verification, and squash merge into a clean `main` remain pending.
 
-Implementation of visual styles, Tailwind tokens, component primitives, and shell layouts must adhere strictly to the approved Mauve Precision specifications defined in this document.
+Implementation of visual styles, Tailwind tokens, component primitives, and shell layouts adheres strictly to the approved Mauve Precision specifications defined in this document.
 
 ## 3. Architecture References and Authority
 
@@ -47,7 +47,7 @@ Specific architectural anchors from `architecture.md` governing this phase inclu
 - Approved Mauve Precision design specification and semantic token architecture.
 - Explicit rejected-directions record documenting the rejection of previous provisional options and generic styling.
 - Semantic token architecture defining CSS custom properties mapped exclusively to official Tailwind CSS palette values (Tailwind theme variables) for dark-first, dark-only operation in Phase 01.
-- Lightweight, meticulously polished UI primitive inventory: Container, SkipLink, Button, StatusBadge, and Shell layout.
+- Lightweight, meticulously polished UI primitive inventory: Container, SkipLink, Button, StatusBadge, and AppShell layout.
 - Shape system enforcing a disciplined 6px component radius, pill radius exclusively for status badges, and an explicit ban on large rounded cards.
 - Design dials calibrated to DESIGN_VARIANCE 6, MOTION_INTENSITY 2, and VISUAL_DENSITY 4.
 - Explicit deferral of future light mode; no automatic light/dark behavior and no theme toggle in Phase 01.
@@ -58,8 +58,8 @@ Specific architectural anchors from `architecture.md` governing this phase inclu
 - Keyboard navigation, visible focus indicators (violet-300), and reduced-motion rules.
 - WCAG 2.2 AA accessibility requirements, verified contrast evidence, and the rule that color is never the only status indicator.
 - Dependency evaluation recording that shadcn/ui remains unnecessary for this minimal primitive set.
-- Vitest and React Testing Library component test suite.
-- Playwright Chromium end-to-end test suite verifying landmarks, skip link, viewports, zero horizontal overflow, reduced motion, security headers, and contrast.
+- Vitest and React Testing Library component test suite (39 tests across 9 files).
+- Playwright Chromium end-to-end test suite (8 tests) verifying landmarks, skip link, responsive viewports (320px to 1440px), zero horizontal overflow, reduced motion, security headers, 404 title/navigation, and AxeBuilder automated WCAG scans with zero violations.
 - Preservation of baseline security headers in `proxy.ts` and `noindex, nofollow, noarchive` search directives.
 
 ### 4.2 Non-Goals
@@ -156,6 +156,8 @@ The user explicitly reviewed and rejected the following directions:
 | `primary-active`       | `violet-400` (`var(--color-violet-400)`)   | Pressed/active feedback state for primary interactive elements         |
 | `primary-foreground`   | `zinc-950` (`var(--color-zinc-950)`)       | Text and icon content rendered on primary mauve fills                  |
 | `secondary`            | `zinc-800` (`var(--color-zinc-800)`)       | Supporting interactive elements, secondary button fill                 |
+| `secondary-hover`      | `zinc-700` (`var(--color-zinc-700)`)       | Hover feedback state for secondary interactive elements                |
+| `secondary-active`     | `zinc-600` (`var(--color-zinc-600)`)       | Pressed/active feedback state for secondary interactive elements       |
 | `secondary-foreground` | `zinc-100` (`var(--color-zinc-100)`)       | Text and icon content rendered on secondary fills                      |
 | `muted`                | `zinc-800` (`var(--color-zinc-800)`)       | Subdued containers, disabled control fills                             |
 | `muted-foreground`     | `zinc-400` (`var(--color-zinc-400)`)       | Subdued text, secondary labels, helper descriptions                    |
@@ -218,7 +220,7 @@ All Mauve Precision token combinations have been verified against WCAG 2.2 AA co
 
 - 4px baseline grid following Tailwind default scale (`1` = 4px, `2` = 8px, `3` = 12px, `4` = 16px, `6` = 24px, `8` = 32px, `12` = 48px).
 - Containers: Content is constrained to responsive maximum widths:
-  - Default layout container: `max-w-5xl` (1024px) or `max-w-7xl` (1280px).
+  - Default layout container: `max-w-7xl` (1280px).
   - Responsive padding: `px-4 sm:px-6 lg:px-8`.
 - Component shape rules:
   - 6px radius (`rounded-[6px]`) on buttons, form controls, and panels.
@@ -235,7 +237,8 @@ All Mauve Precision token combinations have been verified against WCAG 2.2 AA co
   - Suppressing focus outlines with `outline-none` without an explicit accessible replacement is prohibited.
 - Hover and active states:
   - Interactive controls provide subtle, accessible visual feedback on hover and press states without shifting layout geometry.
-  - Primary button transitions use `violet-300` (default) to `violet-200` (hover) and `violet-400` (active).
+  - Primary button transitions use `violet-300` (default) to `violet-200` (`primary-hover`) and `violet-400` (`primary-active`).
+  - Secondary button transitions use `zinc-800` (default) to `zinc-700` (`secondary-hover`) and `zinc-600` (`secondary-active`).
 - Motion rules:
   - Calibrated to MOTION_INTENSITY 2 (nearly static).
   - Subtle, functional transitions only (100ms to 150ms ease-out) for hover, active, and focus states.
@@ -257,7 +260,7 @@ All Mauve Precision token combinations have been verified against WCAG 2.2 AA co
 
 ### 7.5 React Server Component (RSC) and Client Boundaries
 
-- Server Components by default: Root layout, Shell, Container, Typography wrappers, StatusBadge, route Loading, and route NotFound components remain pure React Server Components.
+- Server Components by default: Root layout, AppShell, Container, StatusBadge, route Loading, and route NotFound components remain pure React Server Components.
 - Client Components (`"use client"`): Restricted exclusively to components that require DOM events, browser APIs, or local state:
   - Route error boundary (`app/error.tsx`).
   - Interactive navigation toggles if dynamic client state is required.
@@ -270,52 +273,54 @@ Phase 01 implements a minimal, disciplined set of UI primitives designed for the
 ### 8.1 Primitive Specifications
 
 1. `Container`
-   - Purpose: Standard layout wrapper providing max-width constraint and responsive horizontal padding.
+   - Purpose: Standard layout wrapper providing max-width constraint (`max-w-7xl`) and responsive horizontal padding (`px-4 sm:px-6 lg:px-8`).
    - Component type: React Server Component.
-   - Props: `children`, `className`, `as` (semantic HTML tag, defaults to `div`).
+   - Implementation: Intentional lightweight `div` wrapper with `children`, `className`, and native `div` attributes (`HTMLAttributes<HTMLDivElement>`); no polymorphic `as` prop.
+   - Props: `children`, `className`, plus native HTML `div` attributes.
 
 2. `SkipLink`
    - Purpose: Direct keyboard bypass link jumping immediately to the primary content landmark.
    - Component type: React Server Component.
    - Target: `#main-content`.
    - Behavior: Visually hidden off-screen by default; becomes prominently visible at the top of the viewport when focused via keyboard navigation, styled with a high-contrast `violet-300` outline on `zinc-950`.
-   - Props: `href` (defaults to `#main-content`), `children` (defaults to "Skip to main content").
+   - Props: `href` (defaults to `#main-content`), `children` (defaults to "Skip to main content"), `className`, plus native anchor attributes (`AnchorHTMLAttributes<HTMLAnchorElement>`).
 
 3. `Button`
-   - Purpose: Standard accessible button or button-styled anchor.
-   - Component type: Shared presentational component that remains server-renderable. A client caller owns any event handler or local state.
+   - Purpose: Standard accessible button for user actions.
+   - Component type: Shared presentational component renderable by server and client callers.
    - Corner radius: 6px (`rounded-[6px]`).
    - Variants:
-     - `primary`: Background `violet-300`, text `zinc-950`, hover `bg-violet-200`, active `bg-violet-400`.
-     - `secondary`: Background `zinc-800`, text `zinc-100`, hover `bg-zinc-700`.
-     - `outline`: Border `zinc-500`, background transparent, text `zinc-100`, hover `bg-zinc-900`.
-     - `ghost`: Background transparent, text `zinc-100`, hover `bg-zinc-900`.
-   - Sizes: `sm`, `md`, `lg` (all satisfying touch target requirements).
-   - Behavior: Native `<button>` for actions and a separate link treatment for navigation. Native buttons use the `disabled` attribute; disabled links use `aria-disabled="true"` and cannot navigate.
-   - Props: `variant`, `size`, `disabled`, `children`, `className`, plus native button attributes.
+     - `primary`: Background `violet-300`, text `zinc-950`, hover `bg-primary-hover` (`violet-200`), active `bg-primary-active` (`violet-400`).
+     - `secondary`: Background `zinc-800`, text `zinc-100`, hover `bg-secondary-hover` (`zinc-700`), active `bg-secondary-active` (`zinc-600`).
+     - `outline`: Border `zinc-500`, background transparent, text `zinc-100`, hover `bg-surface`, active `bg-surface-raised`.
+     - `ghost`: Background transparent, text `zinc-100`, hover `bg-surface`, active `bg-surface-raised`.
+   - Sizes: `sm` (`min-h-11 px-3 py-2 text-xs`), `md` (`min-h-11 px-4 py-2.5 text-sm`), `lg` (`min-h-11 px-6 py-3 text-base`) (all satisfying touch target requirements with `min-h-11`).
+   - Behavior: Native `<button>` only for user actions. Navigation uses directly styled Next.js `Link` elements; there is no anchor or disabled-link API on `Button`. Disabled state uses the native `disabled` attribute (`disabled:cursor-not-allowed disabled:opacity-50`).
+   - Props: `type` (defaults to `"button"`), `variant`, `size`, `disabled`, `children`, `className`, plus native button attributes (`ButtonHTMLAttributes<HTMLButtonElement>`).
 
 4. `StatusBadge`
    - Purpose: Inline visual status and classification tag.
    - Component type: React Server Component.
    - Corner radius: Full pill (`rounded-full`), reserved strictly for badges.
    - Variants:
-     - `neutral`: Background `zinc-800`, text `zinc-300`.
-     - `success`: Background `emerald-950`, text `emerald-300`.
-     - `warning`: Background `amber-950`, text `amber-300`.
-     - `danger`: Background `rose-950`, text `rose-300`.
-     - `info`: Background `sky-950`, text `sky-300`.
-   - Accessibility requirement: Strict compliance with the color-not-only rule. Every badge renders an explicit text label. A supporting icon is decorative and hidden from assistive technology when the label already communicates the state.
-   - Props: `variant`, `icon`, `children`, `className`.
+     - `neutral`: Background `muted` (`zinc-800`), text `muted-foreground` (`zinc-400`).
+     - `success`: Background `success-surface` (`emerald-950`), text `success` (`emerald-300`).
+     - `warning`: Background `warning-surface` (`amber-950`), text `warning` (`amber-300`).
+     - `danger`: Background `danger-surface` (`rose-950`), text `danger` (`rose-300`).
+     - `info`: Background `info-surface` (`sky-950`), text `info` (`sky-300`).
+   - Accessibility requirement: Strict compliance with the color-not-only rule. Requires explicit string `children` (`children: string`) so color is never the only indicator of status. No `icon` prop in Phase 01.
+   - Props: `variant`, `children: string` (required explicit string), `className`, plus native span attributes (`HTMLAttributes<HTMLSpanElement>`).
 
-5. `Shell`
+5. `AppShell`
    - Purpose: Root application layout frame structuring standard page landmarks on the dark `zinc-950` canvas.
    - Component type: React Server Component.
+   - Component name: `AppShell` (exported from `components/layout/app-shell.tsx`).
    - Landmark structure:
-     - Banner: `<header>` containing club identification and a future navigation slot.
-     - Navigation: `<nav aria-label="Main navigation">` providing primary links.
-     - Main content: `<main id="main-content" tabindex="-1">` receiving focus from `SkipLink`.
-     - Footer: `<footer>` containing the minimal project and license context appropriate to this phase.
-   - Props: `children`.
+     - Banner: `<header>` containing LOGOS brand link.
+     - Navigation: `<nav aria-label="Main navigation">` providing primary links using directly styled Next.js `Link` elements.
+     - Main content: `<main id="main-content" tabIndex={-1}>` receiving focus from `SkipLink`.
+     - Footer: `<footer>` containing the minimal project ("The Tokyo International School Math Club") and license ("MIT License") context.
+   - Props: `children`, `className`.
 
 ### 8.2 Primitive Boundaries and Library Independence
 
@@ -331,8 +336,8 @@ Phase 01 establishes accessible, cohesive route states under the App Router conv
 
 - Component type: React Server Component.
 - Behavior: Renders an accessible skeleton shell on `zinc-950` with `zinc-900` panels and `zinc-800` pulses while server components stream.
-- Accessibility: Includes `aria-busy="true"` on the loading container and an accessible screen-reader announcement (`<span className="sr-only">Loading page content...</span>`).
-- Layout integration: Renders cleanly inside the root Shell without causing layout shift.
+- Accessibility: Includes `role="status"`, `aria-live="polite"`, and `aria-busy="true"` on the loading container, presenting visible "Loading content..." announcement text (not a separate `sr-only` span).
+- Layout integration: Renders cleanly inside the root AppShell without causing layout shift.
 
 ### 9.2 Error State (`app/error.tsx`)
 
@@ -347,8 +352,9 @@ Phase 01 establishes accessible, cohesive route states under the App Router conv
 
 - Component type: React Server Component.
 - Behavior: Renders when `notFound()` is invoked or an unknown route is accessed.
-- Content: Clear statement on the dark canvas that the requested page does not exist, accompanied by a Mauve Precision button or link to return home.
-- Preserved protections: Preserves standard Shell landmarks, layout styling, and security headers (`X-Robots-Tag: noindex, nofollow, noarchive`).
+- Metadata: Defines a distinct page `Metadata` title (`title: "Page Not Found | LOGOS Web"`).
+- Content: Clear statement on the dark canvas that the requested page does not exist, accompanied by a Mauve Precision styled Next.js `Link` returning home.
+- Preserved protections: Preserves standard AppShell landmarks, layout styling, and security headers (`X-Robots-Tag: noindex, nofollow, noarchive`).
 
 ## 10. WCAG 2.2 AA Requirements and Invariants
 
@@ -393,10 +399,10 @@ The repository maintains a minimal, locked dependency graph:
 - Tailwind CSS `4.3.3`
 - Vitest `4.1.11`, React Testing Library `16.3.3`, Playwright `1.62.1`
 
-### Decision on shadcn/ui
+### 11.1 Decision on shadcn/ui
 
 - Architecture stance (`architecture.md` Section 5 and Section 14): "shadcn/ui, selectively - Use for complex accessible controls; it does not define LOGOS visual identity."
-- Phase 01 evaluation: The primitives required in this phase (Container, SkipLink, Button, StatusBadge, Shell, route states) are lightweight, standard HTML elements easily authored with clean, accessible React code and Tailwind utility classes.
+- Phase 01 evaluation: The primitives required in this phase (Container, SkipLink, Button, StatusBadge, AppShell, route states) are lightweight, standard HTML elements easily authored with clean, accessible React code and Tailwind utility classes.
 - Explicit decision: shadcn/ui remains unnecessary for this minimal primitive set.
 - No shadcn CLI, Radix UI packages, or third-party component libraries will be installed in Phase 01.
 - Introducing shadcn/ui is deferred until a later phase (such as Phase 07 or Phase 09) demonstrates a concrete requirement for a complex interactive control (such as an accessible combobox, calendar picker, or modal dialog) that justifies third-party runtime dependencies.
@@ -407,70 +413,57 @@ Phase 01 establishes a dual-tier automated test suite covering unit, accessibili
 
 ### 12.1 Vitest and React Testing Library Suite
 
-- Primitive unit tests:
-  - `Container`: Verifies rendering, custom tag support, class pass-through.
-  - `SkipLink`: Verifies accessible role, default link text, target `#main-content`, and focus visibility classes with `violet-300` focus outline.
-  - `Button`: Verifies button vs anchor element rendering, 6px radius (`rounded-[6px]`), Mauve Precision variant and size classes, disabled state (`aria-disabled`), keyboard trigger event handling.
-  - `StatusBadge`: Verifies rendering of all five variants, pill radius (`rounded-full`), inclusion of explicit text content (color-not-only rule), and ARIA attributes.
-  - `Shell`: Verifies semantic landmarks (`banner`, `navigation`, `main`, `contentinfo`), presence of skip link target, dark background styling, and children rendering.
-- Route template tests:
-  - `app/loading.tsx`: Verifies `aria-busy="true"` attribute and screen-reader announcement.
-  - `app/error.tsx`: Verifies error message presentation, "Try again" action calling `reset()`, home navigation link, and lack of sensitive stack trace exposure.
-  - `app/not-found.tsx`: Verifies 404 message, home navigation link, and landmark structure.
+The unit and component test suite consists of 39 Vitest tests across 9 files:
+
+- Primitives (`components/`):
+  - `components/layout/container.test.tsx` (3 tests): Verifies rendering children accessibly, applying custom className alongside layout styling, and passing through native HTML div attributes without a polymorphic `as` prop.
+  - `components/layout/skip-link.test.tsx` (4 tests): Verifies default text and `#main-content` target href, custom target href and children, focus-visible keyboard bypass styling (`violet-300` focus outline), and attribute/className pass-through.
+  - `components/ui/button.test.tsx` (6 tests): Verifies default button type (`button`), variant (`primary`), and size (`md`); onClick handler invocation when clicked; native `disabled` attribute and styling when disabled; all variant classes (`primary`, `secondary`, `outline`, `ghost`); all size classes (`sm`, `md`, `lg`) satisfying 44px minimum touch targets; and submit type / custom attribute support.
+  - `components/ui/status-badge.test.tsx` (8 tests): Verifies default neutral variant and pill radius (`rounded-full`); rendering all 5 variants (`neutral`, `success`, `warning`, `danger`, `info`) with expected semantic color token classes; compliance with the color-not-only rule by requiring explicit string children; and attribute/className pass-through.
+  - `components/layout/app-shell.test.tsx` (6 tests): Verifies core semantic landmarks (`banner`, `navigation`, `main`, `contentinfo`); main content structure with `#main-content` and `tabindex="-1"`; skip link targeting `#main-content`; directly styled Next.js navigation links to home; 44px touch target sizing conventions on header links; footer organization and MIT license context; and custom className pass-through on the main landmark.
+- Route templates and pages (`app/`):
+  - `app/loading.test.tsx` (2 tests): Verifies accessible status container with `role="status"`, `aria-live="polite"`, and `aria-busy="true"`; presents visible "Loading content..." announcement text.
+  - `app/error.test.tsx` (4 tests): Verifies alert role, error heading, and status badge; sanitization withholding stack traces and raw error messages; reset callback invocation on "Try again" button click; and accessible home navigation link.
+  - `app/not-found.test.tsx` (3 tests): Verifies distinct page metadata title (`Page Not Found | LOGOS Web`); 404 heading and descriptive message; and accessible return home link.
+  - `app/page.test.tsx` (2 tests): Verifies neutral LOGOS foundation identification and foundation principles section with correct heading hierarchy.
 
 ### 12.2 Playwright (Chromium) End-to-End Suite
 
-The end-to-end suite runs against the production build (`next build && next start`):
+The end-to-end suite in `e2e/smoke.spec.ts` executes 8 Chromium tests against the production build (`next build && next start`):
 
-1. Skip Link and Keyboard Navigation
-   - Loads the root page, presses `Tab`, and asserts the skip link receives initial focus.
-   - Presses `Enter` on the skip link and asserts focus shifts to `#main-content`.
-
-2. Landmark Verification
-   - Verifies the banner, labeled navigation, `<main id="main-content">`, and content information landmarks through their native roles.
-   - Validates heading hierarchy starting at `h1` without skipping levels.
-
-3. Responsive Layout and Horizontal Overflow
-   - Tests viewports:
-     - Mobile: 375x667 (iPhone SE), 390x844 (iPhone 12/13/14)
-     - Tablet: 768x1024 (iPad)
-     - Desktop: 1280x720 (Standard HD), 1440x900 (MacBook), 1920x1080 (FHD)
-   - Evaluates on each viewport: `document.documentElement.scrollWidth <= window.innerWidth` (zero horizontal overflow down to 320px width).
-
-4. Reduced Motion
-   - Emulates `prefers-reduced-motion: reduce` in the browser context.
-   - Asserts transitions and animations are disabled or have zero duration.
-
-5. Accessibility and Contrast Verification
-   - Evaluates color contrast across all rendered text and interactive controls against WCAG 2.2 AA thresholds and verified Mauve Precision contrast evidence.
-   - Verifies no status or information is communicated through color alone.
-
-6. Security Headers and Noindex Preservation
-   - Verifies that `/` and an arbitrary invalid route preserve all baseline security response headers from `proxy.ts`. Loading and error files are special route states, not directly addressable URLs, and are verified at the component level.
-     - `Content-Security-Policy`
-     - `Permissions-Policy`
-     - `Referrer-Policy: no-referrer`
-     - `X-Content-Type-Options: nosniff`
-     - `X-Frame-Options: DENY`
-     - `X-Robots-Tag: noindex, nofollow, noarchive`
-     - `<meta name="robots" content="noindex, nofollow" />`
+1. **Neutral application and security protections**: Loads the root page (`/`), asserts status 200, checks heading `h1` "LOGOS Web", confirms robots meta tag (`noindex, nofollow`), verifies zero browser console or page errors, and validates response security headers (`Content-Security-Policy`, `Permissions-Policy`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-Robots-Tag: noindex, nofollow, noarchive`).
+2. **Dynamic health endpoint**: Calls `/health`, asserts status 200, verifies JSON body `{ status: "ok" }`, validates `Cache-Control: no-store`, and confirms baseline security headers.
+3. **Semantic landmarks and heading hierarchy**: Verifies `banner`, `navigation` ("Main navigation"), `main` (`#main-content`), and `contentinfo` landmarks, along with a strict heading sequence (`h1` "LOGOS Web", `h2` "Foundation Principles", and `h3` principle subsections).
+4. **Skip link and keyboard navigation**: Simulates initial `Tab` keypress to assert the skip link is focused and visible; simulates `Enter` keypress to confirm focus shifts directly to `#main-content`.
+5. **404 route handling, title, and navigation**: Navigates to an unmapped route (`/non-existent-route`), confirms status 404, verifies distinct title "Page Not Found | LOGOS Web", validates baseline security headers, asserts 404 heading and descriptive text, clicks "Return home", and verifies navigation back to `/`.
+6. **Responsive layout and horizontal overflow**: Iterates across 5 target viewport widths (320px, 390px, 768px, 1280px, 1440px) and asserts zero horizontal overflow (`document.documentElement.scrollWidth <= window.innerWidth`) down to 320px width.
+7. **Reduced motion compliance**: Emulates `prefers-reduced-motion: reduce`, asserts media query matches, and evaluates computed transition durations to confirm instantaneous `0s` transitions.
+8. **Automated WCAG accessibility scan**: Executes `AxeBuilder` from `@axe-core/playwright` 4.13.0 across rulesets (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`) on both the home page (`/`) and the 404 page (`/non-existent-route`), confirming zero critical, serious, or minor accessibility violations.
 
 ## 13. Work Order and Commit Checkpoints
 
 Phase 01 implementation proceeds through structured, coherent Conventional Commits on the feature branch:
 
-1. `feat: configure mauve precision semantic tokens and baseline typography`
-   - Configures CSS custom properties referencing Tailwind palette variables for Mauve Precision, system sans typography, and dark-only base styling.
-2. `feat: add core accessible ui primitives`
-   - Implements lightweight Container, SkipLink, Button (6px radius), StatusBadge (pill radius), and Shell primitives conforming to Mauve Precision.
-3. `feat: create application shell and route state templates`
-   - Implements the dark-first root layout shell, `app/loading.tsx`, `app/error.tsx`, and `app/not-found.tsx`.
-4. `test: add unit and browser accessibility tests`
-   - Adds Vitest/RTL component tests and Playwright Chromium end-to-end tests covering landmarks, skip link, viewports, overflow, reduced motion, headers, and verified contrast.
-5. `docs: complete phase 01 interface foundation`
-   - Updates planning documentation with completion evidence, test results, and Phase 02 handoff details.
+1. `c92bb74`: `docs: plan phase 01 interface foundation`
+   - Establishes the initial Phase 01 specification, token inventory, and architectural references.
+2. `dc6187c`: `docs: revise phase 01 visual direction`
+   - Records the user-approved Mauve Precision visual direction, design dials, and rejected alternatives.
+3. `a834099`: `feat: establish semantic design tokens`
+   - Configures CSS custom properties referencing Tailwind palette variables for Mauve Precision, system sans typography, and dark-only base styling in `app/globals.css`.
+4. `8d8bc14`: `feat: add accessible interface primitives`
+   - Implements lightweight `Container` (div wrapper), `SkipLink`, `Button` (native button, 6px radius), and `StatusBadge` (pill radius, required string children).
+5. `0e38e7a`: `feat: build responsive application shell`
+   - Implements the `AppShell` component structuring semantic landmarks (`header`, `nav`, `main`, `footer`) on the dark `zinc-950` canvas.
+6. `a69f19a`: `feat: add route feedback states`
+   - Implements dark-first `app/loading.tsx` (visible loading text), `app/error.tsx`, and `app/not-found.tsx` with distinct metadata title.
+7. `225f4a9`: `test: cover interface foundation`
+   - Adds 39 Vitest unit/component tests across 9 files and 8 Playwright Chromium end-to-end tests including AxeBuilder accessibility scans.
+8. `e81f260`: `fix: polish foundation interactions`
+   - Polishes touch target sizes, mobile-to-desktop spacing, focus outlines, and layout density.
+9. Forthcoming documentation commit (pending closeout): `docs: document phase 01 verification`
+   - Aligns `docs/phase-01.md`, `README.md`, `CONTRIBUTING.md`, and `SECURITY.md` with the verified local state while preserving pending remote merge gates.
 
-Each commit must be atomic, contain one coherent concern, pass local quality checks, and avoid introducing secrets or unapproved dependencies.
+Each commit is atomic, contains one coherent concern, passes local quality checks, and avoids introducing unapproved dependencies or secrets.
 
 ## 14. System Boundaries and Invariants
 
@@ -491,33 +484,54 @@ Each commit must be atomic, contain one coherent concern, pass local quality che
 
 ## 15. Completion Gate
 
+### 15.1 Completion Gate Criteria
+
 Phase 01 is complete only when all of the following criteria are verified with reviewable evidence:
 
 1. Approved design direction: Mauve Precision is the recorded, approved design direction; implementation conforms strictly to its zinc neutral family, mauve (Tailwind violet) accent mappings, 6px component radius, pill badges, and dark-only scope.
-2. Semantic tokens implemented: Semantic color tokens are defined via CSS custom properties referencing official Tailwind CSS palette variables (`zinc-950`, `zinc-100`, `zinc-900`, `zinc-800`, `violet-300`, `violet-200`, `violet-400`, `zinc-500`, `zinc-400`, `emerald-300`, `emerald-950`, `amber-300`, `amber-950`, `rose-300`, `rose-950`, `sky-300`, `sky-950`) without arbitrary hex duplicates.
-3. Primitives delivered: Lightweight `Container`, `SkipLink`, `Button` (6px radius), `StatusBadge` (pill radius), and `Shell` are implemented, documented, and exported.
-4. Route states delivered: Accessible dark-first `app/loading.tsx`, `app/error.tsx`, and `app/not-found.tsx` states are implemented and integrated into the application shell.
+2. Semantic tokens implemented: Semantic color tokens are defined via CSS custom properties referencing official Tailwind CSS palette variables (`zinc-950`, `zinc-100`, `zinc-900`, `zinc-800`, `zinc-700`, `zinc-600`, `violet-300`, `violet-200`, `violet-400`, `zinc-500`, `zinc-400`, `emerald-300`, `emerald-950`, `amber-300`, `amber-950`, `rose-300`, `rose-950`, `sky-300`, `sky-950`) without arbitrary hex duplicates.
+3. Primitives delivered: Lightweight `Container` (div wrapper without polymorphic `as`), `SkipLink`, `Button` (native button only, 6px radius), `StatusBadge` (pill radius, required string children), and `AppShell` are implemented, documented, and exported.
+4. Route states delivered: Accessible dark-first `app/loading.tsx` (with visible "Loading content..." text), `app/error.tsx`, and `app/not-found.tsx` (with distinct metadata title) are implemented and integrated into the application shell.
 5. Keyboard navigation and focus: Full keyboard navigability is verified; focus rings use `violet-300` with high visibility and verified 10.78:1 contrast against the `zinc-950` canvas.
 6. Skip link verified: The skip link is the first focusable element and jumps keyboard focus directly to `#main-content`.
 7. Color-not-only rule and status governance: All status badges and alerts pair color with explicit text labels. Status tokens act strictly as functional exceptions, not competing brand accents.
 8. WCAG 2.2 AA contrast verified: Normal text achieves at least 4.5:1 contrast; large text and UI boundaries achieve at least 3:1 contrast; all verified contrast figures (including foreground/background 18.10:1 and foreground/surface 16.12:1) are confirmed in automated checks.
-9. Responsive and overflow verified: Layout renders cleanly across mobile (375px, 390px), tablet (768px), and desktop (1280px, 1440px, 1920px) viewports with zero horizontal overflow down to 320px width.
+9. Responsive and overflow verified: Layout renders cleanly across mobile (320px, 390px), tablet (768px), and desktop (1280px, 1440px) viewports with zero horizontal overflow down to 320px width.
 10. Reduced motion verified: Animations and transitions are disabled or instantaneous under `prefers-reduced-motion: reduce`.
 11. Dependency policy respected: shadcn/ui remains unnecessary for this primitive set, and no unapproved third-party component libraries are installed.
 12. Security protections preserved: All baseline security headers in `proxy.ts` and `noindex, nofollow, noarchive` robots directives are active on all routes and error states.
-13. Automated tests pass: Vitest/RTL unit tests and Playwright Chromium end-to-end tests pass cleanly.
+13. Automated tests pass: 39 Vitest unit/component tests across 9 files and 8 Playwright Chromium end-to-end tests (including AxeBuilder automated WCAG scans with zero violations) pass cleanly.
 14. Aggregate verification passes: `pnpm check` executes formatting, linting, type-checking, unit tests, build, and end-to-end tests without errors.
 15. Clean repository: No secrets, credentials, environment files, or real student data exist in the branch.
 16. Commit checkpoints recorded: Implementation consists of coherent Conventional Commits on the feature branch.
 
+### 15.2 Current Local Verification Evidence and Pending Closeout Status
+
+| Verification Dimension | Command / Harness   | Status / Result                                                                                                      |
+| ---------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Code Formatting        | `pnpm format:check` | **Passed**: Clean, zero formatting diffs across repository                                                           |
+| Linting                | `pnpm lint`         | **Passed**: Clean, zero ESLint warnings or errors                                                                    |
+| Type Checking          | `pnpm typecheck`    | **Passed**: Clean, strict TypeScript (`tsc --noEmit`) passes with zero errors                                        |
+| Component Unit Tests   | `pnpm test`         | **Passed**: 39/39 Vitest tests pass across 9 test files                                                              |
+| Production Build       | `pnpm build`        | **Passed**: Next.js production build succeeds with optimized outputs                                                 |
+| Browser E2E Suite      | `pnpm test:e2e`     | **Passed**: 8/8 Playwright Chromium tests pass against production build across viewports (320, 390, 768, 1280, 1440) |
+| Accessibility Scans    | `AxeBuilder`        | **Passed**: Zero violations on `/` and 404 (`/non-existent-route`) via `@axe-core/playwright` 4.13.0                 |
+| Pull Request Review    | GitHub PR           | **Pending**: PR creation, review, and PR reference pending                                                           |
+| Protected CI Pipeline  | GitHub Actions      | **Pending**: Remote CI workflow execution on pull request pending                                                    |
+| Vercel Preview         | Vercel Hobby sin1   | **Pending**: Access-protected preview deployment verification pending                                                |
+| Merge to `main`        | Squash merge        | **Pending**: Protected squash merge commit SHA into `main` pending                                                   |
+| Post-Merge Clean-Main  | Clean clone check   | **Pending**: Post-merge verification on clean `main` pending                                                         |
+
 ## 16. Handoff to Phase 02
 
-Upon satisfying the completion gate, Phase 01 hands off:
+Phase 01 remains **In progress** until pull request acceptance, CI verification, and squash merge into `main` are complete. Phase 02 has not started.
 
-- A stable, responsive application shell and Mauve Precision semantic token system.
-- Reusable accessible UI primitives ready for data-driven views.
+Upon satisfying the completion gate and merging to `main`, Phase 01 hands off:
+
+- A stable, responsive application shell (`AppShell`) and Mauve Precision semantic token system.
+- Reusable accessible UI primitives (`Container`, `SkipLink`, `Button`, `StatusBadge`) ready for data-driven views.
 - Standard route loading, error, and not-found templates.
-- An expanded test suite covering component accessibility and browser layout behavior.
+- An expanded test suite covering component accessibility (39 Vitest tests across 9 files) and browser layout behavior (8 Playwright Chromium tests with zero Axe violations).
 - Documented design tokens ready to style future forms and data tables.
 
-Phase 02 (Data and environment foundation) builds upon this foundation to introduce Neon PostgreSQL in Singapore, Drizzle ORM, version-controlled migrations, least-privilege database roles, and synthetic fixtures without needing to revise or refactor the user interface architecture.
+Phase 02 (Data and environment foundation) will build upon this foundation to introduce Neon PostgreSQL in Singapore, Drizzle ORM, version-controlled migrations, least-privilege database roles, and synthetic fixtures without needing to revise or refactor the user interface architecture.
