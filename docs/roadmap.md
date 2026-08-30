@@ -67,13 +67,13 @@ Before implementation begins, the relevant `phase-##.md` is reviewed and brought
 
 ### Branches and pull requests
 
-- `main` is the protected production branch.
+- `main` is the protected integration branch and becomes the Vercel Production branch only at the Phase 11 launch gate.
 - Work uses short-lived branches and pull requests.
 - No permanent `develop` branch is used.
 - Pull requests receive CI checks and, when configured, Vercel and Neon previews.
 - Preview databases contain schema and synthetic fixtures only.
 - Approved pull requests are squash-merged with a simple Conventional Commit title.
-- A merge to `main` may create a Vercel deployment labelled **Production** before the public launch. Through Phase 10, every Vercel Preview and Production URL remains access-protected, marked `noindex, nofollow`, disconnected from real student data, and absent from the public custom domain. Phase 11 controls public exposure.
+- Through Phase 10, every pull request and `main` commit receives only a Vercel Preview protected by Vercel Authentication, marked `noindex, nofollow`, disconnected from real student data, and not published through any Production or custom domain. The existing domain registration may remain attached to the provider project; Phase 11 alone may map `main` to Vercel Production and control public exposure.
 
 ### Commits
 
@@ -87,16 +87,16 @@ type: short imperative description
 
 Scopes are optional. The common types are:
 
-| Type | Use |
-| --- | --- |
-| `feat` | A new user-visible or operational capability |
-| `fix` | A defect correction |
-| `docs` | Documentation-only work |
-| `test` | Test additions or corrections |
-| `refactor` | Internal restructuring without behavior change |
-| `build` | Dependencies, build configuration, or packaging |
-| `ci` | GitHub Actions, Dependabot, or release automation |
-| `chore` | Repository maintenance and non-product setup |
+| Type       | Use                                               |
+| ---------- | ------------------------------------------------- |
+| `feat`     | A new user-visible or operational capability      |
+| `fix`      | A defect correction                               |
+| `docs`     | Documentation-only work                           |
+| `test`     | Test additions or corrections                     |
+| `refactor` | Internal restructuring without behavior change    |
+| `build`    | Dependencies, build configuration, or packaging   |
+| `ci`       | GitHub Actions, Dependabot, or release automation |
+| `chore`    | Repository maintenance and non-product setup      |
 
 Commit history should mark natural checkpoints. It should not be split artificially by file, and unrelated work should not be combined merely to reduce the number of commits. Secrets, generated output, production data, and local environment files are never committed.
 
@@ -152,7 +152,7 @@ flowchart LR
 
 **Outcome:** A reproducible Next.js, React, TypeScript, and pnpm project with the agreed conventions, automated quality checks, repository automation, and a working preview-delivery path.
 
-**Major scope:** Application scaffold, runtime pins, linting, formatting, testing harnesses, GitHub Actions, Dependabot, Release Please, private-repository branch protection, protected Vercel delivery, and contributor documentation.
+**Major scope:** Application scaffold, runtime pins, linting, formatting, testing harnesses, GitHub Actions, Dependabot, Release Please, GitHub Free protection for the public open-source repository, protected Vercel Preview delivery, and contributor documentation.
 
 **Completion point:** A fresh clone installs from the lockfile and passes formatting, linting, type-checking, tests, build, security checks, and protected deployment smoke checks. The repository contains no secrets or production data, and required branch controls are active.
 
