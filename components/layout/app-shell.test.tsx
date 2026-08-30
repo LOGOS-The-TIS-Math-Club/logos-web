@@ -1,0 +1,88 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import { AppShell } from "./app-shell";
+
+describe("AppShell", () => {
+  it("renders all core semantic landmarks", () => {
+    render(
+      <AppShell>
+        <p>Main content area</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Main navigation" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("main")).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+  });
+
+  it("structures the main content landmark with #main-content and tabindex -1", () => {
+    render(
+      <AppShell>
+        <p>Page body</p>
+      </AppShell>,
+    );
+
+    const main = screen.getByRole("main");
+    expect(main).toHaveAttribute("id", "main-content");
+    expect(main).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByText("Page body")).toBeInTheDocument();
+  });
+
+  it("renders the skip link targeting #main-content", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    const skipLink = screen.getByRole("link", {
+      name: "Skip to main content",
+    });
+    expect(skipLink).toBeInTheDocument();
+    expect(skipLink).toHaveAttribute("href", "#main-content");
+  });
+
+  it("renders navigation links to home", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    const logosLink = screen.getByRole("link", { name: "LOGOS" });
+    expect(logosLink).toHaveAttribute("href", "/");
+
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    const homeLink = screen.getByRole("link", { name: "Home" });
+    expect(nav).toContainElement(homeLink);
+    expect(homeLink).toHaveAttribute("href", "/");
+  });
+
+  it("renders footer information with organization and license", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    const footer = screen.getByRole("contentinfo");
+    expect(footer).toHaveTextContent(
+      "The Tokyo International School Math Club",
+    );
+    expect(footer).toHaveTextContent("MIT License");
+  });
+
+  it("applies custom className to the main landmark", () => {
+    render(
+      <AppShell className="custom-shell-main">
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("main")).toHaveClass("custom-shell-main");
+  });
+});
