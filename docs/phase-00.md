@@ -1,6 +1,6 @@
 # Phase 00 — Project and Delivery Foundation
 
-> - Status: In progress
+> - Status: Completed
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
 > - Predecessor: None
@@ -304,14 +304,16 @@ Phase 01 begins from this verified foundation and owns the semantic Tailwind tok
 
 ## 13. Completion record
 
-This section is populated when the completion gate passes. Until then, the authoritative status remains **In progress**.
+Phase 00 completed on 2026-08-30. This record becomes effective on `main` through the protected squash merge of [pull request #1](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/1); GitHub's pull-request record is the durable link to the resulting squash commit.
 
-The closeout record will contain:
+- **Version:** The private manifest remains `0.0.0`. The deterministic Release Please verification reports `0.1.0` as the first release proposal; no release was created merely to close this phase.
+- **Toolchain:** Node.js `24.20.0`, pnpm `11.24.0`, Next.js `16.3.3`, React and React DOM `19.2.8`, TypeScript `5.9.3`, Tailwind CSS `4.3.3`, Vitest `4.1.11`, and Playwright `1.62.1` are pinned or constrained as recorded in `package.json` and the lockfile.
+- **Scripts:** `dev`, `build`, `start`, `format`, `format:check`, `lint`, `typecheck`, `test`, `test:watch`, `test:e2e`, `test:e2e:ci`, `release:verify`, and the aggregate `check` command are available.
+- **Verification:** A fresh clone completed a frozen-lockfile install and `pnpm check`. Local and GitHub runs passed formatting, ESLint, strict TypeScript, the Vitest component test, the production build, Chromium smoke tests, full-history Gitleaks scanning, and a high-severity pnpm audit. Pull request #1 passed the required `Quality`, `Browser smoke`, and `Supply chain` checks; a controlled failing commit separately proved that an unsuccessful required check blocks merging.
+- **Repository controls:** The repository is public under MIT after tracked-file, history, metadata, ignored-file, and secret-exposure review. `main` requires a pull request, strict required checks, linear history, and resolved conversations; administrator enforcement is enabled and force pushes and deletion are disabled. Secret scanning, push protection, Dependabot security updates, private vulnerability reporting, squash-only merging, read-only default workflow permissions, and repository-scoped Release Please pull-request permission are active.
+- **Automation:** Dependabot covers pnpm and GitHub Actions. Release Please uses the verified `0.1.0` bootstrap configuration and is the only workflow with narrowly scoped contents and pull-request write access. External Actions are pinned to full commit SHAs.
+- **Vercel evidence:** The Hobby project is connected to only `LOGOS-The-TIS-Math-Club/logos-web`; the Vercel GitHub App is limited to that repository. The pull-request Preview for commit `f22c3eb` built successfully with the Next.js preset, loaded without a browser error, returned an unauthenticated authentication redirect with `noindex`, and showed `/health` deployed on Node.js 24.x in `SIN1`. Standard Vercel Authentication and protected sourcemaps are enabled, Analytics and Speed Insights collect no data, and no environment variables or bypass secrets exist.
+- **Retained-domain boundary:** `tislogos.org` remains attached to reserve the existing provider configuration but returned Vercel `NOT_FOUND` during closeout. Vercel Production tracks the protected dormant `production-disabled-until-phase-11` branch, not `main`; `main` therefore remains a protected Preview source. Phase 11 owns deliberately mapping Production back to `main` and exposing the retained domain.
+- **Approved deviations:** GitHub Free branch protection required public repository visibility, which was approved after the exposure review. Vercel Hobby cannot protect a Production domain at no cost, so the retained-domain and dormant-production-branch arrangement preserves the approved zero-cost Preview boundary without deleting the domain registration.
 
-- completion date;
-- accepted pull request and merge commit;
-- release or development version;
-- evidence that the first Release Please proposal will target `0.1.0`;
-- verification evidence;
-- approved deviations;
-- handoff confirmation for Phase 01.
+Phase 01 may begin from this verified foundation after the protected squash merge is present on `main`.
