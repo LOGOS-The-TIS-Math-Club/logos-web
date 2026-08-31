@@ -1,0 +1,814 @@
+{
+  "id": "a6ff2b5a-5e4d-439c-8d01-acb38c865bcc",
+  "prevId": "d5a646c4-0eb8-4ff5-b036-58821a4e77c4",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "logos.business_audit_journal": {
+      "name": "business_audit_journal",
+      "schema": "logos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "clock_timestamp()"
+        },
+        "tokyo_archive_date": {
+          "name": "tokyo_archive_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "(timezone('Asia/Tokyo', \"recorded_at\"))::date",
+            "type": "stored"
+          }
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_type": {
+          "name": "actor_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_role_snapshot": {
+          "name": "actor_role_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "correlation_id": {
+          "name": "correlation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "result": {
+          "name": "result",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason_code": {
+          "name": "reason_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "before_summary": {
+          "name": "before_summary",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "after_summary": {
+          "name": "after_summary",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "business_audit_tokyo_date_idx": {
+          "name": "business_audit_tokyo_date_idx",
+          "columns": [
+            {
+              "expression": "tokyo_archive_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "recorded_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "business_audit_correlation_idx": {
+          "name": "business_audit_correlation_idx",
+          "columns": [
+            {
+              "expression": "correlation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "business_audit_target_idx": {
+          "name": "business_audit_target_idx",
+          "columns": [
+            {
+              "expression": "target_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "target_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "business_audit_actor_type_check": {
+          "name": "business_audit_actor_type_check",
+          "value": "\"actor_type\" IN ('system', 'user', 'anonymous', 'scheduled')"
+        },
+        "business_audit_result_check": {
+          "name": "business_audit_result_check",
+          "value": "\"result\" IN ('success', 'failed', 'denied')"
+        },
+        "business_audit_category_len_check": {
+          "name": "business_audit_category_len_check",
+          "value": "char_length(\"category\") <= 64"
+        },
+        "business_audit_action_len_check": {
+          "name": "business_audit_action_len_check",
+          "value": "char_length(\"action\") <= 64"
+        },
+        "business_audit_target_type_len_check": {
+          "name": "business_audit_target_type_len_check",
+          "value": "char_length(\"target_type\") <= 64"
+        },
+        "business_audit_target_id_len_check": {
+          "name": "business_audit_target_id_len_check",
+          "value": "char_length(\"target_id\") <= 128"
+        },
+        "business_audit_reason_code_len_check": {
+          "name": "business_audit_reason_code_len_check",
+          "value": "\"reason_code\" IS NULL OR char_length(\"reason_code\") <= 64"
+        },
+        "business_audit_before_summary_shape": {
+          "name": "business_audit_before_summary_shape",
+          "value": "\"before_summary\" IS NULL OR (jsonb_typeof(\"before_summary\") = 'object' AND pg_column_size(\"before_summary\") <= 4096)"
+        },
+        "business_audit_after_summary_shape": {
+          "name": "business_audit_after_summary_shape",
+          "value": "\"after_summary\" IS NULL OR (jsonb_typeof(\"after_summary\") = 'object' AND pg_column_size(\"after_summary\") <= 4096)"
+        },
+        "business_audit_metadata_shape": {
+          "name": "business_audit_metadata_shape",
+          "value": "\"metadata\" IS NULL OR (jsonb_typeof(\"metadata\") = 'object' AND pg_column_size(\"metadata\") <= 4096)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "logos.durable_operations": {
+      "name": "durable_operations",
+      "schema": "logos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "correlation_id": {
+          "name": "correlation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "audit_event_id": {
+          "name": "audit_event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "operation_status",
+          "typeSchema": "logos",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempt_count": {
+          "name": "attempt_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "max_attempts": {
+          "name": "max_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
+        },
+        "available_at": {
+          "name": "available_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "clock_timestamp()"
+        },
+        "lease_token": {
+          "name": "lease_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_expires_at": {
+          "name": "lease_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provider_reference": {
+          "name": "provider_reference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "clock_timestamp()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "clock_timestamp()"
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "durable_operations_pending_idx": {
+          "name": "durable_operations_pending_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "available_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "lease_expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"status\" IN ('pending', 'processing')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "durable_operations_lookup_idx": {
+          "name": "durable_operations_lookup_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "idempotency_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "durable_operations_correlation_idx": {
+          "name": "durable_operations_correlation_idx",
+          "columns": [
+            {
+              "expression": "correlation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "durable_operations_audit_event_idx": {
+          "name": "durable_operations_audit_event_idx",
+          "columns": [
+            {
+              "expression": "audit_event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "durable_operations_audit_event_id_business_audit_journal_id_fk": {
+          "name": "durable_operations_audit_event_id_business_audit_journal_id_fk",
+          "tableFrom": "durable_operations",
+          "tableTo": "business_audit_journal",
+          "schemaTo": "logos",
+          "columnsFrom": ["audit_event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "durable_operations_type_idempotency_key": {
+          "name": "durable_operations_type_idempotency_key",
+          "nullsNotDistinct": false,
+          "columns": ["type", "idempotency_key"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "durable_operations_type_len_check": {
+          "name": "durable_operations_type_len_check",
+          "value": "char_length(\"type\") <= 64"
+        },
+        "durable_operations_idempotency_key_len_check": {
+          "name": "durable_operations_idempotency_key_len_check",
+          "value": "char_length(\"idempotency_key\") <= 128"
+        },
+        "durable_operations_provider_ref_len_check": {
+          "name": "durable_operations_provider_ref_len_check",
+          "value": "\"provider_reference\" IS NULL OR char_length(\"provider_reference\") <= 256"
+        },
+        "durable_operations_failure_code_len_check": {
+          "name": "durable_operations_failure_code_len_check",
+          "value": "\"failure_code\" IS NULL OR char_length(\"failure_code\") <= 64"
+        },
+        "durable_operations_last_error_len_check": {
+          "name": "durable_operations_last_error_len_check",
+          "value": "\"last_error\" IS NULL OR char_length(\"last_error\") <= 1024"
+        },
+        "durable_operations_lease_token_len_check": {
+          "name": "durable_operations_lease_token_len_check",
+          "value": "\"lease_token\" IS NULL OR char_length(\"lease_token\") <= 128"
+        },
+        "durable_operations_attempts_check": {
+          "name": "durable_operations_attempts_check",
+          "value": "\"attempt_count\" >= 0 AND \"attempt_count\" <= \"max_attempts\""
+        },
+        "durable_operations_payload_shape": {
+          "name": "durable_operations_payload_shape",
+          "value": "jsonb_typeof(\"payload\") = 'object' AND pg_column_size(\"payload\") <= 16384"
+        },
+        "durable_operations_timestamps_order": {
+          "name": "durable_operations_timestamps_order",
+          "value": "\"updated_at\" >= \"created_at\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "logos.infrastructure_probe": {
+      "name": "infrastructure_probe",
+      "schema": "logos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "marker": {
+          "name": "marker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "logos.rate_limits": {
+      "name": "rate_limits",
+      "schema": "logos",
+      "columns": {
+        "subject_hash": {
+          "name": "subject_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "policy": {
+          "name": "policy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "window_start": {
+          "name": "window_start",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "clock_timestamp()"
+        }
+      },
+      "indexes": {
+        "rate_limits_window_idx": {
+          "name": "rate_limits_window_idx",
+          "columns": [
+            {
+              "expression": "window_start",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "rate_limits_pk": {
+          "name": "rate_limits_pk",
+          "columns": ["subject_hash", "policy", "window_start"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "rate_limits_policy_check": {
+          "name": "rate_limits_policy_check",
+          "value": "char_length(\"policy\") > 0 AND char_length(\"policy\") <= 64"
+        },
+        "rate_limits_subject_hash_check": {
+          "name": "rate_limits_subject_hash_check",
+          "value": "\"subject_hash\" ~ '^[0-9a-f]{64}$'"
+        },
+        "rate_limits_count_check": {
+          "name": "rate_limits_count_check",
+          "value": "\"count\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "logos.security_audit_journal": {
+      "name": "security_audit_journal",
+      "schema": "logos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "clock_timestamp()"
+        },
+        "tokyo_archive_date": {
+          "name": "tokyo_archive_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "(timezone('Asia/Tokyo', \"recorded_at\"))::date",
+            "type": "stored"
+          }
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_type": {
+          "name": "actor_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_role_snapshot": {
+          "name": "actor_role_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "correlation_id": {
+          "name": "correlation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "result": {
+          "name": "result",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason_code": {
+          "name": "reason_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "security_audit_tokyo_date_idx": {
+          "name": "security_audit_tokyo_date_idx",
+          "columns": [
+            {
+              "expression": "tokyo_archive_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "recorded_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "security_audit_correlation_idx": {
+          "name": "security_audit_correlation_idx",
+          "columns": [
+            {
+              "expression": "correlation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "security_audit_actor_type_check": {
+          "name": "security_audit_actor_type_check",
+          "value": "\"actor_type\" IN ('system', 'user', 'anonymous', 'scheduled')"
+        },
+        "security_audit_result_check": {
+          "name": "security_audit_result_check",
+          "value": "\"result\" IN ('success', 'failed', 'denied', 'rate_limited')"
+        },
+        "security_audit_category_len_check": {
+          "name": "security_audit_category_len_check",
+          "value": "char_length(\"category\") <= 64"
+        },
+        "security_audit_action_len_check": {
+          "name": "security_audit_action_len_check",
+          "value": "char_length(\"action\") <= 64"
+        },
+        "security_audit_target_type_len_check": {
+          "name": "security_audit_target_type_len_check",
+          "value": "char_length(\"target_type\") <= 64"
+        },
+        "security_audit_target_id_len_check": {
+          "name": "security_audit_target_id_len_check",
+          "value": "char_length(\"target_id\") <= 128"
+        },
+        "security_audit_reason_code_len_check": {
+          "name": "security_audit_reason_code_len_check",
+          "value": "\"reason_code\" IS NULL OR char_length(\"reason_code\") <= 64"
+        },
+        "security_audit_metadata_shape": {
+          "name": "security_audit_metadata_shape",
+          "value": "\"metadata\" IS NULL OR (jsonb_typeof(\"metadata\") = 'object' AND pg_column_size(\"metadata\") <= 4096)"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "logos.operation_status": {
+      "name": "operation_status",
+      "schema": "logos",
+      "values": ["pending", "processing", "succeeded", "failed", "ambiguous"]
+    }
+  },
+  "schemas": {
+    "logos": "logos"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
