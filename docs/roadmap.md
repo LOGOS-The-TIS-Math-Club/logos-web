@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: [Phase 02](./phase-02.md) implementation complete; awaiting protected merge
+> - Current phase: Phase 03 — planned; not started
 > - Last updated: 2026-08-31
 
 ## 1. Purpose
@@ -172,7 +172,7 @@ flowchart LR
 
 **File:** [phase-02.md](./phase-02.md)
 
-**Status:** Implementation complete on `feat/phase-02-data-foundation`; awaiting review and protected merge. Phase 03 is next but has not begun.
+**Status:** Completed on 2026-08-31 through protected squash merge [`6e14e8b`](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/commit/6e14e8b516555bd1199d86a4e70bc387f6dd5e08) ([pull request #9](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/9)). Phase 03 is next and has not begun.
 
 **Outcome:** Reproducible PostgreSQL persistence with isolated development, preview, test, and production environments.
 
@@ -180,7 +180,7 @@ flowchart LR
 
 **Completion point:** Migrations create a fresh database deterministically, environment isolation is verified, preview cannot reach production data, and runtime and migration credentials have the intended permissions.
 
-**Completion evidence:** The feature branch provisions separate Neon Free PostgreSQL 17 projects in Singapore, leaves production empty and disconnected, migrates an expiring schema-only preview from an empty non-production root, loads only a fixed synthetic fixture, and supplies its least-privilege runtime URL to Vercel Preview only. Fresh and repeat migrations, real login sessions that cannot regain owner privileges, independent database-side environment identity, PostgreSQL 17 export/restore with restored-grant checks, repository checks, and the dependency audit pass. Acceptance remains pending until the protected pull request is reviewed and merged.
+**Completion evidence:** Separate Neon Free PostgreSQL 17 projects in Singapore leave production empty and disconnected. Fresh and repeat migrations, real least-privilege login restrictions, independent database-side environment identity, PostgreSQL 17 synthetic export/restore with restored-grant checks, repository checks, and the dependency audit passed. After merge, the exact expiring Preview secret, login, and branch were retired; the empty preview baseline and development branch remain, and no production or unrelated signup resource was changed. Required PR checks and post-merge CI, Security, Release Please, and Vercel workflows passed.
 
 ### Phase 03 — Security, audit, and reliable-mutation foundation
 

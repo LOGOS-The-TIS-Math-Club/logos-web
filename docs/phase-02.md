@@ -1,11 +1,11 @@
 # Phase 02 — Data Foundation
 
-> - Status: Implementation complete; awaiting protected merge
+> - Status: Completed
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
 > - Predecessor: [phase-01.md](./phase-01.md)
 > - Successor: `phase-03.md`
-> - Branch: `feat/phase-02-data-foundation`
+> - Implementation merge: [`6e14e8b`](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/commit/6e14e8b516555bd1199d86a4e70bc387f6dd5e08) ([pull request #9](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/9))
 > - Last updated: 2026-08-31
 
 ## 1. Objective
@@ -229,7 +229,8 @@ Evidence recorded on 2026-08-31:
 - the non-production `development` branch contains the committed migration history, one technical table, and only the fixed synthetic fixture. Its independently generated runtime and backup logins were tested through real connections: runtime DML succeeds while DDL fails, backup reads succeed while writes fail, and neither login is a superuser, can create databases or roles, or belongs to `neon_superuser`;
 - the provider Console cannot reset a password for a SQL-created passwordless role. Credentials were therefore generated and rotated through an out-of-band, short-lived administrative procedure; its temporary function was removed immediately, and no password or URL was printed or written to the repository;
 - a hosted `phase-02-preview-verification` branch was created schema-only from the empty `preview-root-empty` non-production branch with automatic deletion on 2026-09-07. The real Drizzle migrator succeeded from empty state and reran as a no-op, its unique runtime login passed the same privilege restrictions, and its only row is the fixed synthetic marker;
-- Vercel Hobby stores `DATABASE_URL` as a write-only Secret and `APP_ENV` as Config for Preview only. The runtime URL targets the expiring schema-only preview branch; Development and Production receive neither variable; and
+- before closeout, Vercel Hobby held `DATABASE_URL` as a write-only Preview Secret and `APP_ENV` as Preview Config only; Development and Production received neither variable;
+- after pull request #9 merged, the exact Preview `DATABASE_URL` was removed, `APP_ENV` remained Preview-only, `logos_preview_runtime` was set `NOLOGIN` and removed from `logos_runtime`, and the exact `phase-02-preview-verification` branch was deleted. A post-cleanup connection attempt to its retired endpoint failed; `development` and `preview-root-empty` remained present; and
 - an automatically created, unused Neon signup project remains outside the LOGOS topology, has no Vercel connection, and was not deleted because deletion is destructive and unnecessary to Phase 02 isolation.
 
 The first hosted development bootstrap was entered through the Neon SQL Editor and stopped before the Drizzle migration journal existed because raw SQL execution does not perform the migrator's journal setup. The missing journal and remaining grants were repaired with the committed migration's exact hash. The independently created hosted preview then proved the actual Drizzle migrator's clean empty-state and repeat-run behavior end to end.
@@ -267,8 +268,8 @@ Phase 02 is complete when:
 - all established repository and security checks pass under Node.js 24.20.0;
 - no credential or personal data is tracked or displayed;
 - several coherent Conventional Commits exist; and
-- an evidence-backed `feat: establish data foundation` pull request is open and unmerged.
+- pull request #9 was squash-merged with `feat: establish data foundation`, and its post-merge CI, Security, Release Please, and Vercel checks passed.
 
 ## 18. Status
 
-**Implementation complete; awaiting protected merge.** Every Phase 02 implementation and provider gate has evidence on `feat/phase-02-data-foundation`: fresh migration, repeat migration, hosted preview isolation, real least-privilege logins, synthetic fixture, export/restore rehearsal, repository checks, security audit, and Preview-only secret storage. The phase remains unaccepted under the roadmap status model until the pull request is reviewed and merged; Phase 03 must not begin on this branch.
+**Completed.** Pull request #9 was squash-merged as [`6e14e8b`](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/commit/6e14e8b516555bd1199d86a4e70bc387f6dd5e08) after every required PR check passed. Post-merge CI, Security, Release Please, and Vercel checks passed. Fresh migration, role restrictions, environment isolation, and synthetic export/restore passed before acceptance; the expiring preview credential and branch were then retired without changing the preserved baselines or either LOGOS project. Phase 03 is next and has not started.
