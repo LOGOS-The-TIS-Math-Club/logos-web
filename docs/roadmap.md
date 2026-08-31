@@ -4,8 +4,8 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: [Phase 01](./phase-01.md) completed; Phase 02 planning has not started
-> - Last updated: 2026-08-30
+> - Current phase: [Phase 02](./phase-02.md) in progress
+> - Last updated: 2026-08-31
 
 ## 1. Purpose
 
@@ -170,7 +170,9 @@ flowchart LR
 
 ### Phase 02 — Data and environment foundation
 
-**File:** `phase-02.md`
+**File:** [phase-02.md](./phase-02.md)
+
+**Status:** In progress on `feat/phase-02-data-foundation`.
 
 **Outcome:** Reproducible PostgreSQL persistence with isolated development, preview, test, and production environments.
 
