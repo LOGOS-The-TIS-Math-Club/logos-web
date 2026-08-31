@@ -1,6 +1,6 @@
 # LOGOS Web
 
-LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the Phase 01 interface foundation and the in-progress Phase 02 PostgreSQL data foundation: an accessible application shell, reproducible tooling, server-only database access, reviewable Drizzle migrations, least-privilege database roles, and isolated synthetic verification.
+LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the Phase 01 interface foundation and the completed Phase 02 PostgreSQL implementation awaiting protected merge: an accessible application shell, reproducible tooling, server-only database access, reviewable Drizzle migrations, least-privilege database roles, and isolated synthetic verification.
 
 The source is available under the [MIT License](./LICENSE). No student data, production credentials, or club workflows belong in this phase.
 

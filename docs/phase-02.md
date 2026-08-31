@@ -1,6 +1,6 @@
 # Phase 02 — Data Foundation
 
-> - Status: In progress
+> - Status: Implementation complete; awaiting protected merge
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
 > - Predecessor: [phase-01.md](./phase-01.md)
@@ -65,7 +65,7 @@ Facts were rechecked against first-party documentation on 2026-08-31:
 
 Numeric provider allowances are observations, not architectural invariants. They must be rechecked before creating resources or changing automation.
 
-## 6. Recommended database topology
+## 6. Implemented database topology
 
 | Environment       | Neon resource                                                       | Data policy                                                   | Credential policy                                                                              |
 | ----------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -76,7 +76,7 @@ Numeric provider allowances are observations, not architectural invariants. They
 
 Two projects create a provider-level isolation boundary. No branch in the non-production project can descend from or enumerate a branch in the production project.
 
-The production project is created only after the account is confirmed to be on Neon Free and the Singapore region is explicitly selected. It receives no application data and no Vercel Preview connection.
+Both projects were created only after the account was confirmed to be on Neon Free and the Singapore region was explicitly selected. The production project contains no application tables, retains only its provider owner login, and has no Vercel environment variable or preview connection.
 
 ## 7. Driver and migration strategy
 
@@ -217,8 +217,16 @@ Evidence recorded on 2026-08-31:
 - automated inspection confirmed all policy roles are `NOLOGIN`, non-superuser, unable to create databases or roles, runtime DML succeeds, runtime DDL fails, backup reads succeed, backup writes and DDL fail, and the future audit role cannot read;
 - `pg_dump` through `logos_backup` and `pg_restore` into a separate empty database reproduced the migration history and fixed synthetic marker;
 - frozen installation, formatting, lint, type checking, 44 unit/component tests, migration drift, production build, eight established Playwright smoke tests, release configuration, and the high-severity dependency audit passed under Node.js `24.20.0` and pnpm `11.24.0`;
-- the dependency audit reports no known vulnerabilities after constraining the obsolete Drizzle Kit loader's nested `esbuild` to a compatible patched release; and
-- no Phase 02 visual or UI design verification was performed; the existing automated browser suite was run only as the established repository regression gate.
+- the dependency audit reports no known vulnerabilities after constraining the obsolete Drizzle Kit loader's nested `esbuild` to a compatible patched release;
+- no Phase 02 visual or UI design verification was performed; the existing automated browser suite was run only as the established repository regression gate;
+- Neon Free (`$0`) hosts separate `logos-web-production` and `logos-web-nonproduction` PostgreSQL 17 projects in `aws-ap-southeast-1`; production was inspected with zero application tables and only its provider owner login;
+- the non-production `development` branch contains the committed migration, one technical table, and only the fixed synthetic fixture. Its independently generated runtime and backup logins were tested through real connections: runtime DML succeeds while DDL fails, backup reads succeed while writes fail, and neither login is a superuser, can create databases or roles, or belongs to `neon_superuser`;
+- the provider Console cannot reset a password for a SQL-created passwordless role. Credentials were therefore generated and rotated through an out-of-band, short-lived administrative procedure; its temporary function was removed immediately, and no password or URL was printed or written to the repository;
+- a hosted `phase-02-preview-verification` branch was created schema-only from the empty `preview-root-empty` non-production branch with automatic deletion on 2026-09-07. The real Drizzle migrator succeeded from empty state and reran as a no-op, its unique runtime login passed the same privilege restrictions, and its only row is the fixed synthetic marker;
+- Vercel Hobby stores `DATABASE_URL` as a write-only Secret and `APP_ENV` as Config for Preview only. The runtime URL targets the expiring schema-only preview branch; Development and Production receive neither variable; and
+- an automatically created, unused Neon signup project remains outside the LOGOS topology, has no Vercel connection, and was not deleted because deletion is destructive and unnecessary to Phase 02 isolation.
+
+The first hosted development bootstrap was entered through the Neon SQL Editor and stopped before the Drizzle migration journal existed because raw SQL execution does not perform the migrator's journal setup. The missing journal and remaining grants were repaired with the committed migration's exact hash. The independently created hosted preview then proved the actual Drizzle migrator's clean empty-state and repeat-run behavior end to end.
 
 AGY's first read-only assignments and one dependency/configuration assignment were denied shell-command access. Each prescribed tool-free or file-edit-only retry completed without weakening the worker security policy; Codex reviewed every result and continued the implementation locally.
 
@@ -257,4 +265,4 @@ Phase 02 is complete when:
 
 ## 18. Status
 
-**In progress.** Planning and first-party verification are complete. Implementation and provider configuration remain.
+**Implementation complete; awaiting protected merge.** Every Phase 02 implementation and provider gate has evidence on `feat/phase-02-data-foundation`: fresh migration, repeat migration, hosted preview isolation, real least-privilege logins, synthetic fixture, export/restore rehearsal, repository checks, security audit, and Preview-only secret storage. The phase remains unaccepted under the roadmap status model until the pull request is reviewed and merged; Phase 03 must not begin on this branch.
