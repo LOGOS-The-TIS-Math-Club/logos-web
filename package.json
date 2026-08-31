@@ -11,6 +11,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:generate": "drizzle-kit generate",
+    "db:test:configure": "node scripts/db/configure-test-environment.mjs",
+    "db:test:roles": "node scripts/db/provision-test-roles.mjs",
+    "db:migrate": "node scripts/db/migrate.mjs",
+    "db:check": "node scripts/db/check-migrations.mjs",
+    "db:fixtures": "node scripts/db/load-fixtures.mjs",
+    "db:test": "node scripts/db/test-foundation.mjs",
+    "db:restore:verify": "node scripts/db/verify-restore.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -20,12 +28,16 @@
     "test:e2e": "pnpm build && playwright test",
     "test:e2e:ci": "playwright test",
     "release:verify": "node scripts/verify-release-config.mjs",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e:ci"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm db:check && pnpm build && pnpm test:e2e:ci"
   },
   "dependencies": {
+    "@neondatabase/serverless": "1.1.0",
+    "drizzle-orm": "0.45.2",
     "next": "16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "server-only": "0.0.1",
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -37,9 +49,11 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "@vitejs/plugin-react": "6.1.1",
+    "drizzle-kit": "0.31.10",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.3",
     "jsdom": "30.0.1",
+    "postgres": "3.4.9",
     "prettier": "3.9.6",
     "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "4.3.3",

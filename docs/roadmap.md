@@ -4,8 +4,8 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: [Phase 01](./phase-01.md) completed; Phase 02 planning has not started
-> - Last updated: 2026-08-30
+> - Current phase: [Phase 02](./phase-02.md) implementation complete; awaiting protected merge
+> - Last updated: 2026-08-31
 
 ## 1. Purpose
 
@@ -170,13 +170,17 @@ flowchart LR
 
 ### Phase 02 — Data and environment foundation
 
-**File:** `phase-02.md`
+**File:** [phase-02.md](./phase-02.md)
+
+**Status:** Implementation complete on `feat/phase-02-data-foundation`; awaiting review and protected merge. Phase 03 is next but has not begun.
 
 **Outcome:** Reproducible PostgreSQL persistence with isolated development, preview, test, and production environments.
 
 **Major scope:** Neon Singapore projects/branches, Drizzle, version-controlled migrations, environment validation, least-privilege database roles, schema-only preview baseline, synthetic fixtures, and basic export/restore procedures.
 
 **Completion point:** Migrations create a fresh database deterministically, environment isolation is verified, preview cannot reach production data, and runtime and migration credentials have the intended permissions.
+
+**Completion evidence:** The feature branch provisions separate Neon Free PostgreSQL 17 projects in Singapore, leaves production empty and disconnected, migrates an expiring schema-only preview from an empty non-production root, loads only a fixed synthetic fixture, and supplies its least-privilege runtime URL to Vercel Preview only. Fresh and repeat migrations, real login sessions that cannot regain owner privileges, independent database-side environment identity, PostgreSQL 17 export/restore with restored-grant checks, repository checks, and the dependency audit pass. Acceptance remains pending until the protected pull request is reviewed and merged.
 
 ### Phase 03 — Security, audit, and reliable-mutation foundation
 

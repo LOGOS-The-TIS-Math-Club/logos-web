@@ -14,4 +14,6 @@ This is a volunteer school-club project and cannot promise a commercial response
 
 ## Scope boundaries
 
-Through Phase 01, the repository contains no authentication, database, student data, Google Workspace integration, or production deployment. Reports about those unimplemented systems are out of scope unless they concern committed documentation or delivery configuration.
+Phase 02 adds PostgreSQL infrastructure, migrations, server-only environment validation, and database role boundaries using synthetic technical data only. Reports about credential exposure, database privilege escalation, environment crossover, migration integrity, or secret leakage are in scope.
+
+Authentication, student or member data, Google Workspace integration, and public production deployment remain unimplemented. Reports about those future systems are out of scope unless they concern committed documentation or delivery configuration.
