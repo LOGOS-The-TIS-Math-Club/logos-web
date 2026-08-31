@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: Phase 03 — planned; not started
+> - Current phase: Phase 03 — In progress on branch `feat/phase-03-security-foundation`
 > - Last updated: 2026-08-31
 
 ## 1. Purpose
@@ -184,7 +184,9 @@ flowchart LR
 
 ### Phase 03 — Security, audit, and reliable-mutation foundation
 
-**File:** `phase-03.md`
+**File:** [phase-03.md](./phase-03.md)
+
+**Status:** In progress on branch `feat/phase-03-security-foundation` (dated 2026-08-31). Phase 02 remains completed.
 
 **Outcome:** Shared security and durability primitives that every later protected workflow must use.
 
