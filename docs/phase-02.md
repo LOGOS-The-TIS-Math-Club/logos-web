@@ -58,7 +58,9 @@ Facts were rechecked against first-party documentation on 2026-08-31:
 - [Schema-only branches](https://neon.com/docs/guides/branching-schema-only) and the [February 2025 CLI update](https://neon.com/docs/changelog/2025-02-07) support branches without parent data, `NOLOGIN` roles, branch expiration, and cleanup.
 - Ordinary Neon branches copy their parent's schema and data using copy-on-write. The standard preview integration is therefore unsafe when its parent can ever contain production data.
 - [Neon role documentation](https://neon.com/docs/manage/roles) distinguishes Console/API-created login roles, which receive `neon_superuser` membership, from SQL-created roles, which do not. Runtime and backup logins must be created through SQL and receive explicit grants only.
-- [Drizzle's Neon driver documentation](https://orm.drizzle.team/docs/connect-neon) states that HTTP is optimized for single non-interactive operations, while the WebSocket driver supports sessions and interactive transactions.
+- [Drizzle's Neon driver documentation](https://orm.drizzle.team/docs/connect-neon) states that HTTP is optimized for single non-interactive operations, while the WebSocket `neon-serverless` driver supports sessions and interactive transactions through `Pool` or `Client`.
+- The first-party [`@neondatabase/serverless` documentation](https://github.com/neondatabase/serverless#sessions-transactions-and-node-postgres-compatibility) explicitly supports Vercel serverless environments. It requires each WebSocket `Pool` or `Client` to be created, used, and closed within one request because the connection cannot outlive that request. It also states that only Node.js 21 and earlier require a supplied WebSocket constructor; the pinned Node.js 24 runtime provides the required global.
+- [Drizzle's transaction documentation](https://orm.drizzle.team/docs/transactions) confirms that its callback transaction API commits a multi-statement unit atomically, rolls the unit back on failure, and supports PostgreSQL transaction configuration. This is the required behavior for later business-mutation, audit, and outbox writes.
 - Stable compatible releases selected on 2026-08-31 are `drizzle-orm@0.45.2`, `drizzle-kit@0.31.10`, `@neondatabase/serverless@1.1.0`, and `zod@4.5.4`.
 
 Numeric provider allowances are observations, not architectural invariants. They must be rechecked before creating resources or changing automation.
@@ -69,7 +71,7 @@ Numeric provider allowances are observations, not architectural invariants. They
 | ----------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Future production | `logos-web-production` project, PostgreSQL 17, `aws-ap-southeast-1` | Empty and dormant through Phase 10                            | Production-only migration/runtime/backup logins; never supplied to CI, previews, or developers |
 | Development       | `logos-web-nonproduction` project, long-lived development branch    | Deterministic synthetic fixtures only                         | Non-production login roles only                                                                |
-| Preview           | Expiring schema-only branch in `logos-web-nonproduction`            | Migrations plus deterministic synthetic fixtures              | Unique or independently revocable preview credentials                                          |
+| Preview           | Expiring schema-only branch from an empty non-production baseline   | Full migrations plus deterministic synthetic fixtures         | Unique or independently revocable preview credentials                                          |
 | CI/test           | GitHub Actions PostgreSQL 17 service container                      | Fresh empty database per run; deterministic synthetic fixture | CI-local credentials only; no Neon secret                                                      |
 
 Two projects create a provider-level isolation boundary. No branch in the non-production project can descend from or enumerate a branch in the production project.
@@ -80,9 +82,9 @@ The production project is created only after the account is confirmed to be on N
 
 ### Runtime driver
 
-The application uses Drizzle's `neon-serverless` WebSocket path through `@neondatabase/serverless`. A single driver avoids divergent transaction behavior. This choice adds no external service and supports the later requirement that a business mutation, audit event, and outbox intent commit atomically in one interactive transaction.
+The application uses Drizzle's `neon-serverless` WebSocket path through `@neondatabase/serverless`. A single driver avoids divergent transaction behavior. This choice adds no external service, is documented for Vercel serverless execution, and supports the later requirement that a business mutation, audit event, and outbox intent commit atomically in one interactive Drizzle transaction.
 
-Database construction is lazy. Static builds and non-database tooling do not require a URL. The first database operation validates the server-only environment and creates its connection pool. Callers must close short-lived pools in scripts and tests; application modules use a server-only factory rather than a browser-capable global.
+Database construction is lazy and operation-scoped. Static builds and non-database tooling do not require a URL. A server-only `withDatabase` boundary validates the environment, creates a short-lived Neon `Pool` and Drizzle client, runs one callback, and closes the pool in `finally` before the request or operation ends. There is no reusable global WebSocket pool and no browser-capable singleton.
 
 ### Migration workflow
 
@@ -121,12 +123,12 @@ Environment parsing:
 
 Four `NOLOGIN` group roles define policy:
 
-- `logos_migration`: owns the application schema and migration-created objects and may perform controlled DDL;
+- `logos_migration`: marks the controlled migration/bootstrap policy and receives database access; the environment's provider-managed migration login owns application objects and is its only member;
 - `logos_runtime`: receives schema usage plus explicitly approved `SELECT`, `INSERT`, `UPDATE`, and `DELETE` grants on application tables, with matching default privileges for future migration-owned objects;
 - `logos_backup`: receives connect, schema usage, and `SELECT` only; and
 - `logos_audit`: reserved with no Phase 02 table privileges. Phase 03 will define append-only audit permissions.
 
-Environment-specific SQL-created `LOGIN` roles become members of only the necessary group. Runtime and backup logins are never created through the Neon Console/API because that would grant `neon_superuser`. The provider-generated owner login is retained as the controlled migration/bootstrap credential.
+Credential-bearing environment logins are never created by a committed migration. They are created through secure Neon controls or an out-of-band administrative procedure, then assigned only the required `NOLOGIN` group role. Runtime and backup logins must not receive `neon_superuser`; the provider-generated owner login is retained as the controlled migration/bootstrap credential. Generated passwords and connection URLs are stored only in approved provider secret stores and never in source, migration SQL, terminal output, or documentation.
 
 Automated tests must prove:
 
@@ -138,7 +140,7 @@ Automated tests must prove:
 
 ## 10. Preview isolation strategy
 
-Preview branches may be created only as schema-only branches in `logos-web-nonproduction`. They never use `logos-web-production` as a parent and never use ordinary data-copy branching. Each preview:
+Preview branches may be created only as schema-only branches in `logos-web-nonproduction`. Their parent is a deliberately empty `preview-root-empty` branch with no application schema or data. This avoids copying synthetic development data and avoids a migration-journal mismatch: every preview starts empty and applies the complete committed migration history. Preview branches never use `logos-web-production` or a migrated/data-bearing branch as a parent and never use ordinary data-copy branching. Each preview:
 
 1. is created with the schema-only option and an explicit expiration;
 2. receives committed migrations through a controlled migration credential;
@@ -201,7 +203,7 @@ Commands pass URLs through environment variables and never print them. Dumps rem
 
 ## 15. Verification evidence
 
-Evidence is recorded here as implementation proceeds. At planning start:
+Evidence recorded on 2026-08-31:
 
 - repository `main` was clean and synchronized at `48ebe6d`;
 - Node.js `24.20.0` is installed at the pinned path;
@@ -209,6 +211,16 @@ Evidence is recorded here as implementation proceeds. At planning start:
 - current first-party provider and package facts were rechecked;
 - unrelated Release Please and Dependabot pull requests were identified and left untouched; and
 - the dormant `production-disabled-until-phase-11` remote branch remains unchanged.
+- a new PostgreSQL 17 container was created from the SHA-pinned CI image, and committed migrations succeeded from empty state;
+- applying the migrator again completed as a no-op with the expected existing migration-schema notices;
+- the deterministic technical fixture loaded through the runtime role;
+- automated inspection confirmed all policy roles are `NOLOGIN`, non-superuser, unable to create databases or roles, runtime DML succeeds, runtime DDL fails, backup reads succeed, backup writes and DDL fail, and the future audit role cannot read;
+- `pg_dump` through `logos_backup` and `pg_restore` into a separate empty database reproduced the migration history and fixed synthetic marker;
+- frozen installation, formatting, lint, type checking, 44 unit/component tests, migration drift, production build, eight established Playwright smoke tests, release configuration, and the high-severity dependency audit passed under Node.js `24.20.0` and pnpm `11.24.0`;
+- the dependency audit reports no known vulnerabilities after constraining the obsolete Drizzle Kit loader's nested `esbuild` to a compatible patched release; and
+- no Phase 02 visual or UI design verification was performed; the existing automated browser suite was run only as the established repository regression gate.
+
+AGY's first read-only assignments and one dependency/configuration assignment were denied shell-command access. Each prescribed tool-free or file-edit-only retry completed without weakening the worker security policy; Codex reviewed every result and continued the implementation locally.
 
 ## 16. Risks and mitigations
 

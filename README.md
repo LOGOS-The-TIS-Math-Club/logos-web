@@ -1,6 +1,6 @@
 # LOGOS Web
 
-LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the completed Phase 01 interface and design-system foundation built upon the completed Phase 00 baseline: an accessible application shell, reusable UI primitives, dark-first semantic tokens adhering to the approved Mauve Precision aesthetic, route status templates, reproducible tooling, automated tests with accessibility scans, security checks, and protected preview delivery.
+LOGOS Web is the website for The Tokyo International School Math Club. The repository currently contains the Phase 01 interface foundation and the in-progress Phase 02 PostgreSQL data foundation: an accessible application shell, reproducible tooling, server-only database access, reviewable Drizzle migrations, least-privilege database roles, and isolated synthetic verification.
 
 The source is available under the [MIT License](./LICENSE). No student data, production credentials, or club workflows belong in this phase.
 
@@ -28,7 +28,19 @@ pnpm dev
 
 Open <http://localhost:3000>. The non-sensitive health route is available at <http://localhost:3000/health>.
 
-Phase 01 requires no environment variables. Do not create environment files unless a later approved phase documents the exact variables and ownership.
+Database-free application development requires no environment variables. For Phase 02 database work, copy the names from [`.env.example`](./.env.example) into an ignored `.env.local` and obtain non-production values through an approved secret store. Never reuse production credentials locally.
+
+Database commands are explicit and never run during application startup or build:
+
+```bash
+pnpm db:check
+pnpm db:migrate
+pnpm db:fixtures
+pnpm db:test
+pnpm db:restore:verify
+```
+
+Use `MIGRATION_DATABASE_URL` only for migrations. `DATABASE_URL` is the least-privilege runtime connection, `TEST_DATABASE_URL` is a disposable isolated test owner connection, and `BACKUP_DATABASE_URL` is read-only. Fixture, permission, and restore commands refuse `APP_ENV=production`. See [Phase 02](./docs/phase-02.md) for the topology and credential boundary.
 
 ## Verification
 
@@ -45,6 +57,7 @@ pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm db:check
 pnpm build
 pnpm test:e2e
 pnpm release:verify
@@ -58,8 +71,11 @@ pnpm audit --audit-level high
 ```text
 app/                         App Router pages, route handlers, and status templates
 components/                  Reusable UI primitives and application shell
+db/                          Drizzle schema declarations
+drizzle/                     Committed SQL migrations and metadata
 e2e/                         Playwright smoke and accessibility tests
-scripts/                     Deterministic repository verification scripts
+lib/                         Server-only database boundary and shared modules
+scripts/                     Repository and database verification scripts
 .github/workflows/           Read-only CI/security and isolated release automation
 docs/architecture.md         System-wide architecture authority
 docs/roadmap.md              Phase order and broad completion gates
@@ -90,7 +106,7 @@ This is a public repository. Never commit or attach:
 - student names, email addresses, applications, attendance, absence, warning, or membership information;
 - database exports, production logs, screenshots, traces, or test artifacts containing sensitive values.
 
-Local secrets belong only in ignored `.env.local` files when a later phase explicitly requires them. GitHub and Vercel secrets must use their provider-managed secret stores with the smallest possible scope. Report vulnerabilities privately as described in [SECURITY.md](./SECURITY.md), never in a public issue.
+Local secrets belong only in ignored `.env.local` files. Credential-bearing PostgreSQL roles are created through secure provider controls or an out-of-band administrative procedure, never by committed migrations. GitHub, Neon, and Vercel secrets must use their provider-managed secret stores with the smallest possible scope. Report vulnerabilities privately as described in [SECURITY.md](./SECURITY.md), never in a public issue.
 
 ## Delivery boundary
 
@@ -98,6 +114,6 @@ GitHub Free and Vercel Hobby are the only approved plans. Pull requests and `mai
 
 ## Intentionally deferred
 
-Phase 01 resolves the dark-only visual foundation and semantic Mauve Precision tokens without third-party component libraries. It does not configure light mode, automatic theme switching, theme toggle controls, shadcn/ui, Neon, Drizzle, a database, authentication, Google OAuth or Workspace APIs, Sentry, analytics, public Production delivery through the retained custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
+Phase 02 establishes infrastructure only. It does not add domain tables, authentication, Google OAuth or Workspace APIs, Sentry, analytics, public Production delivery through the retained custom domain, student data, membership, attendance, absence, warning, content-management, or leadership functionality.
 
 Read the [architecture](./docs/architecture.md), [roadmap](./docs/roadmap.md), [Phase 00 plan](./docs/phase-00.md), and completed [Phase 01 record](./docs/phase-01.md) before proposing changes that affect providers, security boundaries, data, or later phases.
