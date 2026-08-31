@@ -70,3 +70,55 @@ jobs:
         run: pnpm build
       - name: Run browser smoke tests
         run: pnpm test:e2e:ci
+
+  database:
+    name: Database foundation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate committed migrations
+        run: pnpm db:check
+      - name: Start isolated PostgreSQL 17
+        run: |
+          docker run \
+            --name logos-phase02-ci-db \
+            --detach \
+            --env POSTGRES_DB=logos_web_test \
+            --env POSTGRES_HOST_AUTH_METHOD=trust \
+            --publish 127.0.0.1:5432:5432 \
+            postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+          for attempt in {1..30}; do
+            if docker exec logos-phase02-ci-db pg_isready --username=postgres --dbname=logos_web_test; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Configure isolated test environment
+        run: node scripts/db/write-ci-environment.mjs >> "$GITHUB_ENV"
+      - name: Apply migrations to a fresh database
+        run: pnpm db:migrate
+      - name: Verify repeated migration is a no-op
+        run: pnpm db:migrate
+      - name: Load deterministic synthetic fixture
+        run: pnpm db:fixtures
+      - name: Verify roles and environment isolation
+        run: pnpm db:test
+      - name: Verify synthetic export and restore
+        run: pnpm db:restore:verify
+      - name: Remove isolated PostgreSQL
+        if: always()
+        run: docker rm --force logos-phase02-ci-db >/dev/null 2>&1 || true
