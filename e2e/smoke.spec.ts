@@ -38,6 +38,9 @@ test("serves the neutral application without browser errors and with security pr
   expect(headers["permissions-policy"]).toBe(
     "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
   );
+  expect(headers["x-correlation-id"]).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  );
   expect(headers).toMatchObject(expectedHeaders);
 });
 
@@ -47,6 +50,9 @@ test("serves a minimal dynamic health response", async ({ request }) => {
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ status: "ok" });
   expect(response.headers()["cache-control"]).toContain("no-store");
+  expect(response.headers()["x-correlation-id"]).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  );
   expect(response.headers()).toMatchObject(expectedHeaders);
 });
 
