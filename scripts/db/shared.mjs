@@ -1,6 +1,16 @@
 import postgres from "postgres";
 
-const allowedAppEnvironments = new Set(["development", "preview", "test"]);
+const appEnvironments = new Set([
+  "development",
+  "preview",
+  "test",
+  "production",
+]);
+const allowedSyntheticEnvironments = new Set([
+  "development",
+  "preview",
+  "test",
+]);
 
 export function requireEnvironmentVariable(name) {
   const value = process.env[name];
@@ -10,9 +20,17 @@ export function requireEnvironmentVariable(name) {
   return value;
 }
 
-export function requireNonProductionEnvironment() {
+export function requireAppEnvironment() {
   const appEnvironment = requireEnvironmentVariable("APP_ENV");
-  if (!allowedAppEnvironments.has(appEnvironment)) {
+  if (!appEnvironments.has(appEnvironment)) {
+    throw new Error("APP_ENV is not recognized");
+  }
+  return appEnvironment;
+}
+
+export function requireNonProductionEnvironment() {
+  const appEnvironment = requireAppEnvironment();
+  if (!allowedSyntheticEnvironments.has(appEnvironment)) {
     throw new Error("Synthetic database operations refuse this APP_ENV");
   }
   return appEnvironment;
@@ -38,7 +56,13 @@ export function parsePostgresUrl(name, value) {
     throw new Error(`${name} must identify a database`);
   }
 
-  return { databaseName, value };
+  return {
+    databaseName,
+    hostname: parsedUrl.hostname,
+    isLocal:
+      parsedUrl.hostname === "127.0.0.1" || parsedUrl.hostname === "localhost",
+    value,
+  };
 }
 
 export function createSqlClient(name, options = {}) {
@@ -57,6 +81,25 @@ export async function assertDatabaseIdentity(sql, name, databaseUrl) {
   const [identity] = await sql`select current_database() as database_name`;
   if (identity?.database_name !== databaseName) {
     throw new Error("Connected database does not match the requested target");
+  }
+}
+
+export async function assertDatabaseEnvironmentIdentity(
+  sql,
+  name,
+  databaseUrl,
+) {
+  await assertDatabaseIdentity(sql, name, databaseUrl);
+  const appEnvironment = requireAppEnvironment();
+  const [identity] = await sql`
+    select shobj_description(oid, 'pg_database') as environment_identity
+    from pg_database
+    where datname = current_database()
+  `;
+  if (
+    identity?.environment_identity !== `logos.app_environment=${appEnvironment}`
+  ) {
+    throw new Error("Connected database environment does not match APP_ENV");
   }
 }
 

@@ -109,12 +109,24 @@ jobs:
           exit 1
       - name: Configure isolated test environment
         run: node scripts/db/write-ci-environment.mjs >> "$GITHUB_ENV"
+      - name: Bind the database-side test identity
+        run: pnpm db:test:configure
       - name: Apply migrations to a fresh database
         run: pnpm db:migrate
       - name: Verify repeated migration is a no-op
         run: pnpm db:migrate
+      - name: Provision unprivileged test logins
+        run: pnpm db:test:roles
       - name: Load deterministic synthetic fixture
         run: pnpm db:fixtures
+      - name: Reject production and mismatched fixture targets
+        run: |
+          if APP_ENV=production pnpm db:fixtures; then
+            exit 1
+          fi
+          if APP_ENV=preview pnpm db:fixtures; then
+            exit 1
+          fi
       - name: Verify roles and environment isolation
         run: pnpm db:test
       - name: Verify synthetic export and restore

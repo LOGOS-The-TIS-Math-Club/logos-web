@@ -40,7 +40,7 @@ pnpm db:test
 pnpm db:restore:verify
 ```
 
-Use `MIGRATION_DATABASE_URL` only for migrations. `DATABASE_URL` is the least-privilege runtime connection, `TEST_DATABASE_URL` is a disposable isolated test owner connection, and `BACKUP_DATABASE_URL` is read-only. Fixture, permission, and restore commands refuse `APP_ENV=production`. See [Phase 02](./docs/phase-02.md) for the topology and credential boundary.
+Use `MIGRATION_DATABASE_URL` only for migrations. `DATABASE_URL` is the least-privilege runtime connection, `TEST_DATABASE_URL` is a disposable isolated test owner connection, and `BACKUP_DATABASE_URL` is read-only. Migrations and synthetic operations require the database-side environment identity described in [Phase 02](./docs/phase-02.md); fixture, permission, and restore commands also refuse `APP_ENV=production`.
 
 ## Verification
 

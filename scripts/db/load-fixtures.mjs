@@ -1,5 +1,5 @@
 import {
-  assertDatabaseIdentity,
+  assertDatabaseEnvironmentIdentity,
   createSqlClient,
   requireEnvironmentVariable,
   requireNonProductionEnvironment,
@@ -11,7 +11,7 @@ const databaseUrl = requireEnvironmentVariable("DATABASE_URL");
 const sql = createSqlClient("DATABASE_URL");
 
 try {
-  await assertDatabaseIdentity(sql, "DATABASE_URL", databaseUrl);
+  await assertDatabaseEnvironmentIdentity(sql, "DATABASE_URL", databaseUrl);
   await sql`
     insert into logos.infrastructure_probe (id, marker, updated_at)
     values (1, 'logos-phase-02-synthetic', now())

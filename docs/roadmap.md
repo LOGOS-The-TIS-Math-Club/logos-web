@@ -180,7 +180,7 @@ flowchart LR
 
 **Completion point:** Migrations create a fresh database deterministically, environment isolation is verified, preview cannot reach production data, and runtime and migration credentials have the intended permissions.
 
-**Completion evidence:** The feature branch provisions separate Neon Free PostgreSQL 17 projects in Singapore, leaves production empty and disconnected, migrates an expiring schema-only preview from an empty non-production root, loads only a fixed synthetic fixture, and supplies its least-privilege runtime URL to Vercel Preview only. Fresh and repeat migrations, real runtime/backup restrictions, environment isolation, PostgreSQL 17 export/restore, repository checks, and the dependency audit pass. Acceptance remains pending until the protected pull request is reviewed and merged.
+**Completion evidence:** The feature branch provisions separate Neon Free PostgreSQL 17 projects in Singapore, leaves production empty and disconnected, migrates an expiring schema-only preview from an empty non-production root, loads only a fixed synthetic fixture, and supplies its least-privilege runtime URL to Vercel Preview only. Fresh and repeat migrations, real login sessions that cannot regain owner privileges, independent database-side environment identity, PostgreSQL 17 export/restore with restored-grant checks, repository checks, and the dependency audit pass. Acceptance remains pending until the protected pull request is reviewed and merged.
 
 ### Phase 03 — Security, audit, and reliable-mutation foundation
 

@@ -116,8 +116,11 @@ Environment parsing:
 - uses Zod at the first database operation;
 - requires `postgresql:` or `postgres:` URLs with TLS enabled for Neon environments;
 - emits clear variable-name errors without echoing values or full connection failures;
-- refuses synthetic fixture loading when `APP_ENV=production`; and
-- requires test/preview database identity evidence before destructive reset or fixture work.
+- refuses synthetic fixture loading when `APP_ENV=production`;
+- requires the owner-controlled database identity comment (`logos.app_environment=<environment>`) to equal `APP_ENV` before migrations, fixtures, permission tests, or restore rehearsals; and
+- verifies both the URL database name and that independent owner-controlled comment rather than treating Neon's common `neondb` name as project identity.
+
+The database identity comment is established by the controlled provider/bootstrap procedure before the first migration. Only the database owner can change it; runtime and backup roles cannot spoof it with a session setting. CI uses `db:test:configure`, which is hard-limited to `APP_ENV=test` and a local hostname; it cannot configure a hosted database.
 
 ## 9. Role and permission model
 
@@ -136,7 +139,8 @@ Automated tests must prove:
 2. runtime can read and write the infrastructure probe;
 3. runtime cannot create, alter, or drop schemas/tables;
 4. backup can read but cannot insert, update, delete, or execute DDL; and
-5. a non-production/test connection contains only the synthetic marker and cannot address the production project.
+5. real runtime and backup login sessions cannot regain an owner identity with `RESET ROLE`; and
+6. a non-production/test connection contains only the synthetic marker and carries matching database-side environment evidence rather than production identity.
 
 ## 10. Preview isolation strategy
 
@@ -154,7 +158,7 @@ The standard Vercel–Neon branch-per-preview integration is not connected to th
 
 The fixture contains a fixed technical marker such as `logos-phase-02-synthetic`. It has no name, email address, school identifier, free text, or resemblance to a student record.
 
-The loader is small and idempotent, uses a parameterized upsert, and refuses `APP_ENV=production`. It targets only the dedicated infrastructure probe table. Reset behavior requires an explicit test/preview environment and never runs as part of application startup.
+The loader is small and idempotent, uses a parameterized upsert, refuses `APP_ENV=production`, and fails if the database-side environment identity differs from `APP_ENV`. It targets only the dedicated infrastructure probe table. Reset behavior requires an explicit test/preview environment and never runs as part of application startup.
 
 ## 12. CI strategy
 
@@ -163,14 +167,14 @@ The existing CI workflow gains a database job using the official PostgreSQL 17 s
 The database job:
 
 1. waits for the isolated service to become ready;
-2. creates environment-local login/group roles;
+2. binds a database-side `test` identity using a local-only setup command;
 3. generates or checks Drizzle migration artifacts;
-4. migrates a fresh empty database;
-5. reruns the migrator and checks migration history;
-6. loads the deterministic fixture;
-7. executes runtime and backup permission tests;
+4. migrates a fresh empty database and reruns the migrator;
+5. creates real environment-local runtime and backup login roles outside migrations;
+6. loads the deterministic fixture and proves production/mismatched identity guards reject it;
+7. executes permission tests through those real logins, including `RESET ROLE` denial;
 8. proves the database identity is the CI database and contains only synthetic data; and
-9. runs the synthetic export/restore rehearsal.
+9. exports through the backup login and restores through the owner into a separate database.
 
 No Neon key or database URL is stored in GitHub for this job. Existing quality, browser, release, and security workflows remain intact.
 
@@ -186,7 +190,7 @@ The rehearsal uses PostgreSQL 17 client tools and synthetic data only:
 6. compare expected schemas, migration history, and fixed marker rows; and
 7. delete the temporary dump on exit.
 
-Commands pass URLs through environment variables and never print them. Dumps remain ignored and are never committed. Production backup scheduling, encryption, Drive archival, retention, and production restoration drills remain Phase 10 work.
+PostgreSQL tools receive connection fields through libpq environment variables; URLs never enter process arguments or printed commands. The restore rehearsal verifies restored grants as well as the migration journal and marker. Dumps remain ignored and are never committed. Production backup scheduling, encryption, Drive archival, retention, and production restoration drills remain Phase 10 work.
 
 ## 14. Implementation sequence
 
@@ -219,8 +223,10 @@ Evidence recorded on 2026-08-31:
 - frozen installation, formatting, lint, type checking, 44 unit/component tests, migration drift, production build, eight established Playwright smoke tests, release configuration, and the high-severity dependency audit passed under Node.js `24.20.0` and pnpm `11.24.0`;
 - the dependency audit reports no known vulnerabilities after constraining the obsolete Drizzle Kit loader's nested `esbuild` to a compatible patched release;
 - no Phase 02 visual or UI design verification was performed; the existing automated browser suite was run only as the established repository regression gate;
+- a focused independent closeout review reproduced and removed a CI privilege-escalation path caused by authenticating as `postgres` and switching roles. CI now authenticates as real unprivileged runtime and backup logins, and `RESET ROLE` remains unprivileged;
+- the same review replaced database-name-only fixture protection with an independent database-side environment identity and moved every PostgreSQL tool connection value out of process arguments;
 - Neon Free (`$0`) hosts separate `logos-web-production` and `logos-web-nonproduction` PostgreSQL 17 projects in `aws-ap-southeast-1`; production was inspected with zero application tables and only its provider owner login;
-- the non-production `development` branch contains the committed migration, one technical table, and only the fixed synthetic fixture. Its independently generated runtime and backup logins were tested through real connections: runtime DML succeeds while DDL fails, backup reads succeed while writes fail, and neither login is a superuser, can create databases or roles, or belongs to `neon_superuser`;
+- the non-production `development` branch contains the committed migration history, one technical table, and only the fixed synthetic fixture. Its independently generated runtime and backup logins were tested through real connections: runtime DML succeeds while DDL fails, backup reads succeed while writes fail, and neither login is a superuser, can create databases or roles, or belongs to `neon_superuser`;
 - the provider Console cannot reset a password for a SQL-created passwordless role. Credentials were therefore generated and rotated through an out-of-band, short-lived administrative procedure; its temporary function was removed immediately, and no password or URL was printed or written to the repository;
 - a hosted `phase-02-preview-verification` branch was created schema-only from the empty `preview-root-empty` non-production branch with automatic deletion on 2026-09-07. The real Drizzle migrator succeeded from empty state and reran as a no-op, its unique runtime login passed the same privilege restrictions, and its only row is the fixed synthetic marker;
 - Vercel Hobby stores `DATABASE_URL` as a write-only Secret and `APP_ENV` as Config for Preview only. The runtime URL targets the expiring schema-only preview branch; Development and Production receive neither variable; and

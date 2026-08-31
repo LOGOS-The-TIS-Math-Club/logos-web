@@ -12,6 +12,8 @@
     "build": "next build",
     "start": "next start",
     "db:generate": "drizzle-kit generate",
+    "db:test:configure": "node scripts/db/configure-test-environment.mjs",
+    "db:test:roles": "node scripts/db/provision-test-roles.mjs",
     "db:migrate": "node scripts/db/migrate.mjs",
     "db:check": "node scripts/db/check-migrations.mjs",
     "db:fixtures": "node scripts/db/load-fixtures.mjs",

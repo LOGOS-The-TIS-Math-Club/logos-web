@@ -1,5 +1,5 @@
 import {
-  assertDatabaseIdentity,
+  assertDatabaseEnvironmentIdentity,
   createSqlClient,
   isInsufficientPrivilege,
   requireEnvironmentVariable,
@@ -9,7 +9,11 @@ import {
 requireNonProductionEnvironment();
 
 const testDatabaseUrl = requireEnvironmentVariable("TEST_DATABASE_URL");
-const sql = createSqlClient("TEST_DATABASE_URL");
+const runtimeDatabaseUrl = requireEnvironmentVariable("DATABASE_URL");
+const backupDatabaseUrl = requireEnvironmentVariable("BACKUP_DATABASE_URL");
+const ownerSql = createSqlClient("TEST_DATABASE_URL");
+const runtimeSql = createSqlClient("DATABASE_URL");
+const backupSql = createSqlClient("BACKUP_DATABASE_URL");
 
 async function expectPermissionDenied(label, operation) {
   try {
@@ -24,7 +28,21 @@ async function expectPermissionDenied(label, operation) {
 }
 
 try {
-  await assertDatabaseIdentity(sql, "TEST_DATABASE_URL", testDatabaseUrl);
+  await assertDatabaseEnvironmentIdentity(
+    ownerSql,
+    "TEST_DATABASE_URL",
+    testDatabaseUrl,
+  );
+  await assertDatabaseEnvironmentIdentity(
+    runtimeSql,
+    "DATABASE_URL",
+    runtimeDatabaseUrl,
+  );
+  await assertDatabaseEnvironmentIdentity(
+    backupSql,
+    "BACKUP_DATABASE_URL",
+    backupDatabaseUrl,
+  );
 
   const policyRoles = [
     "logos_migration",
@@ -32,10 +50,10 @@ try {
     "logos_backup",
     "logos_audit",
   ];
-  const roles = await sql`
+  const roles = await ownerSql`
     select rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole
     from pg_roles
-    where rolname in ${sql(policyRoles)}
+    where rolname in ${ownerSql(policyRoles)}
     order by rolname
   `;
   if (
@@ -53,26 +71,68 @@ try {
     );
   }
 
-  const [databaseAccess] = await sql`
+  const loginRoles = await ownerSql`
+    select rolname, rolcanlogin, rolinherit, rolsuper, rolcreatedb, rolcreaterole, rolbypassrls
+    from pg_roles
+    where rolname in ${ownerSql(["logos_ci_runtime", "logos_ci_backup"])}
+    order by rolname
+  `;
+  if (
+    loginRoles.length !== 2 ||
+    loginRoles.some(
+      (role) =>
+        !role.rolcanlogin ||
+        !role.rolinherit ||
+        role.rolsuper ||
+        role.rolcreatedb ||
+        role.rolcreaterole ||
+        role.rolbypassrls,
+    )
+  ) {
+    throw new Error("Test logins must remain unprivileged login roles");
+  }
+
+  const [databaseAccess] = await ownerSql`
     select
       has_database_privilege('logos_runtime', current_database(), 'CONNECT') as runtime_connect,
-      has_database_privilege('logos_backup', current_database(), 'CONNECT') as backup_connect
+      has_database_privilege('logos_backup', current_database(), 'CONNECT') as backup_connect,
+      has_database_privilege('logos_audit', current_database(), 'CONNECT') as audit_connect
   `;
-  if (!databaseAccess?.runtime_connect || !databaseAccess?.backup_connect) {
+  if (
+    !databaseAccess?.runtime_connect ||
+    !databaseAccess.backup_connect ||
+    databaseAccess.audit_connect
+  ) {
     throw new Error(
-      "Runtime and backup roles require explicit database access",
+      "Database access must be explicit for runtime and backup roles",
     );
   }
 
-  const [fixture] = await sql`
+  const [runtimeIdentity] = await runtimeSql`
+    select current_user, session_user
+  `;
+  if (
+    runtimeIdentity?.current_user !== "logos_ci_runtime" ||
+    runtimeIdentity?.session_user !== "logos_ci_runtime"
+  ) {
+    throw new Error("Runtime tests require a real unprivileged login");
+  }
+  await runtimeSql`set logos.app_environment = 'preview'`;
+  await assertDatabaseEnvironmentIdentity(
+    runtimeSql,
+    "DATABASE_URL",
+    runtimeDatabaseUrl,
+  );
+  await runtimeSql`reset logos.app_environment`;
+
+  const [fixture] = await runtimeSql`
     select marker from logos.infrastructure_probe where id = 1
   `;
   if (fixture?.marker !== "logos-phase-02-synthetic") {
     throw new Error("Synthetic fixture is missing or unexpected");
   }
 
-  await sql.begin(async (transaction) => {
-    await transaction`set local role logos_runtime`;
+  await runtimeSql.begin(async (transaction) => {
     await transaction`
       insert into logos.infrastructure_probe (id, marker)
       values (2, 'logos-phase-02-runtime-probe')
@@ -86,32 +146,40 @@ try {
   });
 
   await expectPermissionDenied("runtime DDL", async () => {
-    await sql.begin(async (transaction) => {
-      await transaction`set local role logos_runtime`;
+    await runtimeSql.begin(async (transaction) => {
       await transaction`create table logos.runtime_must_not_create (id integer)`;
     });
   });
 
   await expectPermissionDenied("runtime schema creation", async () => {
-    await sql.begin(async (transaction) => {
-      await transaction`set local role logos_runtime`;
+    await runtimeSql.begin(async (transaction) => {
       await transaction`create schema runtime_must_not_create`;
     });
   });
 
-  await sql.begin(async (transaction) => {
-    await transaction`set local role logos_backup`;
-    const [backupFixture] = await transaction`
-      select marker from logos.infrastructure_probe where id = 1
-    `;
-    if (backupFixture?.marker !== "logos-phase-02-synthetic") {
-      throw new Error("Backup role could not read the synthetic fixture");
-    }
+  await runtimeSql`reset role`;
+  await expectPermissionDenied("runtime DDL after RESET ROLE", async () => {
+    await runtimeSql`create table logos.runtime_reset_must_not_create (id integer)`;
   });
 
+  const [backupIdentity] = await backupSql`
+    select current_user, session_user
+  `;
+  if (
+    backupIdentity?.current_user !== "logos_ci_backup" ||
+    backupIdentity?.session_user !== "logos_ci_backup"
+  ) {
+    throw new Error("Backup tests require a real unprivileged login");
+  }
+  const [backupFixture] = await backupSql`
+    select marker from logos.infrastructure_probe where id = 1
+  `;
+  if (backupFixture?.marker !== "logos-phase-02-synthetic") {
+    throw new Error("Backup role could not read the synthetic fixture");
+  }
+
   await expectPermissionDenied("backup write", async () => {
-    await sql.begin(async (transaction) => {
-      await transaction`set local role logos_backup`;
+    await backupSql.begin(async (transaction) => {
       await transaction`
         insert into logos.infrastructure_probe (id, marker)
         values (3, 'must-not-write')
@@ -120,14 +188,13 @@ try {
   });
 
   await expectPermissionDenied("backup DDL", async () => {
-    await sql.begin(async (transaction) => {
-      await transaction`set local role logos_backup`;
+    await backupSql.begin(async (transaction) => {
       await transaction`create table logos.backup_must_not_create (id integer)`;
     });
   });
 
   await expectPermissionDenied("audit read before Phase 03", async () => {
-    await sql.begin(async (transaction) => {
+    await ownerSql.begin(async (transaction) => {
       await transaction`set local role logos_audit`;
       await transaction`select marker from logos.infrastructure_probe`;
     });
@@ -135,5 +202,5 @@ try {
 
   console.log("Database role and isolation checks passed.");
 } finally {
-  await sql.end();
+  await Promise.all([ownerSql.end(), runtimeSql.end(), backupSql.end()]);
 }
