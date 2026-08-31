@@ -145,15 +145,21 @@ try {
       select
         has_schema_privilege('logos_runtime', 'logos', 'USAGE') as runtime_usage,
         has_table_privilege('logos_runtime', 'logos.infrastructure_probe', 'INSERT') as runtime_insert,
+        has_table_privilege('logos_runtime', 'logos.business_audit_journal', 'INSERT') as runtime_audit_insert,
+        has_table_privilege('logos_runtime', 'logos.business_audit_journal', 'SELECT') as runtime_audit_select,
         has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'SELECT') as backup_select,
+        has_table_privilege('logos_backup', 'logos.business_audit_journal', 'SELECT') as backup_audit_select,
         has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'INSERT') as backup_insert
     `;
     if (
       restoredFixture?.marker !== "logos-phase-02-synthetic" ||
-      restoredMigration?.count !== 2 ||
+      restoredMigration?.count !== 3 ||
       !restoredPrivileges?.runtime_usage ||
       !restoredPrivileges.runtime_insert ||
+      !restoredPrivileges.runtime_audit_insert ||
+      restoredPrivileges.runtime_audit_select ||
       !restoredPrivileges.backup_select ||
+      !restoredPrivileges.backup_audit_select ||
       restoredPrivileges.backup_insert
     ) {
       throw new Error(
