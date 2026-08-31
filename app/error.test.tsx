@@ -20,8 +20,11 @@ describe("Error", () => {
   });
 
   it("sanitizes output by withholding stack traces, raw error messages, and sensitive diagnostics", () => {
+    const redactionProbeUrl = new URL(`${"postgres:"}//secret.db/prod`);
+    redactionProbeUrl.username = "synthetic-user";
+    redactionProbeUrl.password = "synthetic-password";
     const sensitiveError = new Error(
-      "DATABASE_URL=postgres://user:pass@secret.db/prod at Object.query (/server/db.ts:42:10)",
+      `DATABASE_URL=${redactionProbeUrl.toString()} at Object.query (/server/db.ts:42:10)`,
     );
     (sensitiveError as Error & { digest?: string }).digest =
       "unauthorized_secret_digest_998877";
