@@ -162,3 +162,29 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 7. In `/admin/attendance`: record attendance for active members and verify ledger totals.
 8. As active member: navigate to `/members`, verify status, view session, and submit expected absence.
 9. Attempt unauthorized access to `/admin/*`: verify strict 403 Access Denied.
+
+## 8. Implementation outcome and delivery evidence
+
+### 8.1 Delivered artifacts
+- **Database Schema**: Forward-only Drizzle migration `drizzle/0005_keen_amazoness.sql` creating `logos.club_members`, `logos.club_sessions`, `logos.session_attendance`, `logos.expected_absences`, and `logos.member_warnings` with runtime and backup role permissions.
+- **Service Layer**:
+  - `lib/membership/service.server.ts` & `lib/membership/schema.ts` (deliberate activation, duplicate active membership prevention, status lifecycle transitions, member listing with warning counts, `getCurrentMember` helper, and append-only audit logging).
+  - `lib/attendance/service.server.ts` & `lib/attendance/schema.ts` (session creation/listing, batch attendance recording with upsert and audit logging, session roster retrieval merging attendance + expected absence, expected absence submission with member/operator authority checks, derived attendance summary calculations, manual warning issuance/listing/resolution with audit logging).
+- **Protected Task Surfaces & API Handlers**:
+  - `/admin/members` (`app/admin/members/page.tsx`, `member-admin-view.tsx`, `/api/admin/members/route.ts`, `/api/admin/members/[id]/status/route.ts`).
+  - `/admin/sessions` (`app/admin/sessions/page.tsx`, `session-admin-view.tsx`, `/api/admin/sessions/route.ts`).
+  - `/admin/attendance` (`app/admin/attendance/page.tsx`, `attendance-admin-view.tsx`, `/api/admin/attendance/route.ts`).
+  - `/admin/warnings` (`app/admin/warnings/page.tsx`, `warnings-admin-view.tsx`, `/api/admin/warnings/route.ts`).
+  - `/members` (`app/members/page.tsx`, `member-hub-view.tsx`, `/api/members/absences/route.ts`).
+- **Public Site Completion**:
+  - Accessible multi-section landing page in `app/page.tsx` (Hero, What Students Do, About LOGOS, Schedule / Room 101, Leadership & Supervision, Competition Pathways & Resources, Privacy Information & Data Subject Rights, Contact Guidance, Recruitment Call-to-Action).
+  - Enhanced semantic navigation and footer landmarks in `components/layout/app-shell.tsx`.
+  - OpenGraph / SEO metadata in `app/layout.tsx`.
+- **Automated Test Coverage**:
+  - 51 test files, 307 passing unit and component tests.
+  - Full Playwright E2E smoke tests and automated AxeBuilder WCAG 2.2 Level AA accessibility scans with 0 violations.
+
+### 8.2 Production launch gate status
+- **Release Status**: Launch-ready on branch `phase/07-operations-launch`.
+- **Pre-traffic Operator Gate**: Unmerged Pull Request created against `main`. Live production activation, OAuth domain verification, and real student traffic require user-assisted confirmation.
+
