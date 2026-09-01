@@ -19,28 +19,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, absence }, { status: 201 });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to submit expected absences.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to submit expected absences.",
+        },
+        { status: 403 },
       );
     }
 
     if (error instanceof MemberNotActiveError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "Only active LOGOS members can submit expected absences.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "Only active LOGOS members can submit expected absences.",
+        },
+        { status: 403 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to submit expected absence.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }

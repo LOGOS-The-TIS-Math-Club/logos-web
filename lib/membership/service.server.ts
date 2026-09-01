@@ -131,7 +131,7 @@ export async function activateMemberFromApplication(
       await recordBusinessAuditEvent(transaction, {
         actorId: actor.identityId,
         actorType: "user",
-        actorRoleSnapshot: "operator",
+        actorRoleSnapshot: "leadership",
         source: "web",
         correlationId,
         category: "membership",
@@ -255,7 +255,7 @@ export async function updateMemberStatus(
       await recordBusinessAuditEvent(transaction, {
         actorId: actor.identityId,
         actorType: "user",
-        actorRoleSnapshot: "operator",
+        actorRoleSnapshot: "leadership",
         source: "web",
         correlationId,
         category: "membership",

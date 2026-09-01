@@ -111,10 +111,13 @@ export function SessionAdminView({
       });
       setShowCreateModal(false);
       setNotes("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Creation failed. Please try again.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Creation failed. Please try again.",
       });
     } finally {
       setIsSubmitting(false);

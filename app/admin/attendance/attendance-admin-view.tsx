@@ -125,10 +125,13 @@ export function AttendanceAdminView({
         type: "success",
         text: `Successfully recorded attendance for ${records.length} members.`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Failed to save attendance. Please try again.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Failed to save attendance. Please try again.",
       });
     } finally {
       setIsSaving(false);
@@ -197,10 +200,10 @@ export function AttendanceAdminView({
       });
       setShowAbsenceModal(false);
       setAbsenceReason("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Failed to record absence.",
+        text: err instanceof Error ? err.message : "Failed to record absence.",
       });
     } finally {
       setIsSubmittingAbsence(false);

@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  AccessDeniedError,
-  requireCapability,
-} from "@/lib/auth/identity-access.server";
+import { AccessDeniedError } from "@/lib/auth/identity-access.server";
 import {
   activateMemberFromApplication,
   ApplicationNotAcceptedError,
@@ -24,20 +21,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, members });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to view club members.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to view club members.",
+        },
+        { status: 403 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to retrieve member records.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }
 
@@ -52,46 +45,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, member }, { status: 201 });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to activate club members.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to activate club members.",
+        },
+        { status: 403 },
       );
     }
 
     if (error instanceof ApplicationNotFoundError) {
-      return createSafeErrorResponse(
-        "NOT_FOUND",
-        404,
-        correlationId,
-        "Application not found.",
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Application not found." },
+        { status: 404 },
       );
     }
 
     if (error instanceof ApplicationNotAcceptedError) {
-      return createSafeErrorResponse(
-        "CONFLICT",
-        400,
-        correlationId,
-        error.message,
+      return NextResponse.json(
+        { code: "CONFLICT", message: error.message },
+        { status: 400 },
       );
     }
 
     if (error instanceof DuplicateActiveMemberError) {
-      return createSafeErrorResponse(
-        "CONFLICT",
-        409,
-        correlationId,
-        error.message,
+      return NextResponse.json(
+        { code: "CONFLICT", message: error.message },
+        { status: 409 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to activate club member.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }

@@ -100,10 +100,10 @@ export function WarningsAdminView({
       setShowIssueModal(false);
       setReason("");
       setNotes("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Failed to issue warning.",
+        text: err instanceof Error ? err.message : "Failed to issue warning.",
       });
     } finally {
       setIsSubmitting(false);
@@ -151,10 +151,10 @@ export function WarningsAdminView({
         type: "success",
         text: "Warning marked as resolved.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Failed to resolve warning.",
+        text: err instanceof Error ? err.message : "Failed to resolve warning.",
       });
     } finally {
       setResolvingId(null);

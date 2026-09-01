@@ -26,8 +26,8 @@ export function AppShell({ children, className }: AppShellProps) {
             LOGOS
           </Link>
           <nav aria-label="Main navigation">
-            <ul className="flex items-center gap-4 text-sm font-medium sm:gap-6">
-              <li>
+            <ul className="flex items-center gap-2 text-sm font-medium sm:gap-4 md:gap-6">
+              <li className="hidden sm:block">
                 <Link
                   href="/"
                   className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
@@ -35,7 +35,7 @@ export function AppShell({ children, className }: AppShellProps) {
                   Home
                 </Link>
               </li>
-              <li>
+              <li className="hidden md:block">
                 <Link
                   href="/#about"
                   className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
@@ -43,7 +43,7 @@ export function AppShell({ children, className }: AppShellProps) {
                   About
                 </Link>
               </li>
-              <li>
+              <li className="hidden md:block">
                 <Link
                   href="/#schedule"
                   className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
@@ -51,7 +51,7 @@ export function AppShell({ children, className }: AppShellProps) {
                   Schedule
                 </Link>
               </li>
-              <li>
+              <li className="hidden md:block">
                 <Link
                   href="/#resources"
                   className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
@@ -62,7 +62,7 @@ export function AppShell({ children, className }: AppShellProps) {
               <li>
                 <Link
                   href="/members"
-                  className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
+                  className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 text-xs transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none sm:text-sm"
                 >
                   Members
                 </Link>
@@ -70,7 +70,7 @@ export function AppShell({ children, className }: AppShellProps) {
               <li>
                 <Link
                   href="/apply"
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-9 items-center justify-center px-3.5 py-1 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
+                  className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-9 items-center justify-center px-3 py-1 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
                 >
                   Apply
                 </Link>

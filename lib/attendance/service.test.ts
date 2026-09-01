@@ -28,11 +28,9 @@ vi.mock("@/lib/db/client.server", () => ({
 
 import {
   createClubSession,
-  getMemberAttendanceTotals,
   issueManualWarning,
   MemberNotActiveError,
   recordSessionAttendance,
-  resolveWarning,
   SessionNotFoundError,
   submitExpectedAbsence,
 } from "./service.server";

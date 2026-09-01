@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth/identity-access.server";
 import { listWarnings } from "@/lib/attendance/service.server";
 import { listMembers } from "@/lib/membership/service.server";
+import { type MemberListItem } from "@/lib/membership/schema";
 import { WarningsAdminView } from "./warnings-admin-view";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function AdminWarningsPage() {
     requestHeaders.get("x-correlation-id") || crypto.randomUUID();
 
   let warnings = null;
-  let members = [];
+  let members: MemberListItem[] = [];
   let accessDenied = false;
   let serviceError = false;
 
