@@ -32,6 +32,7 @@ describe("MemberHubView", () => {
     lateCount: 1,
     excusedCount: 1,
     unexcusedCount: 0,
+    unmarkedCount: 0,
     attendanceRate: 85,
   };
 

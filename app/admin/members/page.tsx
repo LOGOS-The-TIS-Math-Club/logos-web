@@ -42,7 +42,15 @@ export default async function AdminMembersPage() {
 
       const excludedIds = activeMemberIdentityIds.map((m) => m.identityId);
 
-      let query = database
+      const condition =
+        excludedIds.length > 0
+          ? and(
+              eq(studentApplications.status, "accepted"),
+              notInArray(studentApplications.identityId, excludedIds),
+            )
+          : eq(studentApplications.status, "accepted");
+
+      const rows = await database
         .select({
           id: studentApplications.id,
           identityId: studentApplications.identityId,
@@ -56,18 +64,7 @@ export default async function AdminMembersPage() {
           applicationIdentities,
           eq(studentApplications.identityId, applicationIdentities.id),
         )
-        .where(eq(studentApplications.status, "accepted"));
-
-      if (excludedIds.length > 0) {
-        query = query.where(
-          and(
-            eq(studentApplications.status, "accepted"),
-            notInArray(studentApplications.identityId, excludedIds),
-          ),
-        ) as any;
-      }
-
-      const rows = await query;
+        .where(condition);
       return rows.map((r) => ({
         id: r.id,
         identityId: r.identityId,

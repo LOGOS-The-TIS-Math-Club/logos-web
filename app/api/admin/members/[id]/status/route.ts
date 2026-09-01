@@ -23,28 +23,22 @@ export async function POST(
     return NextResponse.json({ success: true, member: updated });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to update member status.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to update member status.",
+        },
+        { status: 403 },
       );
     }
 
     if (error instanceof MemberNotFoundError) {
-      return createSafeErrorResponse(
-        "NOT_FOUND",
-        404,
-        correlationId,
-        "Member not found.",
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Member not found." },
+        { status: 404 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to update member status.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }

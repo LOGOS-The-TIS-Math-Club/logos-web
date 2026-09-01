@@ -128,10 +128,13 @@ export function MemberAdminView({
         type: "success",
         text: `Successfully activated membership for ${app.preferredName}.`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Activation failed. Please try again.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Activation failed. Please try again.",
       });
     } finally {
       setActivatingId(null);
@@ -197,10 +200,13 @@ export function MemberAdminView({
         text: `Updated status for ${editingMember.preferredName} to ${editStatus}.`,
       });
       setEditingMember(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Status update failed. Please try again.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Status update failed. Please try again.",
       });
     } finally {
       setIsSubmitting(false);

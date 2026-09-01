@@ -19,11 +19,12 @@ export async function GET(request: NextRequest) {
 
   const sessionId = request.nextUrl.searchParams.get("sessionId");
   if (!sessionId) {
-    return createSafeErrorResponse(
-      "BAD_REQUEST",
-      400,
-      correlationId,
-      "sessionId query parameter is required.",
+    return NextResponse.json(
+      {
+        code: "BAD_REQUEST",
+        message: "sessionId query parameter is required.",
+      },
+      { status: 400 },
     );
   }
 
@@ -33,29 +34,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, ...data });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to view attendance rosters.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to view attendance rosters.",
+        },
+        { status: 403 },
       );
     }
 
     if (error instanceof SessionNotFoundError) {
-      return createSafeErrorResponse(
-        "NOT_FOUND",
-        404,
-        correlationId,
-        "Session not found.",
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Session not found." },
+        { status: 404 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to retrieve session attendance roster.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }
 
@@ -71,31 +66,25 @@ export async function POST(request: NextRequest) {
       body.records,
       correlationId,
     );
-    return NextResponse.json({ success: true, ...result });
+    return NextResponse.json(result);
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to record attendance.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to record attendance.",
+        },
+        { status: 403 },
       );
     }
 
     if (error instanceof SessionNotFoundError) {
-      return createSafeErrorResponse(
-        "NOT_FOUND",
-        404,
-        correlationId,
-        "Session not found.",
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Session not found." },
+        { status: 404 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to record session attendance.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }

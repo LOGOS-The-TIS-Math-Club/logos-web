@@ -25,20 +25,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, warnings });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to view warning records.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to view warning records.",
+        },
+        { status: 403 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to retrieve warning records.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }
 
@@ -53,20 +49,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, warning }, { status: 201 });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to issue warnings.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to issue warnings.",
+        },
+        { status: 403 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to issue warning.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }
 
@@ -81,28 +73,22 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true, warning: resolved });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
-      return createSafeErrorResponse(
-        "FORBIDDEN",
-        403,
-        correlationId,
-        "You do not have permission to resolve warnings.",
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You do not have permission to resolve warnings.",
+        },
+        { status: 403 },
       );
     }
 
     if (error instanceof WarningNotFoundError) {
-      return createSafeErrorResponse(
-        "NOT_FOUND",
-        404,
-        correlationId,
-        "Warning record not found.",
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Warning record not found." },
+        { status: 404 },
       );
     }
 
-    return createSafeErrorResponse(
-      "INTERNAL_SERVER_ERROR",
-      500,
-      correlationId,
-      "Failed to resolve warning.",
-    );
+    return createSafeErrorResponse("INTERNAL_SERVER_ERROR", 500, correlationId);
   }
 }

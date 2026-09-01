@@ -31,9 +31,6 @@ import {
   ApplicationNotAcceptedError,
   ApplicationNotFoundError,
   DuplicateActiveMemberError,
-  getCurrentMember,
-  listMembers,
-  MemberNotFoundError,
   updateMemberStatus,
 } from "./service.server";
 

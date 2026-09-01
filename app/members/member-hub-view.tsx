@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState } from "react";
-import Link from "next/link";
 
 import {
   type AttendanceTotals,
@@ -97,10 +96,13 @@ export function MemberHubView({
         text: "Your expected absence notification has been sent to leadership.",
       });
       setAbsenceReason("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFeedback({
         type: "error",
-        text: err?.message || "Failed to submit absence. Please try again.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Failed to submit absence. Please try again.",
       });
     } finally {
       setIsSubmitting(false);

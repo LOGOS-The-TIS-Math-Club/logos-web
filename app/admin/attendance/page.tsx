@@ -8,6 +8,7 @@ import {
   getSessionAttendance,
   listClubSessions,
 } from "@/lib/attendance/service.server";
+import { type MemberSessionAttendance } from "@/lib/attendance/schema";
 import { AttendanceAdminView } from "./attendance-admin-view";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export default async function AdminAttendancePage(props: {
 
   let sessions = null;
   let targetSessionId = searchParams.sessionId || "";
-  let roster = [];
+  let roster: MemberSessionAttendance[] = [];
   let accessDenied = false;
   let serviceError = false;
 

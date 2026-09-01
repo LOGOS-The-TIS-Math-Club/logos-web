@@ -12,7 +12,6 @@ import {
   studentApplications,
 } from "@/db/schema";
 import {
-  AccessDeniedError,
   requireCapability,
   resolveCurrentIdentity,
 } from "@/lib/auth/identity-access.server";
@@ -83,7 +82,7 @@ export async function createClubSession(
       await recordBusinessAuditEvent(transaction, {
         actorId: actor.identityId,
         actorType: "user",
-        actorRoleSnapshot: "operator",
+        actorRoleSnapshot: "leadership",
         source: "web",
         correlationId,
         category: "session",
@@ -92,8 +91,9 @@ export async function createClubSession(
         targetId: session.id,
         result: "success",
         metadata: {
-          sessionDate: session.sessionDate,
           title: session.title,
+          sessionDate: session.sessionDate,
+          location: session.location,
         },
       });
 
@@ -218,7 +218,7 @@ export async function recordSessionAttendance(
       await recordBusinessAuditEvent(transaction, {
         actorId: actor.identityId,
         actorType: "user",
-        actorRoleSnapshot: "operator",
+        actorRoleSnapshot: "leadership",
         source: "web",
         correlationId,
         category: "attendance",
@@ -241,9 +241,10 @@ export async function recordSessionAttendance(
  * Retrieves the complete attendance roster for a session, merging active members,
  * existing attendance ledger entries, and any expected absences for the session date.
  */
-export async function getSessionAttendance(
-  sessionId: string,
-): Promise<{ session: any; roster: MemberSessionAttendance[] }> {
+export async function getSessionAttendance(sessionId: string): Promise<{
+  session: typeof clubSessions.$inferSelect;
+  roster: MemberSessionAttendance[];
+}> {
   return withDatabase(async (database) => {
     const [session] = await database
       .select()
@@ -398,7 +399,11 @@ export async function submitExpectedAbsence(
       await recordBusinessAuditEvent(transaction, {
         actorId: identity.identityId,
         actorType: "user",
-        actorRoleSnapshot: identity.accessLevel || "none",
+        actorRoleSnapshot:
+          identity.accessLevel === "operator" ||
+          identity.accessLevel === "access_admin"
+            ? "leadership"
+            : "member",
         source: "web",
         correlationId,
         category: "absence",
@@ -494,7 +499,7 @@ export async function issueManualWarning(
       await recordBusinessAuditEvent(transaction, {
         actorId: actor.identityId,
         actorType: "user",
-        actorRoleSnapshot: "operator",
+        actorRoleSnapshot: "leadership",
         source: "web",
         correlationId,
         category: "warning",
@@ -520,15 +525,19 @@ export async function listWarnings(
   memberId?: string,
 ): Promise<WarningListItem[]> {
   return withDatabase(async (database) => {
-    let query = database
+    const condition = memberId
+      ? eq(memberWarnings.memberId, memberId)
+      : undefined;
+
+    const rows = await database
       .select({
         id: memberWarnings.id,
         memberId: memberWarnings.memberId,
         reason: memberWarnings.reason,
-        notes: memberWarnings.notes,
         active: memberWarnings.active,
         issuedAt: memberWarnings.issuedAt,
         resolvedAt: memberWarnings.resolvedAt,
+        notes: memberWarnings.notes,
         preferredName: studentApplications.preferredName,
         email: applicationIdentities.email,
       })
@@ -542,13 +551,8 @@ export async function listWarnings(
         studentApplications,
         eq(clubMembers.applicationId, studentApplications.id),
       )
+      .where(condition)
       .orderBy(desc(memberWarnings.issuedAt));
-
-    if (memberId) {
-      query = query.where(eq(memberWarnings.memberId, memberId)) as any;
-    }
-
-    const rows = await query;
 
     return rows.map((r) => ({
       id: r.id,
@@ -596,7 +600,7 @@ export async function resolveWarning(warningId: string, correlationId: string) {
       await recordBusinessAuditEvent(transaction, {
         actorId: actor.identityId,
         actorType: "user",
-        actorRoleSnapshot: "operator",
+        actorRoleSnapshot: "leadership",
         source: "web",
         correlationId,
         category: "warning",
