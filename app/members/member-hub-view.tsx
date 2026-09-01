@@ -3,7 +3,10 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 
-import { type AttendanceTotals, type SessionListItem } from "@/lib/attendance/schema";
+import {
+  type AttendanceTotals,
+  type SessionListItem,
+} from "@/lib/attendance/schema";
 
 function getCookie(name: string): string {
   if (typeof document === "undefined") return "";
@@ -110,7 +113,7 @@ export function MemberHubView({
       <div className="border-border bg-surface rounded-component space-y-4 border p-6 sm:p-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
-            <div className="border-border bg-surface-raised inline-flex items-center gap-2 rounded-full border px-3 py-0.5 text-xs font-semibold text-primary">
+            <div className="border-border bg-surface-raised text-primary inline-flex items-center gap-2 rounded-full border px-3 py-0.5 text-xs font-semibold">
               <span>LOGOS Member</span>
               <span aria-hidden="true">•</span>
               <span>{member.grade || "High School"}</span>
@@ -140,14 +143,15 @@ export function MemberHubView({
           {upcomingSession ? (
             <div className="space-y-3">
               <div className="border-border bg-surface-raised rounded-component border p-4">
-                <p className="text-primary text-xs font-bold uppercase tracking-wider">
+                <p className="text-primary text-xs font-bold tracking-wider uppercase">
                   {upcomingSession.sessionDate}
                 </p>
                 <h3 className="text-foreground mt-1 text-base font-bold">
                   {upcomingSession.title}
                 </h3>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {upcomingSession.startTime} – {upcomingSession.endTime} • {upcomingSession.location}
+                  {upcomingSession.startTime} – {upcomingSession.endTime} •{" "}
+                  {upcomingSession.location}
                 </p>
                 {upcomingSession.notes && (
                   <p className="text-muted-foreground mt-2 text-xs italic">
@@ -157,9 +161,13 @@ export function MemberHubView({
               </div>
             </div>
           ) : (
-            <div className="border-border bg-surface-raised rounded-component border p-4 text-xs text-muted-foreground">
-              <p className="font-semibold text-foreground">Regular Meeting Time:</p>
-              <p className="mt-1">Every Friday after school, 15:30–16:30 in Room 101.</p>
+            <div className="border-border bg-surface-raised rounded-component text-muted-foreground border p-4 text-xs">
+              <p className="text-foreground font-semibold">
+                Regular Meeting Time:
+              </p>
+              <p className="mt-1">
+                Every Friday after school, 15:30–16:30 in Room 101.
+              </p>
             </div>
           )}
         </div>
@@ -191,7 +199,7 @@ export function MemberHubView({
             </div>
           </div>
 
-          <div className="border-border flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
+          <div className="border-border text-muted-foreground flex items-center justify-between border-t pt-3 text-xs">
             <span>Overall Attendance Rate:</span>
             <strong className="text-foreground text-sm font-bold">
               {attendanceTotals.attendanceRate}%
@@ -207,7 +215,8 @@ export function MemberHubView({
             Notify Upcoming Absence
           </h2>
           <p className="text-muted-foreground text-xs">
-            If you cannot attend an upcoming Friday session due to a conflict, submit notice here so leadership can record an excused absence.
+            If you cannot attend an upcoming Friday session due to a conflict,
+            submit notice here so leadership can record an excused absence.
           </p>
         </div>
 
@@ -228,7 +237,10 @@ export function MemberHubView({
         <form onSubmit={handleAbsenceSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor={dateId} className="text-foreground block text-xs font-medium">
+              <label
+                htmlFor={dateId}
+                className="text-foreground block text-xs font-medium"
+              >
                 Session Date
               </label>
               <input
@@ -237,11 +249,14 @@ export function MemberHubView({
                 required
                 value={absenceDate}
                 onChange={(e) => setAbsenceDate(e.target.value)}
-                className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor={reasonId} className="text-foreground block text-xs font-medium">
+              <label
+                htmlFor={reasonId}
+                className="text-foreground block text-xs font-medium"
+              >
                 Reason for Absence
               </label>
               <input
@@ -252,7 +267,7 @@ export function MemberHubView({
                 placeholder="e.g. Doctor appointment, debate tournament, etc."
                 value={absenceReason}
                 onChange={(e) => setAbsenceReason(e.target.value)}
-                className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
               />
             </div>
           </div>
@@ -275,7 +290,8 @@ export function MemberHubView({
           Approved Club Resources
         </h2>
         <p className="text-muted-foreground text-xs">
-          Access shared materials and problem sets via approved Tokyo International School links:
+          Access shared materials and problem sets via approved Tokyo
+          International School links:
         </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

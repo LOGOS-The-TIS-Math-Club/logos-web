@@ -19,6 +19,7 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 ## 2. Coexistence model and preserved invariants
 
 ### Membership coexistence model (conservative & additive)
+
 - PostgreSQL is the operational authority for memberships deliberately created from native LOGOS applications.
 - Existing Forms, Sheets, historical responses, and `logos-data-membership` remain preserved, untouched, and uncorrupted.
 - No destructive cutover, automated backfill, or mass import is performed during this phase.
@@ -28,6 +29,7 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 - Technical access capabilities, club leadership titles, verified school affiliation, application status, and membership status remain strictly separate facts.
 
 ### System invariants
+
 - Server-side default-deny authorization on all protected routes and API handlers.
 - Immutable identity keys (`application_identities.id`) used for all relational integrity; email is mutable contact information.
 - Append-only business audit journal records all membership activations, status changes, session creations, attendance ledger updates, and manual warnings.
@@ -40,6 +42,7 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 ## 3. Milestones and scope
 
 ### Milestone A — Essential operations
+
 1. **Membership lifecycle**:
    - Deliberate activation of accepted student applications into `logos.club_members`.
    - Idempotent activation: duplicate active membership for the same identity is rejected at schema and service layers.
@@ -56,6 +59,7 @@ The landing page and application intake remain the highest-quality surfaces. Mem
    - Zero automatic scoring, penalty points, or automated disciplinary logic.
 
 ### Milestone B — Minimal protected task surfaces
+
 1. `/admin/members`: List members, filter by status, view application provenance, one-click deliberate activation of accepted applications, and status transition controls.
 2. `/admin/sessions`: Create and list club sessions with editable meeting defaults.
 3. `/admin/attendance`: Mark and correct attendance on session grids, view expected absence indicators, and record absences on behalf of members.
@@ -63,12 +67,14 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 5. Explicit capabilities in `lib/auth/capabilities.ts`: `membership:read`, `membership:manage`, `session:manage`, `attendance:record`, `warning:manage`.
 
 ### Milestone C — Public-site completion
+
 1. Complete public content: About LOGOS, meeting schedule, Room 101 details, student leadership & faculty advisor information, competition & resource links, contact guidance.
 2. Privacy information: Clear statement regarding student data protection, TIS account identification, data minimization, and contact process for correction or deletion.
 3. Navigation & SEO: Accessible header/footer navigation, OpenGraph / Twitter metadata, skip links, semantic HTML, WCAG AA compliance.
 4. Preserved Zinc/Mauve aesthetic and primary recruitment call-to-action.
 
 ### Milestone D — Recovery and launch readiness
+
 1. Logical backup & restore verification script updated to assert Phase 07 tables, least-privilege permissions, and migration count (6 migrations).
 2. Production launch runbooks and operational checklists documented in this file.
 3. Zero indexation of private/authenticated areas (`noindex` headers).
@@ -105,6 +111,7 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 ## 7. Launch runbook & operational procedures
 
 ### 7.1 Production environment inventory
+
 - **Application Host**: Vercel (Singapore region `sin1`, Node.js 24 LTS)
 - **Database**: Neon Serverless PostgreSQL (Singapore region `ap-southeast-1`)
 - **Authentication**: Neon Auth with Google OAuth 2.0 (Identity-only scopes: `openid`, `email`, `profile`)
@@ -112,35 +119,41 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 - **Analytics**: Vercel Web Analytics (Public routes only)
 
 ### 7.2 Database migration procedure
+
 1. Pre-migration backup: Run `pg_dump` of current production database to a secure, encrypted storage location.
 2. Verify migration SQL: Review `drizzle/0005_*.sql` to ensure all operations are additive and non-locking.
 3. Apply migration: Execute `pnpm db:migrate` using the dedicated `logos_migration` role.
 4. Verify schema: Execute read-only verification query confirming all 6 migrations are recorded in `drizzle.__drizzle_migrations`.
 
 ### 7.3 Isolated restore procedure
+
 1. Create a fresh, isolated PostgreSQL database instance (`logos_restore_verification`).
 2. Restore the latest backup dump using `pg_restore --exit-on-error --no-owner`.
 3. Verify fixture markers, migration counts, table row counts, and least-privilege role privileges.
 4. Drop the test restore database after verification.
 
 ### 7.4 Rollback & incident response procedure
+
 1. If application error occurs post-deploy: Revert to previous Vercel deployment instantly via Vercel Dashboard / CLI (`vercel rollback`).
 2. Database backward compatibility: Schema additions in Phase 07 are strictly additive (nullable columns and new tables only), ensuring older application code continues to run safely against the migrated database.
 3. Access incident: Execute `deactivateApplicationIdentity` or revoke technical access via `/admin` or emergency bootstrap script.
 
 ### 7.5 Leadership access procedure
+
 1. New leader signs in via Google OAuth using their `@tokyois.com` account.
 2. Verified identity record is automatically associated with status `verified`.
 3. Existing `access_admin` grants `operator` access level via `setTechnicalAccess(targetIdentityId, 'operator', reason, correlationId)`.
 4. Initial bootstrap is performed once using `pnpm db:access:bootstrap` with `ACCESS_ADMIN_BOOTSTRAP_SECRET`.
 
 ### 7.6 Application-data access & CSV export procedure
+
 1. Authorized operator navigates to `/admin/applications`.
 2. Click "Export CSV" to trigger secure export API (`/api/admin/applications/export`).
 3. Export is generated with formula-injection escaping (all cells starting with `=`, `+`, `-`, `@`, `\t`, `\r` prefixed with `'`).
 4. Export event is logged to `business_audit_journal`.
 
 ### 7.7 Credential ownership & revocation checklist
+
 - [ ] Neon database owner password stored securely in team password manager.
 - [ ] Neon Auth Google OAuth client ID & secret configured in Vercel environment variables.
 - [ ] CSRF signing secret (`CSRF_SIGNING_SECRET`) is a minimum 32-character high-entropy secret.
@@ -148,11 +161,13 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 - [ ] No API keys, credentials, or tokens committed to git history.
 
 ### 7.8 Legacy resource preservation statement
+
 - Google Forms and Sheets previously used for recruitment, membership tracking, and absence reporting remain intact.
 - No legacy data has been modified, overwritten, or destroyed.
 - Legacy records are treated as read-only historical archives.
 
 ### 7.9 Post-launch smoke checklist
+
 1. Visit public landing page `/`: verify copy, meeting schedule, Room 101, leadership, resources, and privacy information.
 2. Click "Apply to LOGOS": verify `/apply` form renders, validates inputs, and requires `@tokyois.com` Google identification.
 3. Submit synthetic test application: verify confirmation page `/apply/confirmation` and duplicate submission prevention.
@@ -166,6 +181,7 @@ The landing page and application intake remain the highest-quality surfaces. Mem
 ## 8. Implementation outcome and delivery evidence
 
 ### 8.1 Delivered artifacts
+
 - **Database Schema**: Forward-only Drizzle migration `drizzle/0005_keen_amazoness.sql` creating `logos.club_members`, `logos.club_sessions`, `logos.session_attendance`, `logos.expected_absences`, and `logos.member_warnings` with runtime and backup role permissions.
 - **Service Layer**:
   - `lib/membership/service.server.ts` & `lib/membership/schema.ts` (deliberate activation, duplicate active membership prevention, status lifecycle transitions, member listing with warning counts, `getCurrentMember` helper, and append-only audit logging).
@@ -185,6 +201,6 @@ The landing page and application intake remain the highest-quality surfaces. Mem
   - Full Playwright E2E smoke tests and automated AxeBuilder WCAG 2.2 Level AA accessibility scans with 0 violations.
 
 ### 8.2 Production launch gate status
+
 - **Release Status**: Launch-ready on branch `phase/07-operations-launch`.
 - **Pre-traffic Operator Gate**: Unmerged Pull Request created against `main`. Live production activation, OAuth domain verification, and real student traffic require user-assisted confirmation.
-

@@ -277,4 +277,3 @@ test("renders unauthenticated member hub with informational fallback and zero WC
     .analyze();
   expect(memberResults.violations).toEqual([]);
 });
-

@@ -26,7 +26,7 @@ export function AppShell({ children, className }: AppShellProps) {
             LOGOS
           </Link>
           <nav aria-label="Main navigation">
-            <ul className="flex items-center gap-4 sm:gap-6 text-sm font-medium">
+            <ul className="flex items-center gap-4 text-sm font-medium sm:gap-6">
               <li>
                 <Link
                   href="/"
@@ -86,11 +86,12 @@ export function AppShell({ children, className }: AppShellProps) {
         <Container className="space-y-6">
           <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
             <div className="space-y-1">
-              <p className="font-semibold text-foreground text-sm">
+              <p className="text-foreground text-sm font-semibold">
                 LOGOS — The Tokyo International School Math Club
               </p>
               <p className="text-muted-foreground">
-                Fridays 15:30–16:30 • Room 101 • Tokyo International School High School
+                Fridays 15:30–16:30 • Room 101 • Tokyo International School High
+                School
               </p>
             </div>
             <div className="flex flex-wrap gap-4 text-xs">
@@ -116,7 +117,8 @@ export function AppShell({ children, className }: AppShellProps) {
           </div>
           <div className="border-border flex flex-col justify-between gap-2 border-t pt-4 text-[11px] sm:flex-row">
             <p>
-              Student privacy protected. Application identities verified via Google Workspace.
+              Student privacy protected. Application identities verified via
+              Google Workspace.
             </p>
             <p>MIT License</p>
           </div>
@@ -125,4 +127,3 @@ export function AppShell({ children, className }: AppShellProps) {
     </div>
   );
 }
-

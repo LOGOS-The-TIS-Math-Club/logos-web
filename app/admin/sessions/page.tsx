@@ -35,8 +35,8 @@ export default async function AdminSessionsPage() {
         <div className="border-danger bg-danger-surface rounded-component space-y-3 border p-8">
           <h1 className="text-danger text-xl font-bold">403 • Access Denied</h1>
           <p className="text-foreground text-sm leading-relaxed">
-            You do not have the required <code>session:manage</code>{" "}
-            capability to manage club sessions.
+            You do not have the required <code>session:manage</code> capability
+            to manage club sessions.
           </p>
           <p className="text-muted-foreground text-xs">
             Session management is restricted to authorized club operators.

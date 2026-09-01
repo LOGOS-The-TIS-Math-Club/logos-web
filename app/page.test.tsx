@@ -32,9 +32,9 @@ describe("Home recruitment landing page", () => {
       screen.getByRole("heading", { level: 2, name: "Meeting Schedule" }),
     ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText(/Grades 9–12/i).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Grades 9–12/i).length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(
       screen.getByText(/Every Friday after school, 15:30–16:30/i),
     ).toBeInTheDocument();
@@ -48,7 +48,10 @@ describe("Home recruitment landing page", () => {
       screen.getByRole("heading", { level: 2, name: "About LOGOS Math Club" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 2, name: "Leadership & Supervision" }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: "Leadership & Supervision",
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
@@ -67,5 +70,3 @@ describe("Home recruitment landing page", () => {
     ).toBeInTheDocument();
   });
 });
-
-

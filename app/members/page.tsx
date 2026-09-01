@@ -16,7 +16,7 @@ export default async function MembersPage() {
     return (
       <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
         <div className="border-border bg-surface rounded-component space-y-4 border p-8">
-          <div className="border-border bg-surface-raised mx-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold text-primary">
+          <div className="border-border bg-surface-raised text-primary mx-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold">
             <span>Members Hub</span>
           </div>
 
@@ -25,20 +25,24 @@ export default async function MembersPage() {
           </h1>
 
           <p className="text-muted-foreground text-sm leading-relaxed">
-            The member hub provides meeting schedules, absence notifications, and club materials for active LOGOS members.
+            The member hub provides meeting schedules, absence notifications,
+            and club materials for active LOGOS members.
           </p>
 
-          <div className="border-border bg-surface-raised/50 rounded-component border p-4 text-left text-xs text-muted-foreground">
-            <p className="font-semibold text-foreground">Getting Access:</p>
+          <div className="border-border bg-surface-raised/50 rounded-component text-muted-foreground border p-4 text-left text-xs">
+            <p className="text-foreground font-semibold">Getting Access:</p>
             <ul className="mt-2 list-disc space-y-1 pl-4">
               <li>
-                <strong>New student?</strong> Submit an application at our recruitment page.
+                <strong>New student?</strong> Submit an application at our
+                recruitment page.
               </li>
               <li>
-                <strong>Already accepted?</strong> Club leadership will activate your membership following review.
+                <strong>Already accepted?</strong> Club leadership will activate
+                your membership following review.
               </li>
               <li>
-                <strong>Current member?</strong> Ensure you are signed in with your verified <code>@tokyois.com</code> Google account.
+                <strong>Current member?</strong> Ensure you are signed in with
+                your verified <code>@tokyois.com</code> Google account.
               </li>
             </ul>
           </div>

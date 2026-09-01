@@ -6,7 +6,10 @@ import {
   StatusBadge,
   type StatusBadgeVariant,
 } from "@/components/ui/status-badge";
-import { type ClubMemberStatus, type MemberListItem } from "@/lib/membership/schema";
+import {
+  type ClubMemberStatus,
+  type MemberListItem,
+} from "@/lib/membership/schema";
 
 export interface AcceptedApplicationItem {
   id: string;
@@ -44,7 +47,9 @@ export function MemberAdminView({
   const [pendingApps, setPendingApps] =
     useState<AcceptedApplicationItem[]>(acceptedApplications);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [editingMember, setEditingMember] = useState<MemberListItem | null>(null);
+  const [editingMember, setEditingMember] = useState<MemberListItem | null>(
+    null,
+  );
   const [editStatus, setEditStatus] = useState<ClubMemberStatus>("active");
   const [editReason, setEditReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -211,7 +216,8 @@ export function MemberAdminView({
             Club Members
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Manage deliberate membership activations, member history, and operational status.
+            Manage deliberate membership activations, member history, and
+            operational status.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -248,7 +254,8 @@ export function MemberAdminView({
             </span>
           </div>
           <p className="text-muted-foreground text-xs">
-            These applicants have been accepted. Membership requires a separate deliberate activation step.
+            These applicants have been accepted. Membership requires a separate
+            deliberate activation step.
           </p>
 
           <div className="divide-border divide-y">
@@ -274,7 +281,9 @@ export function MemberAdminView({
                   disabled={activatingId === app.id}
                   className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-9 items-center justify-center px-4 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
                 >
-                  {activatingId === app.id ? "Activating..." : "Activate as Member"}
+                  {activatingId === app.id
+                    ? "Activating..."
+                    : "Activate as Member"}
                 </button>
               </div>
             ))}
@@ -283,16 +292,19 @@ export function MemberAdminView({
       )}
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-3">
+      <div className="border-border flex flex-wrap items-center justify-between gap-4 border-b pb-3">
         <div className="flex items-center gap-2">
-          <label htmlFor={filterId} className="text-xs font-medium text-muted-foreground">
+          <label
+            htmlFor={filterId}
+            className="text-muted-foreground text-xs font-medium"
+          >
             Status:
           </label>
           <select
             id={filterId}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border-border bg-surface text-foreground rounded-component border px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+            className="border-border bg-surface text-foreground rounded-component focus:ring-primary border px-3 py-1.5 text-xs font-medium focus:ring-1 focus:outline-none"
           >
             <option value="all">All Members ({counts.all})</option>
             <option value="active">Active ({counts.active})</option>
@@ -312,7 +324,7 @@ export function MemberAdminView({
       ) : (
         <div className="border-border bg-surface rounded-component overflow-x-auto border">
           <table className="w-full text-left text-sm">
-            <thead className="border-border bg-surface-raised border-b text-xs font-semibold text-muted-foreground">
+            <thead className="border-border bg-surface-raised text-muted-foreground border-b text-xs font-semibold">
               <tr>
                 <th className="px-4 py-3">Member</th>
                 <th className="px-4 py-3">Grade</th>
@@ -326,12 +338,12 @@ export function MemberAdminView({
               {filteredMembers.map((member) => (
                 <tr key={member.id} className="hover:bg-surface-raised/50">
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-foreground">
+                    <div className="text-foreground font-semibold">
                       {member.preferredName}
                     </div>
                     <div className="text-muted-foreground">{member.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-foreground">
+                  <td className="text-foreground px-4 py-3">
                     {member.grade || "—"}
                   </td>
                   <td className="px-4 py-3">
@@ -340,13 +352,14 @@ export function MemberAdminView({
                         member.status.slice(1)}
                     </StatusBadge>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="text-muted-foreground px-4 py-3">
                     {new Date(member.joinedAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
                     {member.warningCount > 0 ? (
                       <span className="border-danger/30 bg-danger-surface text-danger inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold">
-                        {member.warningCount} {member.warningCount === 1 ? "warning" : "warnings"}
+                        {member.warningCount}{" "}
+                        {member.warningCount === 1 ? "warning" : "warnings"}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">0</span>
@@ -381,11 +394,18 @@ export function MemberAdminView({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
           <div className="border-border bg-surface rounded-component w-full max-w-md space-y-4 border p-6 shadow-xl">
-            <h2 id="edit-status-title" className="text-foreground text-lg font-bold">
+            <h2
+              id="edit-status-title"
+              className="text-foreground text-lg font-bold"
+            >
               Update Member Status
             </h2>
             <p className="text-muted-foreground text-xs">
-              Updating status for <strong className="text-foreground">{editingMember.preferredName}</strong> ({editingMember.email}).
+              Updating status for{" "}
+              <strong className="text-foreground">
+                {editingMember.preferredName}
+              </strong>{" "}
+              ({editingMember.email}).
             </p>
 
             <form onSubmit={handleStatusUpdate} className="space-y-4">
@@ -395,12 +415,20 @@ export function MemberAdminView({
                 </label>
                 <select
                   value={editStatus}
-                  onChange={(e) => setEditStatus(e.target.value as ClubMemberStatus)}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  onChange={(e) =>
+                    setEditStatus(e.target.value as ClubMemberStatus)
+                  }
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                 >
-                  <option value="active">Active (current participating member)</option>
-                  <option value="inactive">Inactive (temporarily paused)</option>
-                  <option value="former">Former (graduated or left club)</option>
+                  <option value="active">
+                    Active (current participating member)
+                  </option>
+                  <option value="inactive">
+                    Inactive (temporarily paused)
+                  </option>
+                  <option value="former">
+                    Former (graduated or left club)
+                  </option>
                 </select>
               </div>
 
@@ -414,7 +442,7 @@ export function MemberAdminView({
                   maxLength={256}
                   placeholder="e.g. Schedule conflict for semester, graduation, etc."
                   rows={3}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border p-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 

@@ -38,8 +38,8 @@ export default async function AdminWarningsPage() {
         <div className="border-danger bg-danger-surface rounded-component space-y-3 border p-8">
           <h1 className="text-danger text-xl font-bold">403 • Access Denied</h1>
           <p className="text-foreground text-sm leading-relaxed">
-            You do not have the required <code>warning:manage</code>{" "}
-            capability to manage warning records.
+            You do not have the required <code>warning:manage</code> capability
+            to manage warning records.
           </p>
           <p className="text-muted-foreground text-xs">
             Warning management is restricted to authorized club operators.

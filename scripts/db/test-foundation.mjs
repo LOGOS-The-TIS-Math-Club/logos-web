@@ -947,7 +947,6 @@ try {
     throw new Error("Backup role could not read Phase 07 member_warnings");
   }
 
-
   await expectPermissionDenied("backup write", async () => {
     await backupSql.begin(async (transaction) => {
       await transaction`
