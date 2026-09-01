@@ -4,6 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Compaction record: [roadmap-compaction.md](./roadmap-compaction.md)
+> - Execution audit: [phase-execution-efficiency.md](./phase-execution-efficiency.md)
 > - Current phase: Phase 06 — Recruitment and applications
 > - Completed for planning purposes: Phases 00–05
 > - Last updated: 2026-09-01
@@ -56,6 +57,17 @@ Each remaining phase should use:
 5. one focused review;
 6. one unmerged pull request and a concise completion report.
 
+Concrete execution limits apply unless a material failure gives a specific reason to exceed one:
+
+- one AGY capability preflight, one primary worker assignment, and at most one corrected retry;
+- no parallel workers editing overlapping files;
+- no more than four milestone commentary updates during an uninterrupted implementation run;
+- one critical-journey browser pass after the feature is stable;
+- one complete local required suite after focused checks pass;
+- one independent review and one bounded CI-status wait;
+- rerun only the failed or changed verification stage, not every passing stage;
+- if a tool or provider path fails twice for the same reason, stop retrying, capture the evidence, and use the documented fallback or request user action.
+
 Stop when the documented completion gate passes. Do not add repeated audits, speculative abstractions, cosmetic dashboards, redundant browser sessions, or unrelated cleanup.
 
 For browser and provider work:
@@ -65,6 +77,8 @@ For browser and provider work:
 - use Codex browser control only when a critical path cannot reasonably be verified another way;
 - group provider approvals by exact target and action;
 - do not weaken permissions or expose credentials to automate a manual step.
+
+Long-running commands must yield progress rather than hold one opaque tool call for many minutes. Large logs, DOM snapshots, generated diffs, and complete documents should be summarized or read in bounded sections instead of repeatedly copied into context.
 
 ## 4. Development order
 
