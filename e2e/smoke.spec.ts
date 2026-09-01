@@ -242,11 +242,39 @@ test("renders safe auth states when the live provider is not configured", async 
   ).toBeVisible();
 });
 
-test("renders 403 access denied on /admin/applications without session", async ({
+test("renders 403 access denied on protected admin routes without session", async ({
   page,
 }) => {
-  await page.goto("/admin/applications");
-  await expect(
-    page.getByRole("heading", { level: 1, name: /403 • Access Denied/i }),
-  ).toBeVisible();
+  const protectedAdminRoutes = [
+    "/admin/applications",
+    "/admin/members",
+    "/admin/sessions",
+    "/admin/attendance",
+    "/admin/warnings",
+  ];
+
+  for (const route of protectedAdminRoutes) {
+    await page.goto(route);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /403 • Access Denied/i }),
+    ).toBeVisible();
+  }
 });
+
+test("renders unauthenticated member hub with informational fallback and zero WCAG violations", async ({
+  page,
+}) => {
+  await page.goto("/members");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "LOGOS Member Portal" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("The member hub provides meeting schedules"),
+  ).toBeVisible();
+
+  const memberResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(memberResults.violations).toEqual([]);
+});
+
