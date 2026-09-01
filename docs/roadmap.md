@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: Phase 04 — planning on branch `phase/04-identity-authorization`
+> - Current phase: Phase 04 — implementation complete; provider configuration and review pending
 > - Last updated: 2026-09-01
 
 ## 1. Purpose

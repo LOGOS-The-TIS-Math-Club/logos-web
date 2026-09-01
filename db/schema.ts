@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -10,6 +11,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -282,5 +284,177 @@ export const durableOperations = logosSchema.table(
       "durable_operations_timestamps_order",
       sql`"updated_at" >= "created_at"`,
     ),
+  ],
+);
+
+export const affiliationStatusEnum = logosSchema.enum("affiliation_status", [
+  "pending_verification",
+  "verified",
+  "revoked",
+]);
+
+export const affiliationEvidenceTypeEnum = logosSchema.enum(
+  "affiliation_evidence_type",
+  ["google_hd", "manual_review", "revocation"],
+);
+
+export const technicalAccessLevelEnum = logosSchema.enum(
+  "technical_access_level",
+  ["basic", "operator", "access_admin"],
+);
+
+/**
+ * LOGOS-owned identity association. Provider identifiers are immutable keys;
+ * email remains mutable display/contact data and is never used as a join key.
+ */
+export const applicationIdentities = logosSchema.table(
+  "application_identities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    neonAuthUserId: text("neon_auth_user_id").notNull(),
+    googleSubject: text("google_subject").notNull(),
+    email: text("email").notNull(),
+    emailVerified: boolean("email_verified").notNull(),
+    affiliationStatus: affiliationStatusEnum("affiliation_status")
+      .notNull()
+      .default("pending_verification"),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
+  },
+  (t) => [
+    unique("application_identities_neon_auth_user_id_key").on(t.neonAuthUserId),
+    unique("application_identities_google_subject_key").on(t.googleSubject),
+    index("application_identities_access_lookup_idx").on(
+      t.neonAuthUserId,
+      t.active,
+      t.affiliationStatus,
+    ),
+    check(
+      "application_identities_neon_user_len_check",
+      sql`char_length("neon_auth_user_id") BETWEEN 1 AND 255`,
+    ),
+    check(
+      "application_identities_google_subject_len_check",
+      sql`char_length("google_subject") BETWEEN 1 AND 255`,
+    ),
+    check(
+      "application_identities_email_len_check",
+      sql`char_length("email") BETWEEN 3 AND 320`,
+    ),
+    check(
+      "application_identities_deactivation_check",
+      sql`("active" AND "deactivated_at" IS NULL) OR (NOT "active" AND "deactivated_at" IS NOT NULL)`,
+    ),
+  ],
+);
+
+/** Append-only normalized affiliation evidence; raw OIDC tokens are forbidden. */
+export const affiliationEvidence = logosSchema.table(
+  "affiliation_evidence",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    status: affiliationStatusEnum("status").notNull(),
+    evidenceType: affiliationEvidenceTypeEnum("evidence_type").notNull(),
+    hostedDomain: text("hosted_domain"),
+    verifiedByIdentityId: uuid("verified_by_identity_id").references(
+      () => applicationIdentities.id,
+      { onDelete: "restrict" },
+    ),
+    reasonCode: text("reason_code").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("affiliation_evidence_identity_recorded_idx").on(
+      t.identityId,
+      t.recordedAt,
+    ),
+    check(
+      "affiliation_evidence_domain_len_check",
+      sql`"hosted_domain" IS NULL OR char_length("hosted_domain") BETWEEN 1 AND 253`,
+    ),
+    check(
+      "affiliation_evidence_reason_len_check",
+      sql`char_length("reason_code") BETWEEN 1 AND 64`,
+    ),
+    check(
+      "affiliation_evidence_google_domain_check",
+      sql`"status" <> 'verified' OR "hosted_domain" IS NOT NULL`,
+    ),
+  ],
+);
+
+/** Historical technical access assignments. Active assignments are unique. */
+export const technicalAccessAssignments = logosSchema.table(
+  "technical_access_assignments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    accessLevel: technicalAccessLevelEnum("access_level").notNull(),
+    grantedByIdentityId: uuid("granted_by_identity_id").references(
+      () => applicationIdentities.id,
+      { onDelete: "restrict" },
+    ),
+    grantReasonCode: text("grant_reason_code").notNull(),
+    grantedAt: timestamp("granted_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedByIdentityId: uuid("revoked_by_identity_id").references(
+      () => applicationIdentities.id,
+      { onDelete: "restrict" },
+    ),
+    revokeReasonCode: text("revoke_reason_code"),
+  },
+  (t) => [
+    uniqueIndex("technical_access_assignments_one_active_idx")
+      .on(t.identityId)
+      .where(sql`"revoked_at" IS NULL`),
+    index("technical_access_assignments_active_lookup_idx")
+      .on(t.identityId, t.accessLevel)
+      .where(sql`"revoked_at" IS NULL`),
+    check(
+      "technical_access_assignments_grant_reason_len_check",
+      sql`char_length("grant_reason_code") BETWEEN 1 AND 64`,
+    ),
+    check(
+      "technical_access_assignments_revoke_reason_len_check",
+      sql`"revoke_reason_code" IS NULL OR char_length("revoke_reason_code") BETWEEN 1 AND 64`,
+    ),
+    check(
+      "technical_access_assignments_revocation_check",
+      sql`("revoked_at" IS NULL AND "revoked_by_identity_id" IS NULL AND "revoke_reason_code" IS NULL) OR ("revoked_at" IS NOT NULL AND "revoke_reason_code" IS NOT NULL)`,
+    ),
+  ],
+);
+
+/** Singleton gate consumed by the first verified access administrator. */
+export const accessBootstrapState = logosSchema.table(
+  "access_bootstrap_state",
+  {
+    id: integer("id").primaryKey(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }).notNull(),
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    auditEventId: uuid("audit_event_id")
+      .notNull()
+      .references(() => businessAuditJournal.id, { onDelete: "restrict" }),
+  },
+  (t) => [
+    check("access_bootstrap_state_singleton_check", sql`"id" = 1`),
+    unique("access_bootstrap_state_identity_key").on(t.identityId),
   ],
 );

@@ -95,6 +95,8 @@ export const AUDIT_SUMMARY_ALLOWLIST = Object.freeze([
   "reason",
   "policy",
   "schemaVersion",
+  "accessLevel",
+  "affiliationStatus",
 ]);
 
 export const AUDIT_METADATA_ALLOWLIST = Object.freeze([
@@ -105,6 +107,7 @@ export const AUDIT_METADATA_ALLOWLIST = Object.freeze([
   "durationMs",
   "failureCode",
   "correlationId",
+  "affiliationStatus",
 ]);
 
 /**

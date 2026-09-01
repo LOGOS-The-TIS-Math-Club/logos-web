@@ -149,17 +149,25 @@ try {
         has_table_privilege('logos_runtime', 'logos.business_audit_journal', 'SELECT') as runtime_audit_select,
         has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'SELECT') as backup_select,
         has_table_privilege('logos_backup', 'logos.business_audit_journal', 'SELECT') as backup_audit_select,
+        has_table_privilege('logos_runtime', 'logos.application_identities', 'SELECT') as runtime_identity_select,
+        has_function_privilege('logos_runtime', 'logos.resolve_identity_access(text)', 'EXECUTE') as runtime_identity_resolve,
+        has_function_privilege('logos_runtime', 'logos.bootstrap_access_admin(uuid, uuid)', 'EXECUTE') as runtime_bootstrap,
+        has_table_privilege('logos_backup', 'logos.application_identities', 'SELECT') as backup_identity_select,
         has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'INSERT') as backup_insert
     `;
     if (
       restoredFixture?.marker !== "logos-phase-02-synthetic" ||
-      restoredMigration?.count !== 3 ||
+      restoredMigration?.count !== 4 ||
       !restoredPrivileges?.runtime_usage ||
       !restoredPrivileges.runtime_insert ||
       !restoredPrivileges.runtime_audit_insert ||
       restoredPrivileges.runtime_audit_select ||
       !restoredPrivileges.backup_select ||
       !restoredPrivileges.backup_audit_select ||
+      restoredPrivileges.runtime_identity_select ||
+      !restoredPrivileges.runtime_identity_resolve ||
+      restoredPrivileges.runtime_bootstrap ||
+      !restoredPrivileges.backup_identity_select ||
       restoredPrivileges.backup_insert
     ) {
       throw new Error(

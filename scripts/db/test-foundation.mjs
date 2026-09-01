@@ -723,6 +723,141 @@ try {
     throw new Error("Operation did not record successful completion properly");
   }
 
+  // --- Phase 04 Identity and Authorization Checks ---
+  const [adminIdentity] = await runtimeSql`
+    select * from logos.associate_application_identity(
+      'synthetic-neon-admin', 'synthetic-google-admin',
+      'admin.synthetic@tokyois.com', true, 'tokyois.com'
+    )
+  `;
+  const [pendingIdentity] = await runtimeSql`
+    select * from logos.associate_application_identity(
+      'synthetic-neon-pending', 'synthetic-google-pending',
+      'pending.synthetic@example.test', true, null
+    )
+  `;
+  const [targetIdentity] = await runtimeSql`
+    select * from logos.associate_application_identity(
+      'synthetic-neon-target', 'synthetic-google-target',
+      'target.synthetic@tokyois.com', true, 'tokyois.com'
+    )
+  `;
+  if (
+    adminIdentity?.affiliation_status !== "verified" ||
+    pendingIdentity?.affiliation_status !== "pending_verification"
+  ) {
+    throw new Error("Hosted-domain affiliation evidence resolved incorrectly");
+  }
+
+  await expectPermissionDenied("runtime raw identity SELECT", async () => {
+    await runtimeSql`select * from logos.application_identities`;
+  });
+  await expectPermissionDenied("runtime raw identity UPDATE", async () => {
+    await runtimeSql`update logos.application_identities set active = false`;
+  });
+  await expectPermissionDenied("runtime bootstrap execution", async () => {
+    await runtimeSql`select logos.bootstrap_access_admin(${adminIdentity.identity_id}::uuid, ${createdBusinessAuditId}::uuid)`;
+  });
+
+  try {
+    await runtimeSql`
+      select * from logos.associate_application_identity(
+        'synthetic-neon-admin', 'different-google-subject',
+        'changed.synthetic@tokyois.com', true, 'tokyois.com'
+      )
+    `;
+    throw new Error("Immutable provider association should have been rejected");
+  } catch (error) {
+    if (!error.message.includes("immutable identity association mismatch")) {
+      throw error;
+    }
+  }
+
+  const bootstrapAuditId = randomUUID();
+  await ownerSql`
+    insert into logos.business_audit_journal (
+      id, actor_id, actor_type, actor_role_snapshot, source, correlation_id,
+      category, action, target_type, target_id, result, reason_code
+    ) values (
+      ${bootstrapAuditId}::uuid, ${adminIdentity.identity_id}::uuid,
+      'user', 'none', 'internal', ${testCorrelationId}::uuid,
+      'access', 'bootstrap', 'application_identity', ${adminIdentity.identity_id},
+      'success', 'initial_bootstrap'
+    )
+  `;
+  await ownerSql`select logos.bootstrap_access_admin(${adminIdentity.identity_id}::uuid, ${bootstrapAuditId}::uuid)`;
+  try {
+    await ownerSql`select logos.bootstrap_access_admin(${adminIdentity.identity_id}::uuid, ${bootstrapAuditId}::uuid)`;
+    throw new Error("Access bootstrap replay should have been rejected");
+  } catch (error) {
+    if (!error.message.includes("access bootstrap already consumed"))
+      throw error;
+  }
+
+  const [adminAccess] = await runtimeSql`
+    select * from logos.resolve_identity_access('synthetic-neon-admin')
+  `;
+  if (adminAccess?.access_level !== "access_admin") {
+    throw new Error("Bootstrapped access was not resolved");
+  }
+  await runtimeSql`
+    select logos.set_technical_access(
+      ${adminIdentity.identity_id}::uuid,
+      ${targetIdentity.identity_id}::uuid,
+      'basic'::logos.technical_access_level,
+      'synthetic_grant'
+    )
+  `;
+  const [deactivated] = await runtimeSql`
+    select logos.deactivate_application_identity(
+      ${adminIdentity.identity_id}::uuid,
+      ${targetIdentity.identity_id}::uuid,
+      'synthetic_deactivation'
+    ) as neon_auth_user_id
+  `;
+  if (deactivated?.neon_auth_user_id !== "synthetic-neon-target") {
+    throw new Error(
+      "Identity deactivation did not return its provider user ID",
+    );
+  }
+  const [deactivatedAccess] = await runtimeSql`
+    select * from logos.resolve_identity_access('synthetic-neon-target')
+  `;
+  if (deactivatedAccess?.active || deactivatedAccess?.access_level !== null) {
+    throw new Error("Deactivation did not immediately deny local access");
+  }
+  await runtimeSql`
+    select logos.set_technical_access(
+      ${adminIdentity.identity_id}::uuid,
+      ${pendingIdentity.identity_id}::uuid,
+      'basic'::logos.technical_access_level,
+      'synthetic_grant'
+    )
+  `.then(
+    () => {
+      throw new Error("Pending affiliation unexpectedly received access");
+    },
+    (error) => {
+      if (!error.message.includes("target identity is not eligible"))
+        throw error;
+    },
+  );
+
+  const [revoked] = await runtimeSql`
+    select logos.revoke_technical_access(
+      ${adminIdentity.identity_id}::uuid,
+      ${adminIdentity.identity_id}::uuid,
+      'synthetic_revoke'
+    ) as result
+  `;
+  if (!revoked?.result) throw new Error("Technical access revocation failed");
+  const [afterRevocation] = await runtimeSql`
+    select * from logos.resolve_identity_access('synthetic-neon-admin')
+  `;
+  if (afterRevocation?.access_level !== null) {
+    throw new Error("Revoked access remained active");
+  }
+
   // --- Phase 03 Backup Role Checks ---
   const [backupIdentity] = await backupSql`
     select current_user, session_user
@@ -761,6 +896,13 @@ try {
   `;
   if (backupOps?.count < 1) {
     throw new Error("Backup role could not read durable_operations");
+  }
+
+  const [backupIdentities] = await backupSql`
+    select count(*)::integer as count from logos.application_identities
+  `;
+  if (backupIdentities?.count < 2) {
+    throw new Error("Backup role could not read Phase 04 identities");
   }
 
   await expectPermissionDenied("backup write", async () => {
