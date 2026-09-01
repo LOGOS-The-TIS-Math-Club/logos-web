@@ -1,12 +1,12 @@
 # Phase 03 — Security, Audit, and Reliable-Mutation Foundation
 
-> - Status: In progress
-> - Branch: `feat/phase-03-security-foundation`
+> - Status: Implementation complete; awaiting protected merge
+> - Branch: `phase/03-security-audit`
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
 > - Predecessor: [phase-02.md](./phase-02.md) (Completed)
 > - Successor: `phase-04.md`
-> - Last updated: 2026-08-31
+> - Last updated: 2026-09-01
 
 ## 1. Objective
 
@@ -769,15 +769,15 @@ Phase 03 is complete only when all of the following criteria are satisfied and d
 9. **Nonce CSP and Security Headers Preserved**: `proxy.ts` headers and dynamic nonce injection pass automated Playwright and unit checks without asserting internal Next.js nonce implementation details.
 10. **PostgreSQL 17 CI Suite Passes**: All unit, integration, and security tests pass in GitHub Actions against the official PostgreSQL 17 container.
 11. **Clean Repository & Synthetic Data Only**: No secrets, environment files, real student data, or unapproved dependencies are introduced.
-12. **Pull Request Verification and Unmerged Gate**: Feature branch `feat/phase-03-security-foundation` has an open unmerged pull request with all CI checks passing; actual squash-merge into `main` is deferred to subsequent explicit user authorization.
+12. **Pull Request Verification and Unmerged Gate**: Feature branch `phase/03-security-audit` has an open unmerged pull request with all CI checks passing; implementation is complete and the protected rebase-and-merge into `main` awaits explicit acceptance.
 
 ## 21. Handoff to Phase 04
 
-Upon satisfying the completion gate:
+After protected acceptance:
 
 - Phase 03 will be marked **Completed** in `docs/phase-03.md` and `docs/roadmap.md`.
 - Completion evidence, commit hashes, CI run URLs, and test results will be recorded.
-- Phase 04 (Identity and Authorization) will activate to implement Neon Auth, Google OAuth, school-affiliation verification, session cookies, and default-deny technical access guards, building directly on the security, rate limiting, and audit primitives established here.
+- Phase 04 (Identity and Authorization) is next and will implement Neon Auth, Google OAuth, school-affiliation verification, session cookies, and default-deny technical access guards, building directly on the security, rate limiting, and audit primitives established here.
 
 ## 22. AGY Execution and Verification Record
 

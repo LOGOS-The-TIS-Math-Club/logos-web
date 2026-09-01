@@ -4,8 +4,8 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: Phase 03 — In progress on branch `feat/phase-03-security-foundation`
-> - Last updated: 2026-08-31
+> - Current phase: Phase 03 — implementation complete on branch `phase/03-security-audit`; awaiting protected merge
+> - Last updated: 2026-09-01
 
 ## 1. Purpose
 
@@ -72,12 +72,12 @@ Before implementation begins, the relevant `phase-##.md` is reviewed and brought
 - No permanent `develop` branch is used.
 - Pull requests receive CI checks and, when configured, Vercel and Neon previews.
 - Preview databases contain schema and synthetic fixtures only.
-- Approved pull requests are squash-merged with a simple Conventional Commit title.
+- Approved phase pull requests preserve their curated Conventional Commits through protected rebase-and-merge.
 - Through Phase 10, every pull request and `main` commit receives only a Vercel Preview protected by Vercel Authentication, marked `noindex, nofollow`, disconnected from real student data, and not published through any Production or custom domain. The existing domain registration may remain attached to the provider project; Phase 11 alone may map `main` to Vercel Production and control public exposure.
 
 ### Commits
 
-Each phase is developed through multiple small, coherent commits rather than one large final commit. Multiple commits remain visible on the working branch even when the accepted pull request is squash-merged into `main`.
+Each phase is developed through multiple small, coherent commits rather than one large final commit. Accepted pull requests preserve those curated commits through rebase-and-merge into `main`.
 
 Use the simple form:
 
@@ -186,7 +186,7 @@ flowchart LR
 
 **File:** [phase-03.md](./phase-03.md)
 
-**Status:** In progress on branch `feat/phase-03-security-foundation` (dated 2026-08-31). Phase 02 remains completed.
+**Status:** Implementation complete on branch `phase/03-security-audit` (dated 2026-09-01); awaiting protected rebase-and-merge through [pull request #13](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/13). Phase 02 remains completed, and Phase 04 is next after acceptance.
 
 **Outcome:** Shared security and durability primitives that every later protected workflow must use.
 
