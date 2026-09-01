@@ -458,3 +458,89 @@ export const accessBootstrapState = logosSchema.table(
     unique("access_bootstrap_state_identity_key").on(t.identityId),
   ],
 );
+
+export const studentApplicationStatusEnum = logosSchema.enum(
+  "student_application_status",
+  ["submitted", "reviewing", "accepted", "declined"],
+);
+
+/**
+ * Student applications submitted during recruitment cycles.
+ * Bound to immutable verified Google application identities.
+ */
+export const studentApplications = logosSchema.table(
+  "student_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    preferredName: text("preferred_name").notNull(),
+    grade: text("grade").notNull(),
+    academicInterests: jsonb("academic_interests").notNull().$type<string[]>(),
+    joinReason: text("join_reason").notNull(),
+    goals: text("goals").notNull(),
+    experience: text("experience"),
+    attendanceConfirmation: text("attendance_confirmation").notNull(),
+    accuracyAcknowledged: boolean("accuracy_acknowledged")
+      .notNull()
+      .default(true),
+    status: studentApplicationStatusEnum("status")
+      .notNull()
+      .default("submitted"),
+    statusReason: text("status_reason"),
+    reviewedByIdentityId: uuid("reviewed_by_identity_id").references(
+      () => applicationIdentities.id,
+      { onDelete: "restrict" },
+    ),
+    submittedAt: timestamp("submitted_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    statusUpdatedAt: timestamp("status_updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    uniqueIndex("student_applications_identity_idx").on(t.identityId),
+    index("student_applications_status_submitted_idx").on(
+      t.status,
+      t.submittedAt,
+    ),
+    check(
+      "student_applications_preferred_name_len_check",
+      sql`char_length("preferred_name") BETWEEN 1 AND 80`,
+    ),
+    check(
+      "student_applications_grade_check",
+      sql`"grade" IN ('Grade 9', 'Grade 10', 'Grade 11', 'Grade 12')`,
+    ),
+    check(
+      "student_applications_academic_interests_check",
+      sql`jsonb_typeof("academic_interests") = 'array' AND jsonb_array_length("academic_interests") BETWEEN 1 AND 8`,
+    ),
+    check(
+      "student_applications_join_reason_len_check",
+      sql`char_length("join_reason") BETWEEN 30 AND 500`,
+    ),
+    check(
+      "student_applications_goals_len_check",
+      sql`char_length("goals") BETWEEN 30 AND 500`,
+    ),
+    check(
+      "student_applications_experience_len_check",
+      sql`"experience" IS NULL OR char_length("experience") <= 500`,
+    ),
+    check(
+      "student_applications_attendance_check",
+      sql`"attendance_confirmation" IN ('regular', 'occasional_conflicts', 'conflict')`,
+    ),
+    check(
+      "student_applications_status_reason_len_check",
+      sql`"status_reason" IS NULL OR char_length("status_reason") <= 256`,
+    ),
+    check(
+      "student_applications_acknowledged_check",
+      sql`"accuracy_acknowledged" = true`,
+    ),
+  ],
+);

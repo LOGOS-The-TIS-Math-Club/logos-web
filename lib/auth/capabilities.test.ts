@@ -10,8 +10,14 @@ describe("technical capabilities", () => {
 
   it("maps levels explicitly without rank implication", () => {
     expect(hasCapability("basic", "identity:self:read")).toBe(true);
+    expect(hasCapability("basic", "application:review")).toBe(false);
+    expect(hasCapability("basic", "application:export")).toBe(false);
     expect(hasCapability("operator", "identity:review")).toBe(true);
+    expect(hasCapability("operator", "application:review")).toBe(true);
+    expect(hasCapability("operator", "application:export")).toBe(true);
     expect(hasCapability("access_admin", "identity:review")).toBe(false);
+    expect(hasCapability("access_admin", "application:review")).toBe(false);
+    expect(hasCapability("access_admin", "application:export")).toBe(false);
     expect(hasCapability("access_admin", "access:revoke")).toBe(true);
   });
 });

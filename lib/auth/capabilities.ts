@@ -11,6 +11,8 @@ export const CAPABILITIES = [
   "access:assign",
   "access:revoke",
   "session:revoke",
+  "application:review",
+  "application:export",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -18,7 +20,12 @@ const capabilityMap: Readonly<
   Record<TechnicalAccessLevel, ReadonlySet<Capability>>
 > = {
   basic: new Set(["identity:self:read"]),
-  operator: new Set(["identity:self:read", "identity:review"]),
+  operator: new Set([
+    "identity:self:read",
+    "identity:review",
+    "application:review",
+    "application:export",
+  ]),
   access_admin: new Set([
     "identity:self:read",
     "access:assign",

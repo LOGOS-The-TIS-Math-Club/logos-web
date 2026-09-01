@@ -22,7 +22,10 @@ test("serves the neutral application without browser errors and with security pr
 
   expect(response?.status()).toBe(200);
   await expect(
-    page.getByRole("heading", { level: 1, name: "LOGOS Web" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Explore Mathematics Beyond the Classroom",
+    }),
   ).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
@@ -71,19 +74,19 @@ test("renders primary semantic landmarks and heading hierarchy", async ({
   await expect(page.getByRole("contentinfo")).toBeVisible();
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "LOGOS Web" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Explore Mathematics Beyond the Classroom",
+    }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { level: 2, name: "Foundation Principles" }),
+    page.getByRole("heading", { level: 2, name: "What Students Do" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { level: 3, name: "Accessible Architecture" }),
+    page.getByRole("heading", { level: 2, name: "Who Can Join" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { level: 3, name: "Disciplined Aesthetics" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { level: 3, name: "Operational Simplicity" }),
+    page.getByRole("heading", { level: 2, name: "Meeting Schedule" }),
   ).toBeVisible();
 });
 
@@ -131,7 +134,10 @@ test("handles 404 with meaningful not-found content and returns home", async ({
 
   await expect(page).toHaveURL("/");
   await expect(
-    page.getByRole("heading", { level: 1, name: "LOGOS Web" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Explore Mathematics Beyond the Classroom",
+    }),
   ).toBeVisible();
 });
 
@@ -173,7 +179,7 @@ test("respects prefers-reduced-motion media query", async ({ page }) => {
   expect(transitionDuration).toBe("0s");
 });
 
-test("passes AxeBuilder automated WCAG scan with zero violations", async ({
+test("passes AxeBuilder automated WCAG scan with zero violations on public routes", async ({
   page,
 }) => {
   await page.goto("/");
@@ -186,6 +192,18 @@ test("passes AxeBuilder automated WCAG scan with zero violations", async ({
   );
   expect(homeCriticalOrSerious).toEqual([]);
   expect(homeResults.violations).toEqual([]);
+
+  await page.goto("/apply");
+  const applyResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(applyResults.violations).toEqual([]);
+
+  await page.goto("/apply/confirmation");
+  const confirmResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(confirmResults.violations).toEqual([]);
 
   await page.goto("/non-existent-route");
   const notFoundResults = await new AxeBuilder({ page })
@@ -221,5 +239,14 @@ test("renders safe auth states when the live provider is not configured", async 
   ).toBeVisible();
   await expect(
     page.getByRole("alert").getByText("could not be verified"),
+  ).toBeVisible();
+});
+
+test("renders 403 access denied on /admin/applications without session", async ({
+  page,
+}) => {
+  await page.goto("/admin/applications");
+  await expect(
+    page.getByRole("heading", { level: 1, name: /403 • Access Denied/i }),
   ).toBeVisible();
 });
