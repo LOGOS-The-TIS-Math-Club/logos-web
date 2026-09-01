@@ -1,307 +1,232 @@
 # LOGOS Web Development Roadmap
 
-> - Status: Active
+> - Status: Active — compact delivery plan
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
-> - Phase-file convention: `phase-##.md`
-> - Current phase: Phase 05 — Google Workspace integration foundation
+> - Compaction record: [roadmap-compaction.md](./roadmap-compaction.md)
+> - Current phase: Phase 06 — Recruitment and applications
+> - Completed for planning purposes: Phases 00–05
 > - Last updated: 2026-09-01
 
-## 1. Purpose
+## 1. Purpose and priority
 
-This roadmap defines the development order for LOGOS Web and the completion point of each phase. It is the bridge between the long-term architecture and the detailed plan maintained for an individual phase.
+This roadmap delivers a useful, secure LOGOS website in eight total phases. It replaces the former twelve-phase sequence without discarding its important outcomes.
 
-The roadmap is intentionally broad. It identifies technical boundaries, dependencies, outcomes, and gates without duplicating the detailed requirements that belong in `phase-##.md`.
+The immediate product priority is the student recruitment journey:
 
-Phases are deliberately bounded and sequential so each can be understood, reviewed, implemented, and handed off without reconstructing the entire project history. The architecture and this roadmap keep every phase aligned with the same final system.
+1. a student follows the poster link;
+2. the landing page quickly explains why LOGOS is worth joining;
+3. the student completes a short, accessible application;
+4. Google identity verifies that the applicant controls a TIS account;
+5. leadership can read, review, and export the submission without using the database console.
 
-## 2. Big picture
+Dashboards and deep Google Workspace automation are secondary. Until they provide real value, they remain minimal structures or ordinary configured links.
 
-The completed product is one security-first Next.js application that provides:
+## 2. Authority and preserved boundaries
 
-- an accessible public website for club information, leadership, events, and approved resources;
-- authenticated membership applications using verified Google identity and school-affiliation checks;
-- a member hub linking Google Classroom, Drive, and Calendar resources;
-- membership, expected-absence, attendance, and warning workflows backed by PostgreSQL;
-- leadership interfaces for club operations, content, corrections, and searchable audit history;
-- least-privilege Google Workspace integrations;
-- recoverable data, encrypted backups, daily audit archives, monitoring, and tested failure behavior.
+Planning authority remains:
 
-The system remains a modular monolith deployed on Vercel, with Neon PostgreSQL and Neon Auth in Singapore. Google Calendar, Drive, Classroom, and Gmail retain the source-of-truth responsibilities defined in the architecture.
+1. `architecture.md` for system-wide security, privacy, provider, and source-of-truth invariants;
+2. this roadmap for the compact phase order and launch gates;
+3. `phase-##.md` for bounded implementation detail;
+4. tests, pull requests, and releases for completion evidence.
 
-The roadmap is complete when Phase 11 passes its launch gate, the production system is accepted, operational documentation is handed over, and the first stable release is recorded.
+References in older documents to former Phases 08–11 map into compact Phase 07. Their phase numbers are superseded; their applicable security and recovery requirements are not silently removed.
 
-## 3. Planning hierarchy
+The following remain mandatory:
 
-Project planning follows this order of authority:
+- default-deny server authorization;
+- verified Google identity evidence for school affiliation;
+- PostgreSQL as the authority for native applications and club workflows;
+- no production student data in development or preview;
+- no secrets in source, chat, logs, analytics, browser storage, or test fixtures;
+- audited protected mutations and durable external-action handling;
+- preservation of existing Forms, Sheets, and historical responses;
+- proportionate accessibility, recovery, privacy, and security gates before launch;
+- explicit approval before destructive actions, live account use, provider configuration, production exposure, or merging.
 
-1. `architecture.md` defines system-wide invariants and provider boundaries.
-2. `roadmap.md` defines phase order, dependencies, and broad completion gates.
-3. `phase-##.md` defines the detailed plan for one phase.
-4. Implementation records, tests, pull requests, and releases prove delivery.
+## 3. Faster execution model
 
-A lower-level document may add detail but may not weaken or silently contradict a higher-level document. An architectural change requires an explicit architecture update or Architecture Decision Record rather than an undocumented phase-level exception.
+Each remaining phase should use:
 
-## 4. Phase model
+1. one short planning checkpoint for genuine product decisions;
+2. one or two outcome-owned implementation workstreams;
+3. focused checks while working;
+4. the established required suite once after relevant changes settle;
+5. one focused review;
+6. one unmerged pull request and a concise completion report.
 
-Phase files use two-digit numbering:
+Stop when the documented completion gate passes. Do not add repeated audits, speculative abstractions, cosmetic dashboards, redundant browser sessions, or unrelated cleanup.
 
-- `phase-00.md`
-- `phase-01.md`
-- …
-- `phase-11.md`
+For browser and provider work:
 
-Each phase moves through these statuses:
+- delegate browser control to Gemini when it is available and safe;
+- otherwise give the user exact, short click-by-click instructions;
+- use Codex browser control only when a critical path cannot reasonably be verified another way;
+- group provider approvals by exact target and action;
+- do not weaken permissions or expose credentials to automate a manual step.
 
-- **Planned** — scope and completion gate are documented.
-- **Ready** — prerequisites are complete and the plan is approved.
-- **In progress** — implementation is active on a short-lived branch.
-- **Blocked** — a documented external dependency prevents meaningful progress.
-- **Completed** — every completion criterion has evidence and the accepted work is merged.
-
-Phases normally execute in numerical order. Some work may be technically parallelizable, but the official sequence remains linear so shared code, migrations, security controls, and contributor handoffs stay predictable.
-
-Before implementation begins, the relevant `phase-##.md` is reviewed and brought to **Ready**. After implementation, the same file records completion evidence and the handoff to the next phase.
-
-## 5. Development and release workflow
-
-### Branches and pull requests
-
-- `main` is the protected integration branch and becomes the Vercel Production branch only at the Phase 11 launch gate.
-- Work uses short-lived branches and pull requests.
-- No permanent `develop` branch is used.
-- Pull requests receive CI checks and, when configured, Vercel and Neon previews.
-- Preview databases contain schema and synthetic fixtures only.
-- Approved phase pull requests preserve their curated Conventional Commits through protected rebase-and-merge.
-- Through Phase 10, every pull request and `main` commit receives only a Vercel Preview protected by Vercel Authentication, marked `noindex, nofollow`, disconnected from real student data, and not published through any Production or custom domain. The existing domain registration may remain attached to the provider project; Phase 11 alone may map `main` to Vercel Production and control public exposure.
-
-### Commits
-
-Each phase is developed through multiple small, coherent commits rather than one large final commit. Accepted pull requests preserve those curated commits through rebase-and-merge into `main`.
-
-Use the simple form:
-
-```text
-type: short imperative description
-```
-
-Scopes are optional. The common types are:
-
-| Type       | Use                                               |
-| ---------- | ------------------------------------------------- |
-| `feat`     | A new user-visible or operational capability      |
-| `fix`      | A defect correction                               |
-| `docs`     | Documentation-only work                           |
-| `test`     | Test additions or corrections                     |
-| `refactor` | Internal restructuring without behavior change    |
-| `build`    | Dependencies, build configuration, or packaging   |
-| `ci`       | GitHub Actions, Dependabot, or release automation |
-| `chore`    | Repository maintenance and non-product setup      |
-
-Commit history should mark natural checkpoints. It should not be split artificially by file, and unrelated work should not be combined merely to reduce the number of commits. Secrets, generated output, production data, and local environment files are never committed.
-
-### Semantic Versioning
-
-- The unreleased manifest begins at `0.0.0`; Release Please is bootstrapped so the first accepted tagged release is `0.1.0`.
-- Release Please derives release proposals and changelogs from Conventional Commits.
-- `feat` normally produces a minor increment, `fix` a patch increment, and an explicitly declared breaking change a major increment.
-- `docs`, `test`, `refactor`, `build`, `ci`, and `chore` do not normally change the product version by themselves.
-- A phase number does not determine a version number.
-- Not every phase must create a tagged release; releases represent accepted milestones.
-- The stable release version used at launch is chosen deliberately under Semantic Versioning; phase numbers do not predetermine it.
-
-## 6. Cross-phase completion rules
-
-The following apply to every phase:
-
-1. Security, privacy, accessibility, auditability, and testing are continuous requirements. They are not postponed to Phase 03, Phase 10, or Phase 11.
-2. A phase is complete only when its validation, authorization, audit behavior, failure handling, tests, documentation, and operational handoff pass where applicable.
-3. Development, test, and preview environments cannot access production student data or production Workspace credentials. Any non-production credential is test-only, least-privileged, independently revocable, and safe to replace after compromise; untrusted contributions receive no secrets.
-4. Preview databases use schema-only foundations and synthetic fixtures; they never branch from production student data.
-5. Every protected mutation is server-authorized, boundary-validated, and transactionally audited. External side effects use the established durable-operation pattern.
-6. Sensitive information never enters URLs, public caches, analytics, telemetry, source control, or audit payloads.
-7. Legacy Forms, Sheets, and responses are preserved. Migration is additive, rehearsed, reconciled, and reversible before cutover.
-8. No real production student data is introduced before Phase 10 proves backup, restoration, archive, privacy, and access-control readiness.
-9. New credentials, Google scopes, data categories, providers, or trust boundaries require explicit architecture review before use.
-10. Phase 11 validates and launches completed systems; it does not introduce a missing module, policy, migration mechanism, or security control for the first time.
-11. Completion claims require reviewable evidence such as CI results, test reports, scope inventories, preview links, migration reconciliation, restore records, or release records.
-12. Evidence, screenshots, traces, logs, inventories, and reports use synthetic or redacted data. They never expose credentials, student personal information, absence details, or sensitive form responses.
-
-## 7. Development order
+## 4. Development order
 
 ```mermaid
 flowchart LR
     P00[00 Foundation] --> P01[01 Interface]
     P01 --> P02[02 Data]
-    P02 --> P03[03 Security and audit]
+    P02 --> P03[03 Security]
     P03 --> P04[04 Identity]
-    P04 --> P05[05 Workspace]
-    P05 --> P06[06 Public site]
-    P06 --> P07[07 Membership]
-    P07 --> P08[08 Attendance]
-    P08 --> P09[09 Portals]
-    P09 --> P10[10 Reliability]
-    P10 --> P11[11 Launch]
+    P04 --> P05[05 Integration foundation]
+    P05 --> P06[06 Recruitment and applications]
+    P06 --> P07[07 Operations and launch]
 ```
 
-## 8. Phase summaries
+## 5. Phase summaries
 
 ### Phase 00 — Project and delivery foundation
 
-**File:** [phase-00.md](./phase-00.md)
+**Status:** Completed.
 
-**Outcome:** A reproducible Next.js, React, TypeScript, and pnpm project with the agreed conventions, automated quality checks, repository automation, and a working preview-delivery path.
+Established the reproducible Next.js, TypeScript, pnpm, CI, security automation, repository workflow, and protected-preview foundation.
 
-**Major scope:** Application scaffold, runtime pins, linting, formatting, testing harnesses, GitHub Actions, Dependabot, Release Please, GitHub Free protection for the public open-source repository, protected Vercel Preview delivery, and contributor documentation.
+### Phase 01 — Interface foundation
 
-**Completion point:** A fresh clone installs from the lockfile and passes formatting, linting, type-checking, tests, build, security checks, and protected deployment smoke checks. The repository contains no secrets or production data, and required branch controls are active.
+**Status:** Completed.
 
-### Phase 01 — Interface and design-system foundation
-
-**File:** [phase-01.md](./phase-01.md)
-
-**Outcome:** A responsive, accessible application shell and reusable interface foundation using semantic tokens backed by the official Tailwind CSS color palette.
-
-**Major scope:** Route layouts, loading/error states, typography baseline, semantic color tokens, spacing and interaction conventions, selective shadcn/ui primitives, and accessible component tests.
-
-**Completion point:** The shell and core primitives work across target screen sizes, keyboard navigation, focus states, and contrast checks without depending on authentication, database, or Workspace integrations.
-
-**Completion evidence:** Accepted on 2026-08-30 through protected [pull request #6](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/6). Passes 39 Vitest tests, 8 Playwright Chromium tests with zero Axe violations, clean synchronized `main` verification (`pnpm check`, `release:verify`, audit), all PR and post-merge CI/Security/Release Please workflows, and protected Vercel Preview at `https://logos-i2xjntd61-logos-tis.vercel.app` (HTTP 302 SSO redirect, `noindex`).
+Established the approved dark Zinc/Mauve design system, reusable interface primitives, responsive shell, keyboard behavior, and accessibility baseline.
 
 ### Phase 02 — Data and environment foundation
 
-**File:** [phase-02.md](./phase-02.md)
+**Status:** Completed.
 
-**Status:** Completed on 2026-08-31 through protected [pull request #9](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/9). Phase 03 is next.
+Established Neon PostgreSQL, Drizzle, forward-only migrations, least-privilege roles, isolated environments, synthetic fixtures, and restore verification.
 
-**Outcome:** Reproducible PostgreSQL persistence with isolated development, preview, test, and production environments.
+### Phase 03 — Security, audit, and durable operations
 
-**Major scope:** Neon Singapore projects/branches, Drizzle, version-controlled migrations, environment validation, least-privilege database roles, schema-only preview baseline, synthetic fixtures, and basic export/restore procedures.
+**Status:** Completed.
 
-**Completion point:** Migrations create a fresh database deterministically, environment isolation is verified, preview cannot reach production data, and runtime and migration credentials have the intended permissions.
-
-**Completion evidence:** Separate Neon Free PostgreSQL 17 projects in Singapore leave production empty and disconnected. Fresh and repeat migrations, real least-privilege login restrictions, independent database-side environment identity, PostgreSQL 17 synthetic export/restore with restored-grant checks, repository checks, and the dependency audit passed. After merge, the exact expiring Preview secret, login, and branch were retired; the empty preview baseline and development branch remain, and no production or unrelated signup resource was changed. Required PR checks and post-merge CI, Security, Release Please, and Vercel workflows passed.
-
-### Phase 03 — Security, audit, and reliable-mutation foundation
-
-**File:** [phase-03.md](./phase-03.md)
-
-**Status:** Completed on 2026-09-01 through protected rebase-and-merge of [pull request #13](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/13). The five curated capability commits are linear on `main`; all post-merge workflows passed. Phase 04 is next.
-
-**Outcome:** Shared security and durability primitives that every later protected workflow must use.
-
-**Major scope:** Secure headers, validation seams, enforced CSRF/origin controls, a working cross-instance rate limiter with phase-approved provider and thresholds, redaction, sanitized Sentry, business/security journals, correlation IDs, append-only permissions, and transactional outbox/operation records.
-
-**Completion point:** A representative durable mutation performed with a synthetic system actor and its audit event commit atomically; invalid CSRF/origin requests are rejected; cross-instance enforcement returns `429` at the approved threshold; failure and redaction tests pass; prior audit events cannot be changed by the runtime role; external-action intents survive application restarts.
+Established request-integrity controls, rate limiting, sanitized telemetry, append-only audit history, correlation identifiers, and durable external-operation records.
 
 ### Phase 04 — Identity and authorization
 
-**File:** [phase-04.md](./phase-04.md)
+**Status:** Completed and merged.
 
-**Status:** Completed on 2026-09-01 and merged to `main`; independent security review passed. Live OAuth verification remains deferred because external Neon Auth provisioning did not complete. Phase 05 is next.
+Established immutable identity association, verified school-affiliation evidence, secure sessions, explicit capabilities, default denial, and prompt local revocation. Live Neon Auth and OAuth activation may remain deferred until provider setup is usable.
 
-**Outcome:** Google sign-in through Neon Auth with verified identity, school-affiliation handling, and default-deny technical access.
+### Phase 05 — Compact integration foundation
 
-**Major scope:** Google OAuth, stable identity association, session handling, approved-domain evidence, pending affiliation review, generic capability resolution with synthetic assignments, revocation, and authorization tests. Phase 07 later binds these primitives to membership lifecycle changes.
+**Status:** Treated as completed under the approved compact roadmap.
 
-**Completion point:** Sign-in, sign-out, unknown-domain handling, elevation, deactivation, provider-revocation failure, and server-side access enforcement pass through synthetic adapters and automated PostgreSQL verification. Live non-production OAuth activation is tracked separately as an external provider action.
+Established or documented the narrow server-side boundaries for Calendar, Drive metadata, Gmail delivery, and configured Classroom links. Live provider activation is not required to reopen this phase. Phase 07 may activate only integrations that offer immediate launch value.
 
-### Phase 05 — Google Workspace integration foundation
+No later phase should expand Phase 05 into broad Workspace automation, Classroom roster synchronization, Drive permission management, or a second backend.
 
-**File:** `phase-05.md`
+### Phase 06 — Recruitment and applications
 
-**Outcome:** Narrow, testable adapters for the approved Calendar, Drive, and Gmail behaviors, plus centrally managed Classroom resource links.
+**Status:** Next.
 
-**Major scope:** Credential separation, scope inventory, service-account resource access, production-scoped Gmail sender token, Calendar caching, Drive metadata/links, Classroom link configuration without roster/API automation, timeouts, degraded states, and controlled test adapters.
+**Outcome:** A student arriving from a poster can understand LOGOS, apply without confusion, prove TIS identity, and receive a clear confirmation. Leadership can access the submitted data safely.
 
-**Completion point:** Automated behavior and failure paths pass through controlled adapters, and each approved Workspace integration also passes a least-privilege live smoke test against non-sensitive test resources. No real Gmail token is exposed to development or preview; scopes and revocation are documented; Calendar failure and Gmail ambiguous-delivery behavior pass. The phase is blocked—not waived—if required school-side access is unavailable.
+**Required scope:**
 
-### Phase 06 — Public website and content
+- a polished, fast, accessible landing page with one dominant application action;
+- concise public information needed to establish trust and interest;
+- a short application form whose exact wording, choices, required fields, and limits receive one user approval before implementation;
+- Google sign-in used only to identify the applicant, verify supported `tokyois.com` evidence, and prevent impersonation or duplicate active submissions;
+- no student dashboard requirement and no automatic membership grant;
+- PostgreSQL persistence with boundary validation, authorization, audit history, and safe errors;
+- a focused leadership-only `/admin/applications` experience with list, detail, basic review status, and CSV export;
+- clear success, duplicate, pending-verification, unavailable, and failure states;
+- responsive and keyboard-accessible behavior for the critical poster-to-submission journey.
 
-**File:** `phase-06.md`
+**Application-question baseline:**
 
-**Outcome:** A complete public-facing LOGOS website backed by approved content and resource sources.
+- preferred name;
+- grade/year;
+- mathematical interests or activities;
+- short reason for joining;
+- short learning or contribution goal;
+- optional relevant experience, explicitly stating that experience is not required;
+- ability to attend the normal meeting time;
+- an accuracy and club-administration acknowledgement.
 
-**Major scope:** About content, leadership profiles, announcements, approved public documents, Calendar-backed events, imagery, public navigation, metadata, accessibility, public-route-only analytics, and the minimum publishing interface required for these pages. Phase 09 later consolidates leadership presentation without redefining publishing policy.
+Do not request addresses, phone numbers, medical details, unnecessary guardian information, long essays, or unbounded sensitive free text.
 
-**Completion point:** All public pages are responsive, accessible, safely cached, and free of protected data. Leadership-controlled publishing and Calendar degradation behave as designed in preview.
+**Completion gate:** The poster-to-application journey passes with synthetic identities and data; TIS identification and duplicate handling work; submissions and status changes are durable and audited; authorized leadership can review and export applications; unauthorized access denies; the critical journey passes proportionate accessibility, browser, security, and repository checks; and one unmerged PR is ready for approval.
 
-### Phase 07 — Membership applications and management
+### Phase 07 — Essential operations, polish, and launch
 
-**File:** `phase-07.md`
+**Status:** Planned.
 
-**Outcome:** A complete application and membership lifecycle with one writable membership authority.
+**Outcome:** LOGOS can operate the small club safely, present a complete public website, and launch without building an elaborate portal.
 
-**Major scope:** First establish the membership authority, lifecycle, club titles, current/former history, access-change interface, and approved application/member retention rules; then add authenticated applications, affiliation review, leadership decisions, activation through the membership interface, notification intents, and non-destructive Sheet/PostgreSQL transition tooling.
+Phase 07 is one numbered phase with four internal milestones:
 
-**Completion point:** Application, review, activation, update, departure, rejection retention, and access revocation work end to end with synthetic records; application and former-member retention rules are approved and tested; mutations are audited; a synthetic migration rehearsal and reconciliation report pass; the previous membership source remains untouched. Live import occurs only in Phase 11 after Phase 10 proves recovery readiness.
+#### A. Essential club operations
 
-### Phase 08 — Absence, attendance, and warnings
+- deliberately convert accepted applications into active members;
+- preserve current and former membership history;
+- record club sessions, expected absences, actual attendance, corrections, and basic totals;
+- keep expected absence distinct from actual attendance;
+- support deliberate manual warning records where required;
+- preserve legacy Forms, Sheets, and responses; any migration remains additive, reconciled, reversible, and separately approved.
 
-**File:** `phase-08.md`
+#### B. Minimal member and leadership structure
 
-**Outcome:** A reliable weekly attendance system that keeps expected absence, actual attendance, derived totals, and warning actions distinct.
+- provide only the protected routes and navigation needed for existing capabilities;
+- keep the member area barebones until useful content exists;
+- present Classroom and Drive as centrally configured approved links by default;
+- use lightweight Calendar presentation or links unless API behavior clearly improves the launch experience;
+- avoid dashboard widgets, complex analytics, broad reporting, and automatic Classroom membership.
 
-**Major scope:** First establish club sessions, the append-only attendance ledger, sensitive absence-data boundaries, and attendance/absence/warning retention rules; then add authenticated expected-absence submission and matching, leadership corrections, and derived counts; finally add warning evidence and issuance through the attendance interface, Gmail intents, and non-destructive legacy migration tooling.
+#### C. Public-site completion
 
-**Completion point:** The complete weekly workflow passes end to end with synthetic records; only active members submit absences; leadership records final attendance; totals and warnings rebuild from the attendance ledger; corrections and warnings are audited; sensitive free-text handling and retention rules are approved and tested; a synthetic legacy-import rehearsal reconciles while original responses remain untouched. Live import occurs only in Phase 11.
+- finish About, leadership, schedule/resources, contact, navigation, metadata, and approved content;
+- retain the established dark-first Zinc/Mauve direction and restrained motion;
+- make recruitment the primary public call to action;
+- complete responsive behavior, content polish, and public-route privacy controls.
 
-### Phase 09 — Member and leadership interfaces
+#### D. Reliability and launch
 
-**File:** `phase-09.md`
+- prove one practical backup and isolated restore path before real student data is introduced;
+- retain sanitized operational logging and audit protections;
+- verify production authorization, privacy, environment separation, and credential inventory;
+- run one focused accessibility/security review and critical-journey browser pass;
+- configure only approved production services and least-privilege integrations;
+- obtain explicit launch approval, deploy the accepted release, and record operational handoff.
 
-**Outcome:** Cohesive authenticated workspaces that present and orchestrate the capabilities already established by earlier domain phases.
+**Completion gate:** Public, applicant, leadership, and essential member journeys pass; application-to-membership and attendance behavior is authorized and audited; existing historical resources remain preserved; backup and restore evidence passes; required production checks and privacy/security gates pass; the accepted release is explicitly approved and deployed; and the next maintainer can access submissions, operate the club, and recover the system from the documentation.
 
-**Major scope:** Member dashboard, Calendar/Classroom/Drive access, role-appropriate summaries approved by the underlying domain plans, leadership membership and attendance views, existing content controls, warning views/actions, and searchable audit/security views. This phase introduces no new domain policy, counters, or direct cross-module mutations.
+## 6. Deliberate non-goals for the one-day delivery path
 
-**Completion point:** Public, applicant, member, former-member, and leadership journeys expose only authorized data and operations; every leadership action has access-control tests and appropriate audit evidence.
+The following do not block launch unless a demonstrated club need makes one essential:
 
-### Phase 10 — Backups, daily archives, and operational reliability
+- a rich student dashboard;
+- decorative dashboard statistics or widgets;
+- Drive file browsing when approved links are sufficient;
+- Classroom API access, roster synchronization, or write automation;
+- Calendar editing through the website;
+- automatic warning decisions;
+- enterprise-scale queues, caches, analytics, or observability;
+- multiple independent model reviews of the same passing work;
+- repeated browser passes after the critical paths pass unchanged.
 
-**File:** `phase-10.md`
+These are documented deferrals, not permission to weaken authentication, authorization, privacy, auditability, accessibility, or recovery.
 
-**Outcome:** A production-ready recovery and operations foundation before any real student-data migration.
+## 7. Phase-file structure
 
-**Major scope:** Encrypted logical backups, pre-migration backup gates, a separate restricted Drive archive writer and scheduled runner, archive credential/scope verification and rotation/revocation, daily JST archive generation, integrity verification, audit/archive retention and cross-border review, encryption-key custody, production capability and revocation verification, production credential/scope inventory, protected-route authorization checks, independent failure alerts, incident procedures, outage drills, and isolated restore testing.
+New Phase 06 and Phase 07 plans should remain short and contain only:
 
-**Completion point:** A complete application-and-authentication backup uploads, verifies, decrypts, and restores successfully; the isolated archive writer and scheduled runner pass least-privilege, rotation/revocation, integrity, and retry-alert tests; audit/archive retention, key custody, privacy, cross-border handling, capability/revocation behavior, production scopes, and protected-route denial are approved and evidenced; operational responsibilities and recovery procedures are recorded.
+1. status and objective;
+2. dependencies and preserved invariants;
+3. scope and non-goals;
+4. deliverables;
+5. security/privacy/data considerations;
+6. a small set of commit checkpoints;
+7. focused verification;
+8. one completion gate;
+9. handoff and completion evidence.
 
-### Phase 11 — Integration, migration, and production launch
+The phase plan should define outcomes and boundaries rather than prescribe every file or trigger a second roadmap-design exercise.
 
-**File:** `phase-11.md`
+## 8. Roadmap completion
 
-**Outcome:** The complete system is reconciled, verified, released, and handed over for normal club operation.
-
-**Major scope:** Cross-module testing followed in order by the Phase 10 pre-import gate, a verified current backup, final migration rehearsal, live import and reconciliation, cutover and rollback proof, accessibility and security review, provider outage testing, monitoring, Vercel plan-eligibility reconfirmation, release approval, public Production exposure, and operational handoff.
-
-**Completion point:** The documented go/no-go review passes after migration reconciliation; existing Forms and Sheets remain preserved; backups and rollback are verified; Production journeys pass; Preview remains access-protected; only the public Production environment is exposed; the accepted stable release is tagged and deployed.
-
-## 9. Required structure of future phase files
-
-Every `phase-##.md` should contain:
-
-1. metadata and status;
-2. objective and expected outcome;
-3. architecture references and dependencies;
-4. scope and non-goals;
-5. deliverables and affected interfaces;
-6. security, privacy, data, and migration considerations;
-7. expected Conventional Commit checkpoints;
-8. verification and acceptance criteria;
-9. a single explicit completion gate;
-10. handoff requirements;
-11. completion evidence added when the phase closes.
-
-The phase document is the durable planning record. Any later implementation brief may clarify execution detail but cannot change the plan's authority.
-
-## 10. Roadmap completion
-
-The development roadmap is complete only when:
-
-- Phases 00 through 11 are marked **Completed** with evidence;
-- all architecture invariants remain satisfied;
-- historical data has been migrated or intentionally retained without destructive loss;
-- production backup, restoration, archives, monitoring, and incident procedures are proven;
-- public, member, and leadership journeys pass their acceptance tests;
-- the accepted production release is deployed and recorded;
-- the next maintainer can operate, recover, and update the system from the documentation.
+The compact roadmap is complete when Phases 00–07 are accepted, the Phase 07 launch gate passes, the production release is deployed with explicit approval, historical resources remain preserved, and the project can be operated and recovered from its documentation.
