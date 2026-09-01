@@ -1,6 +1,6 @@
 # Phase 05 — Google Workspace Integration Foundation
 
-> - Status: In progress — repository implementation and controlled verification underway; live smoke tests require separate approval
+> - Status: Repository implementation complete; phase blocked on separately approved live smoke tests
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Repository: `LOGOS-The-TIS-Math-Club/logos-web`
 > - Branch: `phase/05-workspace-integration`
@@ -146,4 +146,32 @@ Before any live smoke test, request one grouped approval identifying the exact G
 
 ## 10. Completion evidence
 
-Pending. Record commit hashes, focused and full-suite results, migration evidence if applicable, the single security-review result, scope/configuration inventory, and the outcome or exact blocker for each separately approved live smoke test. Evidence must remain synthetic or redacted.
+Repository implementation completed on 2026-09-01 without a schema migration or new dependency. It adds:
+
+- server-only Google token, Calendar, Drive metadata, Classroom-link, and Gmail boundaries;
+- exact Calendar, Drive, and Gmail scope constants;
+- Zod validation for configuration, provider responses, resource metadata, links, and message inputs;
+- explicit bounded timeouts and stable failure classification;
+- a 60-second in-process Calendar cache with fresh, stale-with-timestamp, and unavailable states;
+- logical-key Drive allowlisting, explicit metadata projection, trusted Google link validation, and no binary or mutation method;
+- configuration-only Classroom links restricted to trusted HTTPS Classroom hosts;
+- production-only Gmail credential validation, controlled adapters, and a Gmail worker that uses Phase 03 fenced durable-operation transitions;
+- pre-dispatch lease sufficiency, bounded retry for known pre-acceptance transient failure, terminal permanent failure, and `ambiguous`/`DELIVERY_UNKNOWN` handling without blind resend; and
+- synthetic tests for credential/configuration, provider response, cache, timeout/failure, link, read-only, delivery, redaction, and server-only boundaries.
+
+The single focused security review found and corrected three material issues: Gmail CR/LF header injection, untrusted provider-returned link hosts, and missing preview/CI exclusion for service-account credentials. The production dependency audit reports no known vulnerabilities, and the repository scan found no credential material or broader Google scope.
+
+Focused verification passes 28 tests across six Phase 05 test files, plus TypeScript and ESLint. The single established delivery run passed formatting, repository-wide lint and TypeScript, 239 Vitest tests across 31 files, Drizzle migration synchronization, the Next.js production build, all 9 Playwright Chromium checks, Release Please verification, and the production dependency audit. The host used Node 26.7.0 and emitted the expected engine warning because the repository targets Node 24.x; no check failed.
+
+AGY and `gemini-3.7-flash-high` were present, but AGY's headless command permission was auto-denied before implementation began. No blanket permission bypass was enabled, no AGY change occurred, and implementation continued locally as permitted by the execution brief.
+
+No live Google call, credential creation, resource share, OAuth authorization, or email send has occurred. Phase 05 remains blocked on one separately approved smoke-test attempt. The exact Google Cloud project, service-account identity, Calendar ID, Drive IDs, Gmail recipient/message, secret-store targets, and cleanup owner have not been supplied and will not be invented. Evidence must remain synthetic or redacted.
+
+### First-party provider references
+
+- [Calendar `events.list`](https://developers.google.com/workspace/calendar/api/v3/reference/events/list)
+- [Calendar authorization scopes](https://developers.google.com/workspace/calendar/api/auth)
+- [Drive file metadata](https://developers.google.com/workspace/drive/api/guides/file-metadata)
+- [Gmail `users.messages.send`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send)
+- [Gmail error and retry guidance](https://developers.google.com/workspace/gmail/api/guides/handle-errors)
+- [Google service-account OAuth](https://developers.google.com/identity/protocols/oauth2/service-account)
