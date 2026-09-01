@@ -198,3 +198,28 @@ test("passes AxeBuilder automated WCAG scan with zero violations", async ({
   expect(notFoundCriticalOrSerious).toEqual([]);
   expect(notFoundResults.violations).toEqual([]);
 });
+
+test("renders safe auth states when the live provider is not configured", async ({
+  page,
+}) => {
+  await page.goto("/auth/sign-in");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Sign in to LOGOS" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Non-production sign-in is not configured yet."),
+  ).toBeVisible();
+
+  const signInResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag22aa"])
+    .analyze();
+  expect(signInResults.violations).toEqual([]);
+
+  await page.goto("/auth/status?state=failed");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Identity status" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("alert").getByText("could not be verified"),
+  ).toBeVisible();
+});

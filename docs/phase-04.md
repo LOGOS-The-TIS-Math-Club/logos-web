@@ -1,6 +1,6 @@
 # Phase 04 — Identity and Authorization
 
-> - Status: Proposed design; awaiting consolidated approval
+> - Status: Implemented locally; live non-production provider configuration pending
 > - Branch: `phase/04-identity-authorization`
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
@@ -8,9 +8,9 @@
 > - Successor: `phase-05.md`
 > - Last updated: 2026-09-01
 
-## 1. Decision requested
+## 1. Approved decision
 
-Approve or correct this consolidated design before implementation. Until approval, this phase will not enable Neon Auth, create Google credentials, install authentication packages, or change application/database implementation.
+The consolidated design was approved on 2026-09-01. Implementation is complete on the phase branch without enabling Production Auth, creating credentials, using a real school identity, or broadening the phase boundary.
 
 ## 2. Objective and boundary
 
@@ -195,3 +195,17 @@ If school policy blocks any action, Phase 04 records the exact blocker and does 
 ## 16. Approval gate
 
 Approval authorizes implementation of this design on `phase/04-identity-authorization`. It does not authorize Production Auth, real student data, a live hosted-domain smoke test, billing, Phase 05, or Phase 07.
+
+## 17. Implementation and verification record
+
+The implementation pins `@neondatabase/auth@0.5.0-beta` and `jose@6.2.5`. It mounts the current Neon Auth Next.js handler, keeps cookies host-only with a 60-second signed session-data cache, verifies Google ID-token signature/issuer/audience/expiry server-side, and associates the immutable Google provider subject with the immutable Neon user ID. If the supported token endpoint returns no ID token, the provider account ID is retained as the stable association but affiliation stays `pending_verification`; email suffixes never elevate it.
+
+LOGOS-owned PostgreSQL objects are additive and isolated to `logos`. Runtime callers cannot write raw identity/access tables or invoke the bootstrap. Hardened functions provide association, current access resolution, elevation, revocation, and deactivation. The one-time bootstrap remains migration-owner-only and requires an existing atomic audit record. Every protected capability resolver checks the current active identity, affiliation, and non-revoked assignment; authentication alone grants nothing. Deactivation commits local denial first and then makes a best-effort Neon `revokeUserSessions` call; a provider/API failure is recorded with a bounded code and cannot restore local access.
+
+Synthetic verification covers normalized/malformed Google evidence, missing hosted domain, explicit non-hierarchical capability mapping, session-bound CSRF mismatch/replay, raw-table denial, immutable association mismatch, pending-affiliation denial, one-time bootstrap replay, immediate revocation, backup visibility, fresh/repeated PostgreSQL 17 migrations, export/restore, formatting, lint, type checking, unit/component tests, production build, and browser smoke tests.
+
+Live Google sign-in remains intentionally blocked on external non-production configuration: Neon Auth must be enabled for the selected non-production branch, its exact callback URI must be registered on an approved Google OAuth web client, and the three server-only environment values documented in `.env.example` must be placed in local/Vercel secret stores. No live `mathclub@tokyois.com` smoke test has been authorized or performed.
+
+The exact pinned beta currently brings an unused Auth UI dependency with an upstream Better Auth peer-version mismatch. LOGOS imports only the auth-only server entry point, the frozen install and build pass, and the production dependency audit reports no known vulnerabilities. This is retained as a provider-beta upgrade risk rather than overridden locally.
+
+After the intended administrator has a verified application identity, the migration owner can run the guarded `db:access:bootstrap` operation with `BOOTSTRAP_IDENTITY_ID` set to that UUID and `CONFIRM_PHASE04_BOOTSTRAP=bootstrap-once`. The operation refuses Production, never accepts an email address, writes its audit event and assignment atomically, and cannot be replayed.
