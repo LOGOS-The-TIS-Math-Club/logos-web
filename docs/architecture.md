@@ -639,7 +639,7 @@ Before production deployment, `main` is protected: required CI checks cannot be 
 - `main` is the protected integration branch and becomes the Vercel Production branch only at the Phase 11 launch gate.
 - Work occurs on short-lived feature/fix branches.
 - Pull requests receive Vercel previews and isolated Neon preview data.
-- Approved pull requests are squash-merged.
+- Approved phase pull requests preserve their curated Conventional Commits through protected rebase-and-merge.
 - There is no permanent `develop` branch.
 - Through Phase 10, merging to `main` creates an access-protected Vercel Preview rather than a Production deployment.
 - The public open-source repository and protected `main` branch prevent ordinary direct or force pushes from bypassing the required delivery gates.
