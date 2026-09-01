@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: Phase 04 — complete (code and architecture); live OAuth verification deferred
+> - Current phase: Phase 05 — Google Workspace integration foundation
 > - Last updated: 2026-09-01
 
 ## 1. Purpose
@@ -198,7 +198,7 @@ flowchart LR
 
 **File:** [phase-04.md](./phase-04.md)
 
-**Status:** Complete at the code-and-architecture level on `phase/04-identity-authorization`; independent security review passed. Live OAuth verification is deferred because external Neon Auth provisioning did not complete.
+**Status:** Completed on 2026-09-01 and merged to `main`; independent security review passed. Live OAuth verification remains deferred because external Neon Auth provisioning did not complete. Phase 05 is next.
 
 **Outcome:** Google sign-in through Neon Auth with verified identity, school-affiliation handling, and default-deny technical access.
 
