@@ -1,6 +1,6 @@
 # Phase 04 — Identity and Authorization
 
-> - Status: Implemented locally; live non-production provider configuration pending
+> - Status: Complete (code and architecture); live OAuth verification deferred pending external Neon Auth provisioning
 > - Branch: `phase/04-identity-authorization`
 > - Roadmap: [roadmap.md](./roadmap.md)
 > - Architecture: [architecture.md](./architecture.md)
@@ -209,3 +209,26 @@ Live Google sign-in remains intentionally blocked on external non-production con
 The exact pinned beta currently brings an unused Auth UI dependency with an upstream Better Auth peer-version mismatch. LOGOS imports only the auth-only server entry point, the frozen install and build pass, and the production dependency audit reports no known vulnerabilities. This is retained as a provider-beta upgrade risk rather than overridden locally.
 
 After the intended administrator has a verified application identity, the migration owner can run the guarded `db:access:bootstrap` operation with `BOOTSTRAP_IDENTITY_ID` set to that UUID and `CONFIRM_PHASE04_BOOTSTRAP=bootstrap-once`. The operation refuses Production, never accepts an email address, writes its audit event and assignment atomically, and cannot be replayed.
+
+## 18. Independent security review and beta dependency decision
+
+On 2026-09-01, an independent read-only review ran through AGY using Gemini 3.7 Flash High against `main...phase/04-identity-authorization`. Its prompt excluded environment variables, credentials, browser sessions, account data, and screenshots. The review found no Critical, High, or Medium issue. It recorded one Low provider-packaging risk: the pinned Auth beta depends on an unused Auth UI package whose downstream Better Auth peer declarations do not align with the server package's pinned Better Auth version. It also recorded the missing-ID-token behavior as informational because that path deliberately retains immutable provider association while leaving affiliation pending.
+
+The dependency decision was rechecked during final review:
+
+- Neon's current first-party SDK repository and January 2026 Next.js guidance still prescribe `createNeonAuth()` from `@neondatabase/auth/next/server` for the server handler and session methods.
+- Both the current npm `latest` tag and the first-party repository package manifest are `0.5.0-beta`; npm publishes no stable version to assess or adopt.
+- The package's own server-toolkit documentation labels the surface beta and recommends exact pinning.
+- A clean production build contains no executable `@neondatabase/auth-ui`, `@daveyplate/better-auth-ui`, or `@better-auth/api-key` code in `.next/static`, `.next/server/app`, or executable `.next/server/chunks`. Source maps contain only the server SDK's documentation comment mentioning Auth UI routes. LOGOS imports only the server entry point and its custom client controls import no Neon package.
+- Frozen installation, type checking, production build, supply-chain checks, and the production dependency audit pass. No local peer override is applied because overriding the provider's tested Better Auth graph would create a larger compatibility risk.
+
+The beta remains accepted for non-production Phase 04 with an exact version and lockfile. Upgrade assessment is required when Neon publishes a compatible stable release.
+
+## 19. Redacted provider activation evidence
+
+Provider evidence records only environment names, branch names, bounded outcomes, and reason codes. It excludes client IDs, secrets, Auth endpoints, callback tokens, raw claims, emails, cookies, screenshots, and provider error payloads.
+
+- Target: Neon project `logos-web-nonproduction`, branch `development`; Production Auth remains untouched and disabled.
+- Initial Neon result: Auth provisioning was blocked because an existing `neon_auth` schema was present. Immediately before the separately approved deletion, the console target was re-confirmed as project `logos-web-nonproduction` (`dawn-bread-51529312`), branch `development` (`br-wispy-butterfly-azq8pls0`). A redacted, count-only catalog inventory found zero relations (therefore no identity, session, or configuration tables), functions, types, constraints, policies, triggers, operators, collations, conversions, text-search objects, default ACL entries, or schema ACL entries. No object names, row values, identities, provider configuration, endpoints, or credentials were recorded.
+- Approved schema repair result: the console executed exactly `DROP SCHEMA neon_auth;` on that target, without `CASCADE`; PostgreSQL reported success and no dependency error. A same-branch verification found `neon_auth` absent while the unrelated `logos` and `public` schemas remained present. No production project or other branch was selected or mutated.
+- External provisioning blocker: the supported console enable action recreated the `neon_auth` namespace but returned a bounded internal failure. A count-only check confirmed that the namespace contains zero relations, functions, and types. LOGOS migrations and runtime access only LOGOS-owned objects, so this empty namespace does not affect application migration, schema integrity, or automated operation. It does prevent live provider sessions; Google OAuth configuration and live OAuth verification are deferred until Neon Auth provisioning works.
