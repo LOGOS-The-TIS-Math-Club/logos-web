@@ -14,6 +14,7 @@ Implement the recruitment landing page and student application flow for LOGOS. A
 ## 2. Dependencies and preserved invariants
 
 This phase builds directly upon the established foundations:
+
 - **Phase 01 / Design tokens:** Dark-first zinc-950 background, zinc-900/800 surfaces, zinc-100 text, zinc-400 muted text, zinc-500 borders, mauve-400 accent, WCAG AA contrast, and reduced-motion support.
 - **Phase 02 / Database:** Drizzle ORM, PostgreSQL schema migrations in `logos` schema, and server-only transactions.
 - **Phase 03 / Security:** Origin/CSRF protection, structured redaction, security and business audit journals, rate limiting, and durable operation patterns.
@@ -26,20 +27,21 @@ This phase builds directly upon the established foundations:
 
 ## 3. Approved application questions
 
-| # | Exact User-Facing Label / Question | Field Type & Choices | Required | Validation & Limits | Purpose |
-|---|---|---|---|---|---|
-| **1** | Preferred name | Short Text | Required | Trimmed text, 1–80 chars | Preferred name for club communications and meetings. |
-| **2** | Grade / Year level | Single Select (Grade 9, Grade 10, Grade 11, Grade 12) | Required | Enum match | Determines division eligibility and peer groupings. |
-| **3** | Mathematical interests | Multi-Select (Problem solving, Algebra, Geometry, Number theory, Combinatorics, Logic & puzzles, Applied mathematics, Other) | Required | Array of 1–8 valid interest keys | Guides session topic selection and problem sets. |
-| **4** | Why would you like to join LOGOS? | Textarea | Required | 30–500 chars | Assesses motivation and engagement intent. |
-| **5** | What would you like to learn or contribute? | Textarea | Required | 30–500 chars | Informs collaborative activities and peer workshops. |
-| **6** | Relevant background or experience (optional) | Textarea | Optional | 0–500 chars (No prior competition experience required) | Optional background context. |
-| **7** | Can you normally attend regular club meetings? (Every Friday after school, 15:30–16:30, Room 101) | Single Select (Yes, I can attend regularly / Usually, but I may have occasional conflicts / No, I have an ongoing scheduling conflict) | Required | Enum match | Assesses attendance availability. |
-| **8** | Accuracy and communication acknowledgement | Single Checkbox | Required | Must be checked (`true`) | “I confirm that the information provided is accurate and understand that LOGOS may use my verified TIS email for club-related communication.” |
+| #     | Exact User-Facing Label / Question                                                                | Field Type & Choices                                                                                                                   | Required | Validation & Limits                                    | Purpose                                                                                                                                       |
+| ----- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | Preferred name                                                                                    | Short Text                                                                                                                             | Required | Trimmed text, 1–80 chars                               | Preferred name for club communications and meetings.                                                                                          |
+| **2** | Grade / Year level                                                                                | Single Select (Grade 9, Grade 10, Grade 11, Grade 12)                                                                                  | Required | Enum match                                             | Determines division eligibility and peer groupings.                                                                                           |
+| **3** | Mathematical interests                                                                            | Multi-Select (Problem solving, Algebra, Geometry, Number theory, Combinatorics, Logic & puzzles, Applied mathematics, Other)           | Required | Array of 1–8 valid interest keys                       | Guides session topic selection and problem sets.                                                                                              |
+| **4** | Why would you like to join LOGOS?                                                                 | Textarea                                                                                                                               | Required | 30–500 chars                                           | Assesses motivation and engagement intent.                                                                                                    |
+| **5** | What would you like to learn or contribute?                                                       | Textarea                                                                                                                               | Required | 30–500 chars                                           | Informs collaborative activities and peer workshops.                                                                                          |
+| **6** | Relevant background or experience (optional)                                                      | Textarea                                                                                                                               | Optional | 0–500 chars (No prior competition experience required) | Optional background context.                                                                                                                  |
+| **7** | Can you normally attend regular club meetings? (Every Friday after school, 15:30–16:30, Room 101) | Single Select (Yes, I can attend regularly / Usually, but I may have occasional conflicts / No, I have an ongoing scheduling conflict) | Required | Enum match                                             | Assesses attendance availability.                                                                                                             |
+| **8** | Accuracy and communication acknowledgement                                                        | Single Checkbox                                                                                                                        | Required | Must be checked (`true`)                               | “I confirm that the information provided is accurate and understand that LOGOS may use my verified TIS email for club-related communication.” |
 
 ## 4. Scope and non-goals
 
 ### In scope
+
 - Public recruitment landing page (`/`) highlighting LOGOS mission, meeting details, non-prerequisite policy, and primary call to action.
 - Application form (`/apply`) with progressive enhancement, accessible validation, client/server Zod enforcement, and session affiliation check.
 - Application confirmation page (`/apply/confirmation`) and duplicate/error handling.
@@ -51,6 +53,7 @@ This phase builds directly upon the established foundations:
 - Rate limiting on submission endpoints and CSRF protection.
 
 ### Non-goals
+
 - Student member dashboard or portal widgets.
 - Automatic membership creation or role conversion (owned by Phase 07).
 - Attendance, absences, or warning tracking.

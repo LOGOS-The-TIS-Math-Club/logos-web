@@ -39,12 +39,8 @@ const AssociatedIdentitySchema = z.object({
   active: z.boolean(),
 });
 
-export class AccessDeniedError extends Error {
-  constructor(readonly code: string) {
-    super("Access denied");
-    this.name = "AccessDeniedError";
-  }
-}
+import { AccessDeniedError } from "./errors";
+export { AccessDeniedError };
 
 export async function associateCurrentGoogleIdentity(correlationId: string) {
   const auth = getNeonAuth();

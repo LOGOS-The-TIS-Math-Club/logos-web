@@ -35,6 +35,14 @@ export function AppShell({ children, className }: AppShellProps) {
                   Home
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/apply"
+                  className="rounded-component text-muted-foreground hover:text-foreground focus-visible:outline-focus inline-flex min-h-11 items-center px-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
+                >
+                  Apply
+                </Link>
+              </li>
             </ul>
           </nav>
         </Container>

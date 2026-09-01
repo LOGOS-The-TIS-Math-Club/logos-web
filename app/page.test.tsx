@@ -3,45 +3,39 @@ import { describe, expect, it } from "vitest";
 
 import Home from "./page";
 
-describe("Home", () => {
-  it("identifies the neutral LOGOS foundation accessibly", () => {
+describe("Home recruitment landing page", () => {
+  it("renders the main heading and recruitment call to action", () => {
     render(<Home />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "LOGOS Web" }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Explore Mathematics Beyond the Classroom",
+      }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/project foundation.*is ready/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/application shell, responsive grid foundation/i),
-    ).toBeInTheDocument();
+
+    const applyLinks = screen.getAllByRole("link", { name: /Apply/i });
+    expect(applyLinks.length).toBeGreaterThanOrEqual(1);
+    expect(applyLinks[0]).toHaveAttribute("href", "/apply");
   });
 
-  it("renders the foundation principles section with correct heading hierarchy", () => {
+  it("renders activities, eligibility, and meeting details accessibly", () => {
     render(<Home />);
 
     expect(
-      screen.getByRole("heading", { level: 2, name: "Foundation Principles" }),
+      screen.getByRole("heading", { level: 2, name: "What Students Do" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Who Can Join" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Meeting Schedule" }),
     ).toBeInTheDocument();
 
+    expect(screen.getByText(/Grades 9–12/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", {
-        level: 3,
-        name: "Accessible Architecture",
-      }),
+      screen.getByText(/Every Friday after school, 15:30–16:30/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        level: 3,
-        name: "Disciplined Aesthetics",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        level: 3,
-        name: "Operational Simplicity",
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Room 101/i)).toBeInTheDocument();
   });
 });
