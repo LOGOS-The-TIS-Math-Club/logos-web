@@ -4,7 +4,7 @@
 > - Project: LOGOS — The Tokyo International School Math Club
 > - Architecture authority: [architecture.md](./architecture.md)
 > - Phase-file convention: `phase-##.md`
-> - Current phase: Phase 03 — implementation complete on branch `phase/03-security-audit`; awaiting protected merge
+> - Current phase: Phase 04 — planning on branch `phase/04-identity-authorization`
 > - Last updated: 2026-09-01
 
 ## 1. Purpose
@@ -186,7 +186,7 @@ flowchart LR
 
 **File:** [phase-03.md](./phase-03.md)
 
-**Status:** Implementation complete on branch `phase/03-security-audit` (dated 2026-09-01); awaiting protected rebase-and-merge through [pull request #13](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/13). Phase 02 remains completed, and Phase 04 is next after acceptance.
+**Status:** Completed on 2026-09-01 through protected rebase-and-merge of [pull request #13](https://github.com/LOGOS-The-TIS-Math-Club/logos-web/pull/13). The five curated capability commits are linear on `main`; all post-merge workflows passed. Phase 04 is next.
 
 **Outcome:** Shared security and durability primitives that every later protected workflow must use.
 
@@ -196,7 +196,9 @@ flowchart LR
 
 ### Phase 04 — Identity and authorization
 
-**File:** `phase-04.md`
+**File:** [phase-04.md](./phase-04.md)
+
+**Status:** Planning on branch `phase/04-identity-authorization` (dated 2026-09-01); implementation awaits approval of the consolidated design gate.
 
 **Outcome:** Google sign-in through Neon Auth with verified identity, school-affiliation handling, and default-deny technical access.
 
