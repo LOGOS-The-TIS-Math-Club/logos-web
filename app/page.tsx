@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="space-y-16 sm:space-y-20">
+    <div className="space-y-16 sm:space-y-24">
       {/* Hero Section */}
       <section
         aria-labelledby="hero-heading"
@@ -43,7 +43,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* What We Do */}
+      {/* What Students Do */}
       <section aria-labelledby="activities-heading" className="space-y-6">
         <div className="space-y-1 text-center">
           <h2
@@ -53,8 +53,7 @@ export default function Home() {
             What Students Do
           </h2>
           <p className="text-muted-foreground text-sm">
-            Active exploration, peer problem-solving, and collaborative
-            learning.
+            Active exploration, peer problem-solving, and collaborative learning.
           </p>
         </div>
 
@@ -88,6 +87,34 @@ export default function Home() {
               competitions including AMC, AIME, Euclid, and team events.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* About LOGOS Section */}
+      <section
+        id="about"
+        aria-labelledby="about-heading"
+        className="border-border bg-surface rounded-component space-y-6 border p-6 sm:p-10"
+      >
+        <div className="space-y-2">
+          <div className="text-primary text-xs font-bold uppercase tracking-wider">
+            About Our Club
+          </div>
+          <h2
+            id="about-heading"
+            className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl"
+          >
+            About LOGOS Math Club
+          </h2>
+        </div>
+
+        <div className="text-muted-foreground space-y-4 text-sm leading-relaxed">
+          <p>
+            Founded by Tokyo International School high school students, LOGOS exists to create an inclusive, rigorous, and supportive space for students who enjoy mathematical challenges. Rather than focusing solely on memorization, our meetings encourage deep reasoning, multiple solution pathways, and collaborative proof discovery.
+          </p>
+          <p>
+            Whether preparing for international mathematics olympiads or exploring proof techniques for the first time, all high school students in Grades 9–12 are welcome to participate.
+          </p>
         </div>
       </section>
 
@@ -152,45 +179,145 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Join */}
-      <section aria-labelledby="why-join-heading" className="space-y-6">
+      {/* Leadership & Faculty Supervision */}
+      <section
+        id="leadership"
+        aria-labelledby="leadership-heading"
+        className="space-y-6"
+      >
+        <div className="space-y-1 text-center">
+          <h2
+            id="leadership-heading"
+            className="text-foreground text-xl font-bold tracking-tight sm:text-2xl"
+          >
+            Leadership & Supervision
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Student-led initiatives guided by school faculty advisors.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="border-border bg-surface rounded-component space-y-2 border p-6">
+            <div className="text-primary text-xs font-bold uppercase tracking-wider">
+              Student Leadership
+            </div>
+            <h3 className="text-foreground text-base font-bold">
+              Founder & President
+            </h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Student leadership organizes weekly workshop topics, curates problem sets from past competitions, and coordinates peer problem-solving sessions.
+            </p>
+          </div>
+
+          <div className="border-border bg-surface rounded-component space-y-2 border p-6">
+            <div className="text-primary text-xs font-bold uppercase tracking-wider">
+              Faculty Supervision
+            </div>
+            <h3 className="text-foreground text-base font-bold">
+              TIS High School Mathematics Department
+            </h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Faculty advisory ensures safety, room access, official school activity coordination, and competition registration oversight.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Resources & Competitions */}
+      <section
+        id="resources"
+        aria-labelledby="resources-heading"
+        className="border-border bg-surface rounded-component space-y-6 border p-6 sm:p-8"
+      >
+        <div className="space-y-2">
+          <div className="text-primary text-xs font-bold uppercase tracking-wider">
+            Resources & Contests
+          </div>
+          <h2
+            id="resources-heading"
+            className="text-foreground text-xl font-bold tracking-tight sm:text-2xl"
+          >
+            Competition Pathways and Learning Archives
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="border-border bg-surface-raised rounded-component border p-5">
+            <h3 className="text-foreground text-sm font-semibold">
+              MAA Competitions (AMC 10/12, AIME)
+            </h3>
+            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+              Preparation for American Mathematics Competitions focusing on rapid problem analysis, numerical intuition, and rigorous proof.
+            </p>
+          </div>
+
+          <div className="border-border bg-surface-raised rounded-component border p-5">
+            <h3 className="text-foreground text-sm font-semibold">
+              CEMC Waterloo Contests (Euclid, Fermat)
+            </h3>
+            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+              Written response competitions emphasizing clear mathematical communication and creative non-routine problem construction.
+            </p>
+          </div>
+
+          <div className="border-border bg-surface-raised rounded-component border p-5">
+            <h3 className="text-foreground text-sm font-semibold">
+              Curated Problem Sets
+            </h3>
+            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+              Members receive access to our Google Classroom archive containing curated problem handouts and peer solution guides.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Privacy & Student Data Protection */}
+      <section
+        id="privacy"
+        aria-labelledby="privacy-heading"
+        className="border-border bg-surface rounded-component space-y-4 border p-6 sm:p-8"
+      >
         <h2
-          id="why-join-heading"
-          className="text-foreground text-center text-xl font-bold tracking-tight sm:text-2xl"
+          id="privacy-heading"
+          className="text-foreground text-lg font-bold tracking-tight sm:text-xl"
         >
-          Why Join LOGOS?
+          Student Privacy & Account Handling
         </h2>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <div className="border-border bg-surface-raised rounded-component border p-5">
-            <h3 className="text-foreground text-sm font-semibold">
-              Deepen Intuition
-            </h3>
-            <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-              Move past rote formulas and develop genuine mathematical reasoning
-              and insight.
-            </p>
-          </div>
+        <div className="text-muted-foreground space-y-3 text-xs leading-relaxed">
+          <p>
+            <strong>Data Minimization:</strong> When you apply to LOGOS, we only collect your preferred name, grade level, mathematical interest choices, and brief statements of purpose. We do not request home addresses, phone numbers, or unnecessary personal information.
+          </p>
+          <p>
+            <strong>School Account Identification:</strong> Google authentication is used solely to verify active enrollment at Tokyo International School (<code>@tokyois.com</code>) and prevent duplicate active submissions.
+          </p>
+          <p>
+            <strong>Data Corrections & Deletion:</strong> If you wish to update your submitted information, withdraw your application, or request deletion of your record, you may speak with club leadership in Room 101 during Friday meetings or contact the club supervisor.
+          </p>
+        </div>
+      </section>
 
-          <div className="border-border bg-surface-raised rounded-component border p-5">
-            <h3 className="text-foreground text-sm font-semibold">
-              Collaborative Community
-            </h3>
-            <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-              Work alongside fellow students who share your curiosity for
-              intellectual challenges.
-            </p>
-          </div>
+      {/* Contact Guidance */}
+      <section
+        id="contact"
+        aria-labelledby="contact-heading"
+        className="border-border bg-surface rounded-component space-y-4 border p-6 sm:p-8"
+      >
+        <h2
+          id="contact-heading"
+          className="text-foreground text-lg font-bold tracking-tight sm:text-xl"
+        >
+          Contact & Inquiries
+        </h2>
 
-          <div className="border-border bg-surface-raised rounded-component border p-5">
-            <h3 className="text-foreground text-sm font-semibold">
-              Learn at Your Own Pace
-            </h3>
-            <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-              Engage with problems matched to your current level while exploring
-              advanced concepts.
-            </p>
-          </div>
+        <div className="text-muted-foreground space-y-2 text-xs leading-relaxed">
+          <p>
+            <strong>In Person:</strong> Join us any Friday after school from 15:30 to 16:30 in <strong>Room 101</strong>.
+          </p>
+          <p>
+            <strong>Student Inquiries:</strong> Have a question about problem workshops, contest schedules, or membership? Speak with student leadership or your high school mathematics teacher.
+          </p>
         </div>
       </section>
 
