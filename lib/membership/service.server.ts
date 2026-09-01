@@ -23,7 +23,10 @@ import {
 } from "./schema";
 
 export class ApplicationNotAcceptedError extends Error {
-  constructor(readonly applicationId: string, readonly currentStatus: string) {
+  constructor(
+    readonly applicationId: string,
+    readonly currentStatus: string,
+  ) {
     super(
       `Cannot activate membership: application status is '${currentStatus}', expected 'accepted'`,
     );
@@ -111,7 +114,9 @@ export async function activateMemberFromApplication(
           identityId: application.identityId,
           applicationId: application.id,
           status: "active",
-          statusReason: parsedInput.reason || "Deliberately activated from accepted application",
+          statusReason:
+            parsedInput.reason ||
+            "Deliberately activated from accepted application",
           createdByIdentityId: actor.identityId,
         })
         .returning({
@@ -151,7 +156,9 @@ export async function activateMemberFromApplication(
  * Lists all club members with their current status, preferred names, and warning counts.
  * Requires 'membership:read' or 'membership:manage' capability.
  */
-export async function listMembers(correlationId: string): Promise<MemberListItem[]> {
+export async function listMembers(
+  correlationId: string,
+): Promise<MemberListItem[]> {
   await requireCapability("membership:read", correlationId);
 
   return withDatabase(async (database) => {
@@ -189,9 +196,7 @@ export async function listMembers(correlationId: string): Promise<MemberListItem
       .where(eq(memberWarnings.active, true))
       .groupBy(memberWarnings.memberId);
 
-    const warningMap = new Map(
-      warningCounts.map((w) => [w.memberId, w.count]),
-    );
+    const warningMap = new Map(warningCounts.map((w) => [w.memberId, w.count]));
 
     return rows.map((row) => ({
       id: row.id,
@@ -234,9 +239,7 @@ export async function updateMemberStatus(
       }
 
       const isLeaving = parsedInput.status !== "active";
-      const leftAtValue = isLeaving
-        ? existing.leftAt || new Date()
-        : null;
+      const leftAtValue = isLeaving ? existing.leftAt || new Date() : null;
 
       const [updated] = await transaction
         .update(clubMembers)

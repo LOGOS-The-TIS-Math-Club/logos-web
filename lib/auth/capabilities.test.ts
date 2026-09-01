@@ -25,4 +25,3 @@ describe("technical capabilities", () => {
     expect(hasCapability("access_admin", "access:revoke")).toBe(true);
   });
 });
-

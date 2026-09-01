@@ -451,7 +451,9 @@ export async function getMemberAttendanceTotals(
     const attendedCount = presentCount + lateCount;
     const totalConsidered = attendedCount + unexcusedCount;
     const attendanceRate =
-      totalConsidered > 0 ? Math.round((attendedCount / totalConsidered) * 100) : 100;
+      totalConsidered > 0
+        ? Math.round((attendedCount / totalConsidered) * 100)
+        : 100;
 
     return {
       totalSessions,

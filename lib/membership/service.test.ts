@@ -45,7 +45,6 @@ describe("Membership Service (activateMemberFromApplication)", () => {
   const validAppId = "123e4567-e89b-42d3-a456-426614174000";
   const validIdentityId = "123e4567-e89b-42d3-a456-426614174001";
 
-
   it("activates an accepted application and records an audit event", async () => {
     mocks.requireCapability.mockResolvedValue({
       identityId: "actor-operator-id",

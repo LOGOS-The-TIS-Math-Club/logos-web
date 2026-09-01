@@ -25,25 +25,10 @@ export const CreateSessionSchema = z.object({
   sessionDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD format"),
-  startTime: z
-    .string()
-    .min(1)
-    .max(10)
-    .default("15:30"),
-  endTime: z
-    .string()
-    .min(1)
-    .max(10)
-    .default("16:30"),
-  location: z
-    .string()
-    .min(1)
-    .max(100)
-    .default("Room 101"),
-  notes: z
-    .string()
-    .max(500, "Notes must not exceed 500 characters")
-    .optional(),
+  startTime: z.string().min(1).max(10).default("15:30"),
+  endTime: z.string().min(1).max(10).default("16:30"),
+  location: z.string().min(1).max(100).default("Room 101"),
+  notes: z.string().max(500, "Notes must not exceed 500 characters").optional(),
 });
 export type CreateSessionInput = z.infer<typeof CreateSessionSchema>;
 
@@ -83,10 +68,7 @@ export const IssueWarningSchema = z.object({
     .string()
     .min(1, "Reason is required")
     .max(256, "Reason must not exceed 256 characters"),
-  notes: z
-    .string()
-    .max(500, "Notes must not exceed 500 characters")
-    .optional(),
+  notes: z.string().max(500, "Notes must not exceed 500 characters").optional(),
 });
 export type IssueWarningInput = z.infer<typeof IssueWarningSchema>;
 

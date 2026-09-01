@@ -55,4 +55,3 @@ export function hasCapability(
     capability as Capability,
   );
 }
-

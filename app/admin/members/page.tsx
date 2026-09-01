@@ -91,8 +91,8 @@ export default async function AdminMembersPage() {
         <div className="border-danger bg-danger-surface rounded-component space-y-3 border p-8">
           <h1 className="text-danger text-xl font-bold">403 • Access Denied</h1>
           <p className="text-foreground text-sm leading-relaxed">
-            You do not have the required <code>membership:read</code>{" "}
-            capability to view club member records.
+            You do not have the required <code>membership:read</code> capability
+            to view club member records.
           </p>
           <p className="text-muted-foreground text-xs">
             Member records are restricted to authorized club operators.

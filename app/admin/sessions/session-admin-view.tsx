@@ -163,7 +163,8 @@ export function SessionAdminView({
       {sessions.length === 0 ? (
         <div className="border-border bg-surface rounded-component border py-12 text-center">
           <p className="text-muted-foreground text-sm">
-            No club sessions recorded yet. Click &quot;Create New Session&quot; to add your first meeting.
+            No club sessions recorded yet. Click &quot;Create New Session&quot;
+            to add your first meeting.
           </p>
         </div>
       ) : (
@@ -171,14 +172,14 @@ export function SessionAdminView({
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="border-border bg-surface rounded-component flex flex-col justify-between border p-5 transition-colors hover:border-border/80"
+              className="border-border bg-surface rounded-component hover:border-border/80 flex flex-col justify-between border p-5 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-primary text-xs font-bold uppercase tracking-wider">
+                  <span className="text-primary text-xs font-bold tracking-wider uppercase">
                     {session.sessionDate}
                   </span>
-                  <span className="border-border bg-surface-raised rounded-full border px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  <span className="border-border bg-surface-raised text-muted-foreground rounded-full border px-2.5 py-0.5 text-[11px] font-medium">
                     {session.location}
                   </span>
                 </div>
@@ -208,7 +209,7 @@ export function SessionAdminView({
                 </span>
                 <Link
                   href={`/admin/attendance?sessionId=${session.id}`}
-                  className="text-primary hover:text-primary-hover font-semibold focus-visible:outline-focus rounded focus-visible:outline-1"
+                  className="text-primary hover:text-primary-hover focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
                 >
                   Mark Ledger →
                 </Link>
@@ -227,16 +228,23 @@ export function SessionAdminView({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
           <div className="border-border bg-surface rounded-component w-full max-w-lg space-y-4 border p-6 shadow-xl">
-            <h2 id="create-session-title" className="text-foreground text-lg font-bold">
+            <h2
+              id="create-session-title"
+              className="text-foreground text-lg font-bold"
+            >
               Create Club Session
             </h2>
             <p className="text-muted-foreground text-xs">
-              Configure session date, time, and meeting room. Default Friday 15:30–16:30, Room 101.
+              Configure session date, time, and meeting room. Default Friday
+              15:30–16:30, Room 101.
             </p>
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label htmlFor={titleId} className="text-foreground block text-xs font-medium">
+                <label
+                  htmlFor={titleId}
+                  className="text-foreground block text-xs font-medium"
+                >
                   Title
                 </label>
                 <input
@@ -245,13 +253,16 @@ export function SessionAdminView({
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor={dateId} className="text-foreground block text-xs font-medium">
+                  <label
+                    htmlFor={dateId}
+                    className="text-foreground block text-xs font-medium"
+                  >
                     Date
                   </label>
                   <input
@@ -260,11 +271,14 @@ export function SessionAdminView({
                     required
                     value={sessionDate}
                     onChange={(e) => setSessionDate(e.target.value)}
-                    className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label htmlFor={locId} className="text-foreground block text-xs font-medium">
+                  <label
+                    htmlFor={locId}
+                    className="text-foreground block text-xs font-medium"
+                  >
                     Location
                   </label>
                   <input
@@ -273,14 +287,17 @@ export function SessionAdminView({
                     required
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor={startId} className="text-foreground block text-xs font-medium">
+                  <label
+                    htmlFor={startId}
+                    className="text-foreground block text-xs font-medium"
+                  >
                     Start Time
                   </label>
                   <input
@@ -290,11 +307,14 @@ export function SessionAdminView({
                     placeholder="15:30"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label htmlFor={endId} className="text-foreground block text-xs font-medium">
+                  <label
+                    htmlFor={endId}
+                    className="text-foreground block text-xs font-medium"
+                  >
                     End Time
                   </label>
                   <input
@@ -304,13 +324,16 @@ export function SessionAdminView({
                     placeholder="16:30"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor={notesId} className="text-foreground block text-xs font-medium">
+                <label
+                  htmlFor={notesId}
+                  className="text-foreground block text-xs font-medium"
+                >
                   Session Notes (Optional)
                 </label>
                 <textarea
@@ -320,7 +343,7 @@ export function SessionAdminView({
                   maxLength={500}
                   placeholder="e.g. Focus on AMC 12 Geometry and Combinatorics problem set."
                   rows={3}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border p-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 

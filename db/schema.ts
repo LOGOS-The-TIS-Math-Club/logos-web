@@ -663,9 +663,7 @@ export const expectedAbsences = logosSchema.table(
     }),
     sessionDate: date("session_date").notNull(),
     reason: text("reason").notNull(),
-    status: expectedAbsenceStatusEnum("status")
-      .notNull()
-      .default("submitted"),
+    status: expectedAbsenceStatusEnum("status").notNull().default("submitted"),
     submittedByIdentityId: uuid("submitted_by_identity_id")
       .notNull()
       .references(() => applicationIdentities.id, { onDelete: "restrict" }),
@@ -774,4 +772,3 @@ export const memberWarnings = logosSchema.table(
     ),
   ],
 );
-

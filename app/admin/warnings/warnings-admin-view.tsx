@@ -2,9 +2,7 @@
 
 import { useId, useState } from "react";
 
-import {
-  type MemberListItem,
-} from "@/lib/membership/schema";
+import { type MemberListItem } from "@/lib/membership/schema";
 import { type WarningListItem } from "@/lib/attendance/schema";
 
 function getCookie(name: string): string {
@@ -24,8 +22,7 @@ export function WarningsAdminView({
   initialWarnings: WarningListItem[];
   members: MemberListItem[];
 }) {
-  const [warnings, setWarnings] =
-    useState<WarningListItem[]>(initialWarnings);
+  const [warnings, setWarnings] = useState<WarningListItem[]>(initialWarnings);
   const [showIssueModal, setShowIssueModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(
     members[0]?.id || "",
@@ -77,9 +74,7 @@ export function WarningsAdminView({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData?.error?.message || "Failed to issue warning",
-        );
+        throw new Error(errorData?.error?.message || "Failed to issue warning");
       }
 
       const { warning } = await response.json();
@@ -175,7 +170,8 @@ export function WarningsAdminView({
             Manual Warnings
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Record and review deliberate leadership warnings. No automated scoring or punishment engines.
+            Record and review deliberate leadership warnings. No automated
+            scoring or punishment engines.
           </p>
         </div>
         <div>
@@ -183,7 +179,7 @@ export function WarningsAdminView({
             type="button"
             onClick={() => setShowIssueModal(true)}
             disabled={members.length === 0}
-            className="bg-danger text-danger-foreground hover:opacity-90 rounded-component focus-visible:outline-focus inline-flex min-h-10 items-center justify-center px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+            className="bg-danger text-danger-foreground rounded-component focus-visible:outline-focus inline-flex min-h-10 items-center justify-center px-4 py-2 text-xs font-semibold transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
           >
             + Issue Manual Warning
           </button>
@@ -218,7 +214,7 @@ export function WarningsAdminView({
             </p>
           </div>
         ) : (
-          <div className="divide-border divide-y rounded-component border border-border bg-surface">
+          <div className="divide-border rounded-component border-border bg-surface divide-y border">
             {activeWarnings.map((w) => (
               <div
                 key={w.id}
@@ -266,15 +262,17 @@ export function WarningsAdminView({
           <h2 className="text-muted-foreground text-sm font-semibold">
             Resolved Warnings History ({resolvedWarnings.length})
           </h2>
-          <div className="divide-border divide-y rounded-component border border-border bg-surface/50">
+          <div className="divide-border rounded-component border-border bg-surface/50 divide-y border">
             {resolvedWarnings.map((w) => (
               <div key={w.id} className="p-4 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-foreground">
+                  <span className="text-foreground font-semibold">
                     {w.memberName} ({w.memberEmail})
                   </span>
                   <span className="text-muted-foreground text-[11px]">
-                    Resolved on {w.resolvedAt && new Date(w.resolvedAt).toLocaleDateString()}
+                    Resolved on{" "}
+                    {w.resolvedAt &&
+                      new Date(w.resolvedAt).toLocaleDateString()}
                   </span>
                 </div>
                 <p className="text-muted-foreground mt-1">{w.reason}</p>
@@ -293,23 +291,30 @@ export function WarningsAdminView({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
           <div className="border-border bg-surface rounded-component w-full max-w-md space-y-4 border p-6 shadow-xl">
-            <h2 id="issue-warning-title" className="text-foreground text-lg font-bold">
+            <h2
+              id="issue-warning-title"
+              className="text-foreground text-lg font-bold"
+            >
               Issue Manual Warning
             </h2>
             <p className="text-muted-foreground text-xs">
-              Record a deliberate manual warning with a bounded reason. All actions are audited.
+              Record a deliberate manual warning with a bounded reason. All
+              actions are audited.
             </p>
 
             <form onSubmit={handleIssueWarning} className="space-y-4">
               <div>
-                <label htmlFor={memberSelectId} className="text-foreground block text-xs font-medium">
+                <label
+                  htmlFor={memberSelectId}
+                  className="text-foreground block text-xs font-medium"
+                >
                   Select Member
                 </label>
                 <select
                   id={memberSelectId}
                   value={selectedMemberId}
                   onChange={(e) => setSelectedMemberId(e.target.value)}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                 >
                   {members.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -320,7 +325,10 @@ export function WarningsAdminView({
               </div>
 
               <div>
-                <label htmlFor={reasonId} className="text-foreground block text-xs font-medium">
+                <label
+                  htmlFor={reasonId}
+                  className="text-foreground block text-xs font-medium"
+                >
                   Reason (1–256 characters)
                 </label>
                 <input
@@ -331,12 +339,15 @@ export function WarningsAdminView({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g. Unexcused absence for 3 consecutive meetings without notice."
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label htmlFor={notesId} className="text-foreground block text-xs font-medium">
+                <label
+                  htmlFor={notesId}
+                  className="text-foreground block text-xs font-medium"
+                >
                   Private Leadership Notes (Optional)
                 </label>
                 <textarea
@@ -346,7 +357,7 @@ export function WarningsAdminView({
                   maxLength={500}
                   placeholder="Optional context for leadership records."
                   rows={3}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border p-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
@@ -362,7 +373,7 @@ export function WarningsAdminView({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-danger text-danger-foreground hover:opacity-90 rounded-component px-4 py-2 text-xs font-semibold disabled:opacity-50"
+                  className="bg-danger text-danger-foreground rounded-component px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-50"
                 >
                   {isSubmitting ? "Issuing..." : "Issue Warning"}
                 </button>

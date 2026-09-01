@@ -69,7 +69,9 @@ export function AttendanceAdminView({
     newStatus: AttendanceStatus,
   ) => {
     setRoster((prev) =>
-      prev.map((r) => (r.memberId === memberId ? { ...r, status: newStatus } : r)),
+      prev.map((r) =>
+        r.memberId === memberId ? { ...r, status: newStatus } : r,
+      ),
     );
   };
 
@@ -214,7 +216,8 @@ export function AttendanceAdminView({
             Attendance Ledger
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Record actual meeting attendance, review expected absences, and save audited ledger entries.
+            Record actual meeting attendance, review expected absences, and save
+            audited ledger entries.
           </p>
         </div>
 
@@ -222,7 +225,7 @@ export function AttendanceAdminView({
           <div className="flex items-center gap-3">
             <label
               htmlFor="session-select"
-              className="text-xs font-semibold text-muted-foreground whitespace-nowrap"
+              className="text-muted-foreground text-xs font-semibold whitespace-nowrap"
             >
               Session:
             </label>
@@ -230,7 +233,7 @@ export function AttendanceAdminView({
               id="session-select"
               value={selectedSessionId}
               onChange={(e) => handleSessionChange(e.target.value)}
-              className="border-border bg-surface text-foreground rounded-component border px-3 py-2 text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-none"
+              className="border-border bg-surface text-foreground rounded-component focus:ring-primary border px-3 py-2 text-xs font-medium focus:ring-1 focus:outline-none"
             >
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -279,7 +282,9 @@ export function AttendanceAdminView({
             </div>
             <div className="col-span-2 space-y-1 text-center sm:col-span-1">
               <span className="text-muted-foreground text-xs">Unmarked</span>
-              <p className="text-foreground text-xl font-bold">{unmarkedCount}</p>
+              <p className="text-foreground text-xl font-bold">
+                {unmarkedCount}
+              </p>
             </div>
           </div>
 
@@ -294,7 +299,8 @@ export function AttendanceAdminView({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground text-xs">
-                  Showing {roster.length} active {roster.length === 1 ? "member" : "members"}
+                  Showing {roster.length} active{" "}
+                  {roster.length === 1 ? "member" : "members"}
                 </span>
                 <button
                   type="button"
@@ -307,7 +313,7 @@ export function AttendanceAdminView({
 
               <div className="border-border bg-surface rounded-component overflow-x-auto border">
                 <table className="w-full text-left text-sm">
-                  <thead className="border-border bg-surface-raised border-b text-xs font-semibold text-muted-foreground">
+                  <thead className="border-border bg-surface-raised text-muted-foreground border-b text-xs font-semibold">
                     <tr>
                       <th className="px-4 py-3">Member</th>
                       <th className="px-4 py-3">Expected Absence</th>
@@ -317,9 +323,12 @@ export function AttendanceAdminView({
                   </thead>
                   <tbody className="divide-border divide-y text-xs">
                     {roster.map((item) => (
-                      <tr key={item.memberId} className="hover:bg-surface-raised/40">
+                      <tr
+                        key={item.memberId}
+                        className="hover:bg-surface-raised/40"
+                      >
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-foreground">
+                          <div className="text-foreground font-semibold">
                             {item.preferredName}
                           </div>
                           <div className="text-muted-foreground">
@@ -332,13 +341,17 @@ export function AttendanceAdminView({
                               className="border-info/30 bg-info-surface text-info inline-flex flex-col rounded-md border p-1.5 text-[11px]"
                               title={`Submitted absence: ${item.expectedAbsence.reason}`}
                             >
-                              <strong className="font-semibold">Absence Notified:</strong>
+                              <strong className="font-semibold">
+                                Absence Notified:
+                              </strong>
                               <span className="line-clamp-1 italic">
                                 &quot;{item.expectedAbsence.reason}&quot;
                               </span>
                             </span>
                           ) : (
-                            <span className="text-muted-foreground text-[11px]">—</span>
+                            <span className="text-muted-foreground text-[11px]">
+                              —
+                            </span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -354,19 +367,23 @@ export function AttendanceAdminView({
                               item.status === "present"
                                 ? "border-success/40 bg-success-surface text-success"
                                 : item.status === "late"
-                                ? "border-warning/40 bg-warning-surface text-warning"
-                                : item.status === "excused_absence"
-                                ? "border-info/40 bg-info-surface text-info"
-                                : item.status === "unexcused_absence"
-                                ? "border-danger/40 bg-danger-surface text-danger"
-                                : "border-border bg-surface text-muted-foreground"
+                                  ? "border-warning/40 bg-warning-surface text-warning"
+                                  : item.status === "excused_absence"
+                                    ? "border-info/40 bg-info-surface text-info"
+                                    : item.status === "unexcused_absence"
+                                      ? "border-danger/40 bg-danger-surface text-danger"
+                                      : "border-border bg-surface text-muted-foreground"
                             }`}
                           >
                             <option value="unmarked">Unmarked</option>
                             <option value="present">Present</option>
                             <option value="late">Late</option>
-                            <option value="excused_absence">Excused Absence</option>
-                            <option value="unexcused_absence">Unexcused Absence</option>
+                            <option value="excused_absence">
+                              Excused Absence
+                            </option>
+                            <option value="unexcused_absence">
+                              Unexcused Absence
+                            </option>
                           </select>
                         </td>
                         <td className="px-4 py-3">
@@ -378,7 +395,7 @@ export function AttendanceAdminView({
                             }
                             placeholder="Optional note"
                             maxLength={256}
-                            className="border-border bg-surface text-foreground w-full rounded-component border px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                            className="border-border bg-surface text-foreground rounded-component focus:ring-primary w-full border px-2 py-1 text-xs focus:ring-1 focus:outline-none"
                           />
                         </td>
                       </tr>
@@ -412,12 +429,19 @@ export function AttendanceAdminView({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
           <div className="border-border bg-surface rounded-component w-full max-w-md space-y-4 border p-6 shadow-xl">
-            <h2 id="record-absence-title" className="text-foreground text-lg font-bold">
+            <h2
+              id="record-absence-title"
+              className="text-foreground text-lg font-bold"
+            >
               Record Absence on Member&apos;s Behalf
             </h2>
             <p className="text-muted-foreground text-xs">
-              Log an expected absence notification for a member who communicated offline for session on{" "}
-              <strong className="text-foreground">{selectedSession?.sessionDate}</strong>.
+              Log an expected absence notification for a member who communicated
+              offline for session on{" "}
+              <strong className="text-foreground">
+                {selectedSession?.sessionDate}
+              </strong>
+              .
             </p>
 
             <form onSubmit={handleRecordAbsenceOnBehalf} className="space-y-4">
@@ -428,7 +452,7 @@ export function AttendanceAdminView({
                 <select
                   value={absenceMemberId}
                   onChange={(e) => setAbsenceMemberId(e.target.value)}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border px-3 py-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
                 >
                   {roster.map((m) => (
                     <option key={m.memberId} value={m.memberId}>
@@ -449,7 +473,7 @@ export function AttendanceAdminView({
                   maxLength={500}
                   placeholder="e.g. Informs leadership of debate tournament trip."
                   rows={3}
-                  className="border-border bg-surface text-foreground mt-1 w-full rounded-component border p-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
