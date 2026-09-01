@@ -13,6 +13,11 @@ export const CAPABILITIES = [
   "session:revoke",
   "application:review",
   "application:export",
+  "membership:read",
+  "membership:manage",
+  "session:manage",
+  "attendance:record",
+  "warning:manage",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -25,6 +30,11 @@ const capabilityMap: Readonly<
     "identity:review",
     "application:review",
     "application:export",
+    "membership:read",
+    "membership:manage",
+    "session:manage",
+    "attendance:record",
+    "warning:manage",
   ]),
   access_admin: new Set([
     "identity:self:read",
@@ -45,3 +55,4 @@ export function hasCapability(
     capability as Capability,
   );
 }
+

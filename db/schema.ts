@@ -544,3 +544,234 @@ export const studentApplications = logosSchema.table(
     ),
   ],
 );
+
+export const clubMemberStatusEnum = logosSchema.enum("club_member_status", [
+  "active",
+  "inactive",
+  "former",
+]);
+
+/**
+ * Native LOGOS club memberships deliberately created from accepted applications.
+ */
+export const clubMembers = logosSchema.table(
+  "club_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    identityId: uuid("identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    applicationId: uuid("application_id").references(
+      () => studentApplications.id,
+      { onDelete: "restrict" },
+    ),
+    status: clubMemberStatusEnum("status").notNull().default("active"),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    leftAt: timestamp("left_at", { withTimezone: true }),
+    statusReason: text("status_reason"),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    uniqueIndex("club_members_identity_active_idx")
+      .on(t.identityId)
+      .where(sql`"status" = 'active'`),
+    index("club_members_status_joined_idx").on(t.status, t.joinedAt),
+    index("club_members_application_idx").on(t.applicationId),
+    check(
+      "club_members_status_reason_len_check",
+      sql`"status_reason" IS NULL OR char_length("status_reason") <= 256`,
+    ),
+    check(
+      "club_members_left_at_check",
+      sql`("status" = 'active' AND "left_at" IS NULL) OR ("status" IN ('inactive', 'former') AND "left_at" IS NOT NULL)`,
+    ),
+  ],
+);
+
+/**
+ * Club sessions created by leadership.
+ */
+export const clubSessions = logosSchema.table(
+  "club_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull().default("LOGOS Weekly Meeting"),
+    sessionDate: date("session_date").notNull(),
+    startTime: text("start_time").notNull().default("15:30"),
+    endTime: text("end_time").notNull().default("16:30"),
+    location: text("location").notNull().default("Room 101"),
+    notes: text("notes"),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("club_sessions_date_idx").on(t.sessionDate),
+    check(
+      "club_sessions_title_len_check",
+      sql`char_length("title") BETWEEN 1 AND 120`,
+    ),
+    check(
+      "club_sessions_start_time_len_check",
+      sql`char_length("start_time") BETWEEN 1 AND 10`,
+    ),
+    check(
+      "club_sessions_end_time_len_check",
+      sql`char_length("end_time") BETWEEN 1 AND 10`,
+    ),
+    check(
+      "club_sessions_location_len_check",
+      sql`char_length("location") BETWEEN 1 AND 100`,
+    ),
+    check(
+      "club_sessions_notes_len_check",
+      sql`"notes" IS NULL OR char_length("notes") <= 500`,
+    ),
+  ],
+);
+
+export const expectedAbsenceStatusEnum = logosSchema.enum(
+  "expected_absence_status",
+  ["submitted", "acknowledged", "cancelled"],
+);
+
+/**
+ * Expected absences submitted ahead of club sessions.
+ */
+export const expectedAbsences = logosSchema.table(
+  "expected_absences",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => clubMembers.id, { onDelete: "restrict" }),
+    sessionId: uuid("session_id").references(() => clubSessions.id, {
+      onDelete: "restrict",
+    }),
+    sessionDate: date("session_date").notNull(),
+    reason: text("reason").notNull(),
+    status: expectedAbsenceStatusEnum("status")
+      .notNull()
+      .default("submitted"),
+    submittedByIdentityId: uuid("submitted_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("expected_absences_member_date_idx").on(t.memberId, t.sessionDate),
+    index("expected_absences_session_idx").on(t.sessionId),
+    check(
+      "expected_absences_reason_len_check",
+      sql`char_length("reason") BETWEEN 1 AND 500`,
+    ),
+  ],
+);
+
+export const attendanceStatusEnum = logosSchema.enum("attendance_status", [
+  "unmarked",
+  "present",
+  "late",
+  "excused_absence",
+  "unexcused_absence",
+]);
+
+/**
+ * Actual attendance ledger entries recorded by leadership.
+ */
+export const sessionAttendance = logosSchema.table(
+  "session_attendance",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => clubSessions.id, { onDelete: "restrict" }),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => clubMembers.id, { onDelete: "restrict" }),
+    status: attendanceStatusEnum("status").notNull().default("unmarked"),
+    notes: text("notes"),
+    recordedByIdentityId: uuid("recorded_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    recordedAt: timestamp("recorded_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    uniqueIndex("session_attendance_session_member_idx").on(
+      t.sessionId,
+      t.memberId,
+    ),
+    index("session_attendance_member_idx").on(t.memberId),
+    index("session_attendance_session_idx").on(t.sessionId),
+    check(
+      "session_attendance_notes_len_check",
+      sql`"notes" IS NULL OR char_length("notes") <= 256`,
+    ),
+  ],
+);
+
+/**
+ * Deliberate manual warnings recorded by leadership.
+ */
+export const memberWarnings = logosSchema.table(
+  "member_warnings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => clubMembers.id, { onDelete: "restrict" }),
+    issuedByIdentityId: uuid("issued_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    reason: text("reason").notNull(),
+    notes: text("notes"),
+    active: boolean("active").notNull().default(true),
+    issuedAt: timestamp("issued_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolvedByIdentityId: uuid("resolved_by_identity_id").references(
+      () => applicationIdentities.id,
+      { onDelete: "restrict" },
+    ),
+  },
+  (t) => [
+    index("member_warnings_member_active_idx").on(t.memberId, t.active),
+    check(
+      "member_warnings_reason_len_check",
+      sql`char_length("reason") BETWEEN 1 AND 256`,
+    ),
+    check(
+      "member_warnings_notes_len_check",
+      sql`"notes" IS NULL OR char_length("notes") <= 500`,
+    ),
+    check(
+      "member_warnings_resolution_check",
+      sql`("active" AND "resolved_at" IS NULL AND "resolved_by_identity_id" IS NULL) OR (NOT "active" AND "resolved_at" IS NOT NULL)`,
+    ),
+  ],
+);
+

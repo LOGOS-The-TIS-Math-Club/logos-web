@@ -155,12 +155,22 @@ try {
         has_table_privilege('logos_backup', 'logos.application_identities', 'SELECT') as backup_identity_select,
         has_table_privilege('logos_runtime', 'logos.student_applications', 'INSERT') as runtime_application_insert,
         has_table_privilege('logos_backup', 'logos.student_applications', 'SELECT') as backup_application_select,
+        has_table_privilege('logos_runtime', 'logos.club_members', 'INSERT') as runtime_members_insert,
+        has_table_privilege('logos_backup', 'logos.club_members', 'SELECT') as backup_members_select,
+        has_table_privilege('logos_runtime', 'logos.club_sessions', 'INSERT') as runtime_sessions_insert,
+        has_table_privilege('logos_backup', 'logos.club_sessions', 'SELECT') as backup_sessions_select,
+        has_table_privilege('logos_runtime', 'logos.session_attendance', 'INSERT') as runtime_attendance_insert,
+        has_table_privilege('logos_backup', 'logos.session_attendance', 'SELECT') as backup_attendance_select,
+        has_table_privilege('logos_runtime', 'logos.expected_absences', 'INSERT') as runtime_absences_insert,
+        has_table_privilege('logos_backup', 'logos.expected_absences', 'SELECT') as backup_absences_select,
+        has_table_privilege('logos_runtime', 'logos.member_warnings', 'INSERT') as runtime_warnings_insert,
+        has_table_privilege('logos_backup', 'logos.member_warnings', 'SELECT') as backup_warnings_select,
         has_table_privilege('logos_backup', 'logos.student_applications', 'INSERT') as backup_application_insert,
         has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'INSERT') as backup_insert
     `;
     if (
       restoredFixture?.marker !== "logos-phase-02-synthetic" ||
-      restoredMigration?.count !== 5 ||
+      restoredMigration?.count !== 6 ||
       !restoredPrivileges?.runtime_usage ||
       !restoredPrivileges.runtime_insert ||
       !restoredPrivileges.runtime_audit_insert ||
@@ -173,6 +183,16 @@ try {
       !restoredPrivileges.backup_identity_select ||
       !restoredPrivileges.runtime_application_insert ||
       !restoredPrivileges.backup_application_select ||
+      !restoredPrivileges.runtime_members_insert ||
+      !restoredPrivileges.backup_members_select ||
+      !restoredPrivileges.runtime_sessions_insert ||
+      !restoredPrivileges.backup_sessions_select ||
+      !restoredPrivileges.runtime_attendance_insert ||
+      !restoredPrivileges.backup_attendance_select ||
+      !restoredPrivileges.runtime_absences_insert ||
+      !restoredPrivileges.backup_absences_select ||
+      !restoredPrivileges.runtime_warnings_insert ||
+      !restoredPrivileges.backup_warnings_select ||
       restoredPrivileges.backup_application_insert ||
       restoredPrivileges.backup_insert
     ) {

@@ -912,6 +912,42 @@ try {
     throw new Error("Backup role could not read Phase 06 applications");
   }
 
+  const [backupMembers] = await backupSql`
+    select count(*)::integer as count from logos.club_members
+  `;
+  if (backupMembers === undefined) {
+    throw new Error("Backup role could not read Phase 07 club_members");
+  }
+
+  const [backupSessions] = await backupSql`
+    select count(*)::integer as count from logos.club_sessions
+  `;
+  if (backupSessions === undefined) {
+    throw new Error("Backup role could not read Phase 07 club_sessions");
+  }
+
+  const [backupAttendance] = await backupSql`
+    select count(*)::integer as count from logos.session_attendance
+  `;
+  if (backupAttendance === undefined) {
+    throw new Error("Backup role could not read Phase 07 session_attendance");
+  }
+
+  const [backupAbsences] = await backupSql`
+    select count(*)::integer as count from logos.expected_absences
+  `;
+  if (backupAbsences === undefined) {
+    throw new Error("Backup role could not read Phase 07 expected_absences");
+  }
+
+  const [backupWarnings] = await backupSql`
+    select count(*)::integer as count from logos.member_warnings
+  `;
+  if (backupWarnings === undefined) {
+    throw new Error("Backup role could not read Phase 07 member_warnings");
+  }
+
+
   await expectPermissionDenied("backup write", async () => {
     await backupSql.begin(async (transaction) => {
       await transaction`
