@@ -905,6 +905,13 @@ try {
     throw new Error("Backup role could not read Phase 04 identities");
   }
 
+  const [backupApplications] = await backupSql`
+    select count(*)::integer as count from logos.student_applications
+  `;
+  if (backupApplications === undefined) {
+    throw new Error("Backup role could not read Phase 06 applications");
+  }
+
   await expectPermissionDenied("backup write", async () => {
     await backupSql.begin(async (transaction) => {
       await transaction`
