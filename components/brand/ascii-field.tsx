@@ -79,11 +79,28 @@ const MARK_CIRCLES = [
   [198, 102, -44],
 ] as const;
 
+/**
+ * Which plates a banner draws. Every page shares the banner structure, so the
+ * variant is what makes each one distinct.
+ */
+export type AsciiVariant = "full" | "wave" | "cubic" | "mark";
+
+const VARIANT_LAYERS: Record<
+  AsciiVariant,
+  { wave: boolean; cubic: boolean; mark: boolean }
+> = {
+  full: { wave: true, cubic: true, mark: true },
+  wave: { wave: true, cubic: false, mark: true },
+  cubic: { wave: false, cubic: true, mark: true },
+  mark: { wave: false, cubic: false, mark: true },
+};
+
 export interface AsciiFieldProps {
   readonly className?: string;
+  readonly variant?: AsciiVariant;
 }
 
-export function AsciiField({ className }: AsciiFieldProps) {
+export function AsciiField({ className, variant = "full" }: AsciiFieldProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
   const midRef = useRef<HTMLCanvasElement>(null);
@@ -106,6 +123,8 @@ export function AsciiField({ className }: AsciiFieldProps) {
       { canvas: mid, context: midContext, config: LAYERS.mid },
       { canvas: front, context: frontContext, config: LAYERS.front },
     ];
+
+    const layers = VARIANT_LAYERS[variant];
 
     const motionQuery = reducedMotionQuery();
     const isReduced = () => motionQuery?.matches ?? false;
@@ -253,7 +272,10 @@ export function AsciiField({ className }: AsciiFieldProps) {
 
       // Mark units are a 300-wide box; this maps it to ~62% of the shorter
       // side of the banner.
-      const markScale = (Math.min(width, height) * 0.62) / 300;
+      const markScale =
+        (Math.min(width, height) *
+          (layers.wave || layers.cubic ? 0.62 : 0.78)) /
+        300;
       const centreX = width / 2 + offsetX;
       const centreY = height / 2 + offsetY;
       const viewer = 620;
@@ -298,9 +320,15 @@ export function AsciiField({ className }: AsciiFieldProps) {
     function draw(t: number) {
       easedX += (pointerX - easedX) * 0.07;
       easedY += (pointerY - easedY) * 0.07;
-      drawWave(t);
-      drawCubic(t);
-      drawMark(t);
+
+      if (layers.wave) drawWave(t);
+      else backContext!.clearRect(0, 0, width, height);
+
+      if (layers.cubic) drawCubic(t);
+      else midContext!.clearRect(0, 0, width, height);
+
+      if (layers.mark) drawMark(t);
+      else frontContext!.clearRect(0, 0, width, height);
     }
 
     function tick(now: number) {
@@ -405,7 +433,7 @@ export function AsciiField({ className }: AsciiFieldProps) {
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, []);
+  }, [variant]);
 
   return (
     <div

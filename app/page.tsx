@@ -1,5 +1,4 @@
-import { AsciiField } from "@/components/brand/ascii-field";
-import { LogosLogomark } from "@/components/brand/marks";
+import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 import {
@@ -32,53 +31,28 @@ export default function Home() {
   );
 
   return (
-    <div className="-mt-8 space-y-24 sm:-mt-12 sm:space-y-32">
-      {/* ---------------- Banner ---------------- */}
-      <section
-        aria-labelledby="hero-heading"
-        className="bleed border-border relative border-b"
-      >
-        <div className="relative grid min-h-[70svh] grid-cols-1 items-center lg:min-h-[80svh] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          {/* Layered mathematics. Decorative; the heading carries meaning. */}
-          <div className="absolute inset-0 lg:left-[42%]">
-            <AsciiField />
-            <div className="ascii-fallback">
-              <LogosLogomark className="h-40 w-40 opacity-40" />
-            </div>
-          </div>
-
-          <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="plated max-w-lg">
-              <div className="panel-lifted hatched space-y-6 p-8 sm:p-10">
-                <p className="eyebrow enter enter-1">
-                  Tokyo International School · Grades 9–12
-                </p>
-
-                <h1
-                  id="hero-heading"
-                  className="enter enter-2 text-4xl leading-[1.02] font-extrabold tracking-[-0.035em] text-balance sm:text-5xl"
-                >
-                  Mathematics,
-                  <br />
-                  taken seriously.
-                </h1>
-
-                <p className="enter enter-3 text-muted-foreground max-w-md leading-relaxed">
-                  The student-led mathematics club of Tokyo International
-                  School. Every Friday in Room 101.
-                </p>
-
-                <div className="enter enter-4 flex flex-wrap items-center gap-3">
-                  <ActionLink href="/apply" variant="primary">
-                    Apply to LOGOS
-                  </ActionLink>
-                  <ActionLink href="/about">About the club</ActionLink>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="space-y-24 sm:space-y-32">
+      <PageBanner
+        variant="full"
+        titleId="hero-heading"
+        eyebrow="Tokyo International School · Grades 9–12"
+        title={
+          <>
+            Mathematics,
+            <br />
+            taken seriously.
+          </>
+        }
+        subtitle="The student-led mathematics club of Tokyo International School. Every Friday in Room 101."
+        actions={
+          <>
+            <ActionLink href="/apply" variant="primary">
+              Apply to LOGOS
+            </ActionLink>
+            <ActionLink href="/about">About the club</ActionLink>
+          </>
+        }
+      />
 
       {/* ---------------- This week ---------------- */}
       <Reveal as="section" aria-labelledby="week-heading">
