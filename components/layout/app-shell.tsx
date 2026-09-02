@@ -13,15 +13,15 @@ export interface AppShellProps {
 }
 
 const NAV_ITEMS = [
-  { href: "/#about", label: "About" },
-  { href: "/#meetings", label: "Meetings" },
-  { href: "/#join", label: "Join" },
+  { href: "/about", label: "About" },
+  { href: "/meetings", label: "Meetings" },
+  { href: "/join", label: "Join" },
 ] as const;
 
 const FOOTER_LINKS = [
-  { href: "/#about", label: "About" },
-  { href: "/#meetings", label: "Meetings" },
-  { href: "/#join", label: "Join" },
+  { href: "/about", label: "About" },
+  { href: "/meetings", label: "Meetings" },
+  { href: "/join", label: "Join" },
   { href: "/privacy", label: "Privacy" },
   { href: "/members", label: "Members" },
 ] as const;
@@ -53,20 +53,22 @@ export function AppShell({ children, className }: AppShellProps) {
             <ul className="mr-2 hidden items-center gap-5 text-sm md:flex">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href}>
+                  {/* Two stacked copies of the label: on hover the pair
+                      rolls up so the second replaces the first. */}
                   <Link
                     href={item.href}
                     className="nav-item focus-visible:outline-focus inline-flex h-11 items-center focus-visible:outline-2 focus-visible:outline-offset-2"
                   >
-                    {item.label}
+                    <span className="nav-item-roll" aria-hidden="true">
+                      <span>{item.label}</span>
+                      <span>{item.label}</span>
+                    </span>
+                    <span className="sr-only">{item.label}</span>
                   </Link>
                 </li>
               ))}
             </ul>
-            <ActionLink
-              href="/apply"
-              variant="primary"
-              className="min-h-9 px-4"
-            >
+            <ActionLink href="/apply" variant="primary" className="action-sm">
               Apply
             </ActionLink>
           </nav>

@@ -5,78 +5,43 @@ import { useEffect, useRef } from "react";
 import { reducedMotionQuery } from "@/components/ui/motion-preference";
 
 /*
- * Animated ASCII mathematics.
+ * Layered ASCII banner.
  *
- * Renders a parametric surface in 3D and shades it with an ASCII density ramp
- * derived from the surface normal against a fixed light. The surface morphs
- * between a torus, a sphere and a Mobius strip, so the hero shows mathematics
- * being done rather than a decorated logo.
+ * Three separate canvases stacked in z, each drawn at a different glyph size,
+ * brightness and parallax factor. Depth comes from those differences rather
+ * than from a shadow: the back plate is coarse, dim and barely moves; the front
+ * plate is fine, bright and tracks the pointer fully.
  *
- * Performance:
- * - Throttled to ~30fps, paused when off screen or when the tab is hidden.
- * - One z-buffered pass per frame; glyphs are bucketed by brightness so
- *   fillStyle changes a handful of times instead of once per cell.
- * - prefers-reduced-motion draws a single static frame and never loops.
- * - Without JS or canvas, the server-rendered SVG mark underneath is what shows.
+ *   back   a trigonometric wave plotting itself left to right
+ *   mid    a cubic sweeping the other way, reshaping as its roots drift
+ *   front  the official five-circle logomark, spinning in 3D
+ *
+ * One rAF loop drives all three. Throttled to ~30fps, paused off screen and in
+ * hidden tabs, one synchronous frame on start so a background tab is never
+ * blank, and a single static frame under prefers-reduced-motion.
  */
 
-const RAMP = ".,-~:;=!*#$@";
 const TAU = Math.PI * 2;
-
 const MAX_DPR = 2;
-const COLOR_LEVELS = 6;
 const FRAME_MS = 33;
-/** How long each surface holds before morphing to the next. */
-const HOLD_MS = 7000;
-const MORPH_MS = 2200;
 
-type Vec3 = [number, number, number];
+/** One ramp per layer, so the planes read as different material. */
+const WAVE_RAMP = "·-~=≈";
+const CUBIC_RAMP = ".:*+#";
+const MARK_RAMP = "·:+*#@";
 
-const SURFACES = ["torus", "sphere", "mobius"] as const;
-type Surface = (typeof SURFACES)[number];
+interface LayerConfig {
+  readonly cell: number;
+  /** 0 = ignores the pointer, 1 = tracks it fully. */
+  readonly parallax: number;
+  readonly alpha: number;
+}
 
-const CAPTIONS: Record<Surface, string> = {
-  torus: "(R + r·cos v)·cos u",
-  sphere: "R·sin v·cos u",
-  mobius: "(1 + t·cos(u/2))·cos u",
+const LAYERS: Record<"back" | "mid" | "front", LayerConfig> = {
+  back: { cell: 17, parallax: 0.18, alpha: 0.4 },
+  mid: { cell: 13, parallax: 0.45, alpha: 0.62 },
+  front: { cell: 10, parallax: 1, alpha: 1 },
 };
-
-/** Parametric surfaces over u, v in [0, 2pi). */
-function surfacePoint(kind: Surface, u: number, v: number): Vec3 {
-  if (kind === "torus") {
-    const r = 1;
-    const R = 2;
-    const cv = Math.cos(v);
-    return [
-      (R + r * cv) * Math.cos(u),
-      (R + r * cv) * Math.sin(u),
-      r * Math.sin(v),
-    ];
-  }
-
-  if (kind === "sphere") {
-    // v is halved so one pass covers the sphere exactly once.
-    const polar = v / 2;
-    const R = 2.1;
-    const sp = Math.sin(polar);
-    return [R * sp * Math.cos(u), R * sp * Math.sin(u), R * Math.cos(polar)];
-  }
-
-  // Mobius strip: a band with a single half-twist.
-  const t = ((v / TAU) * 2 - 1) * 0.9;
-  const half = u / 2;
-  const radial = 2 + t * Math.cos(half);
-  return [radial * Math.cos(u), radial * Math.sin(u), t * Math.sin(half)];
-}
-
-function lerpPoint(a: Vec3, b: Vec3, k: number): Vec3 {
-  if (k === 0) return a;
-  return [
-    a[0] + (b[0] - a[0]) * k,
-    a[1] + (b[1] - a[1]) * k,
-    a[2] + (b[2] - a[2]) * k,
-  ];
-}
 
 function parseColor(value: string): [number, number, number] | null {
   const trimmed = value.trim();
@@ -98,25 +63,49 @@ function parseColor(value: string): [number, number, number] | null {
   return null;
 }
 
+/*
+ * The official logomark: five circles in a quincunx, radius 96 in a 300 box.
+ *
+ * The third value is a z offset. The printed mark is flat, but a flat mark
+ * rotating about Y collapses to a sliver twice per turn. Pushing the diagonal
+ * pairs fore and aft turns it into a shallow lattice that stays legible at
+ * every angle, and reads as the mark from the front.
+ */
+const MARK_CIRCLES = [
+  [150, 150, 0],
+  [198, 198, 44],
+  [102, 102, -44],
+  [102, 198, 44],
+  [198, 102, -44],
+] as const;
+
 export interface AsciiFieldProps {
   readonly className?: string;
-  /** Cell size in CSS pixels. Larger reads coarser and costs less. */
-  readonly cellSize?: number;
 }
 
-export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
+export function AsciiField({ className }: AsciiFieldProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const captionRef = useRef<HTMLParagraphElement>(null);
+  const backRef = useRef<HTMLCanvasElement>(null);
+  const midRef = useRef<HTMLCanvasElement>(null);
+  const frontRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
-    const canvas = canvasRef.current;
-    const caption = captionRef.current;
-    if (!container || !canvas) return;
+    const back = backRef.current;
+    const mid = midRef.current;
+    const front = frontRef.current;
+    if (!container || !back || !mid || !front) return;
 
-    const context = canvas.getContext("2d", { alpha: true });
-    if (!context) return;
+    const backContext = back.getContext("2d", { alpha: true });
+    const midContext = mid.getContext("2d", { alpha: true });
+    const frontContext = front.getContext("2d", { alpha: true });
+    if (!backContext || !midContext || !frontContext) return;
+
+    const planes = [
+      { canvas: back, context: backContext, config: LAYERS.back },
+      { canvas: mid, context: midContext, config: LAYERS.mid },
+      { canvas: front, context: frontContext, config: LAYERS.front },
+    ];
 
     const motionQuery = reducedMotionQuery();
     const isReduced = () => motionQuery?.matches ?? false;
@@ -128,217 +117,190 @@ export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
     let bright = parseColor(styles.getPropertyValue("--ascii-bright")) ?? [
       196, 181, 253,
     ];
+    const font = styles.getPropertyValue("--ascii-font") || "monospace";
 
     let width = 0;
     let height = 0;
-    let columns = 0;
-    let rows = 0;
     let frame = 0;
     let running = false;
     let startedAt = 0;
     let lastFrameAt = 0;
-    let lastCaption = "";
 
-    // Pointer tilt eases toward the pointer rather than snapping to it.
-    let targetTiltX = 0;
-    let targetTiltY = 0;
-    let tiltX = 0;
-    let tiltY = 0;
-
-    let depthBuffer = new Float32Array(0);
-    let glyphBuffer = new Uint8Array(0);
-    const buckets: number[][] = Array.from(
-      { length: COLOR_LEVELS },
-      () => [] as number[],
-    );
+    let pointerX = 0.5;
+    let pointerY = 0.5;
+    let easedX = 0.5;
+    let easedY = 0.5;
 
     function measure() {
       const rect = container!.getBoundingClientRect();
       width = Math.max(1, Math.floor(rect.width));
       height = Math.max(1, Math.floor(rect.height));
-
       const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
-      canvas!.width = Math.floor(width * dpr);
-      canvas!.height = Math.floor(height * dpr);
 
-      context!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      context!.textAlign = "center";
-      context!.textBaseline = "middle";
-      context!.font = `${Math.round(cellSize * 0.95)}px ${
-        styles.getPropertyValue("--ascii-font") || "monospace"
-      }`;
-
-      columns = Math.max(1, Math.ceil(width / cellSize));
-      rows = Math.max(1, Math.ceil(height / cellSize));
-
-      const cells = columns * rows;
-      depthBuffer = new Float32Array(cells);
-      glyphBuffer = new Uint8Array(cells);
+      for (const plane of planes) {
+        plane.canvas.width = Math.floor(width * dpr);
+        plane.canvas.height = Math.floor(height * dpr);
+        plane.context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        plane.context.textAlign = "center";
+        plane.context.textBaseline = "middle";
+        plane.context.font = `${Math.round(plane.config.cell * 1.05)}px ${font}`;
+      }
     }
 
-    /** Which surfaces are showing, and how far between them, at time t. */
-    function morphState(elapsed: number) {
-      const cycle = HOLD_MS + MORPH_MS;
-      const index = Math.floor(elapsed / cycle) % SURFACES.length;
-      const phase = elapsed % cycle;
-      const next = (index + 1) % SURFACES.length;
+    function colorAt(mix: number, alpha: number) {
+      const r = Math.round(dim[0] + (bright[0] - dim[0]) * mix);
+      const g = Math.round(dim[1] + (bright[1] - dim[1]) * mix);
+      const b = Math.round(dim[2] + (bright[2] - dim[2]) * mix);
+      return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+    }
 
-      if (phase < HOLD_MS) {
-        return { from: SURFACES[index], to: SURFACES[index], k: 0 };
-      }
-      const raw = (phase - HOLD_MS) / MORPH_MS;
-      // Smoothstep so the morph eases in and out.
+    function offsets(parallax: number) {
       return {
-        from: SURFACES[index],
-        to: SURFACES[next],
-        k: raw * raw * (3 - 2 * raw),
+        x: (easedX - 0.5) * 46 * parallax,
+        y: (easedY - 0.5) * 30 * parallax,
       };
     }
 
-    function draw(elapsed: number) {
-      context!.clearRect(0, 0, width, height);
-      depthBuffer.fill(0);
-      glyphBuffer.fill(0);
-      for (const bucket of buckets) bucket.length = 0;
+    /* ------------- back plate: a trigonometric wave plotting itself -------- */
+    function drawWave(t: number) {
+      const { cell, parallax, alpha } = LAYERS.back;
+      backContext!.clearRect(0, 0, width, height);
 
-      const { from, to, k } = morphState(elapsed);
+      const { x: offsetX, y: offsetY } = offsets(parallax);
+      const columns = Math.ceil(width / cell);
+      const midY = height / 2 + offsetY;
+      const amplitude = Math.min(height * 0.3, 150);
 
-      if (caption) {
-        const text = k > 0.5 ? CAPTIONS[to] : CAPTIONS[from];
-        if (text !== lastCaption) {
-          caption.textContent = text;
-          lastCaption = text;
-        }
-      }
+      // A sweep head runs left to right; glyphs behind it are already plotted.
+      const sweep = ((t / 5200) % 1.35) * columns;
 
-      tiltX += (targetTiltX - tiltX) * 0.06;
-      tiltY += (targetTiltY - tiltY) * 0.06;
-      const a = elapsed / 2600 + tiltY;
-      const b = elapsed / 3700 + tiltX;
+      for (let i = 0; i < columns; i += 1) {
+        if (i > sweep) break;
+        const phase = (i / columns) * TAU * 2;
 
-      const sinA = Math.sin(a);
-      const cosA = Math.cos(a);
-      const sinB = Math.sin(b);
-      const cosB = Math.cos(b);
+        // Two superposed waves, so it reads as interference, not a bare sine.
+        const y =
+          midY +
+          Math.sin(phase + t / 1400) * amplitude * 0.6 +
+          Math.cos(phase * 2.3 - t / 2100) * amplitude * 0.25;
 
-      const rotate = (vec: Vec3): Vec3 => {
-        const [x0, y0, z0] = vec;
-        const y1 = y0 * cosA - z0 * sinA;
-        const z1 = y0 * sinA + z0 * cosA;
-        return [x0 * cosB - y1 * sinB, x0 * sinB + y1 * cosB, z1];
-      };
-
-      // Sample density follows the grid so the surface stays continuous.
-      const uSteps = Math.min(260, Math.max(96, columns * 3));
-      const vSteps = Math.min(150, Math.max(64, rows * 3));
-      const du = TAU / uSteps;
-      const dv = TAU / vSteps;
-
-      const scale = Math.min(width, height) * 0.42;
-      const centreX = width / 2;
-      const centreY = height / 2;
-      const viewer = 7;
-
-      for (let i = 0; i < uSteps; i += 1) {
-        const u = i * du;
-        for (let j = 0; j < vSteps; j += 1) {
-          const v = j * dv;
-
-          // Position plus two neighbours, for a numeric surface normal.
-          const p = lerpPoint(
-            surfacePoint(from, u, v),
-            surfacePoint(to, u, v),
-            k,
-          );
-          const pu = lerpPoint(
-            surfacePoint(from, u + du, v),
-            surfacePoint(to, u + du, v),
-            k,
-          );
-          const pv = lerpPoint(
-            surfacePoint(from, u, v + dv),
-            surfacePoint(to, u, v + dv),
-            k,
-          );
-
-          const e1x = pu[0] - p[0];
-          const e1y = pu[1] - p[1];
-          const e1z = pu[2] - p[2];
-          const e2x = pv[0] - p[0];
-          const e2y = pv[1] - p[1];
-          const e2z = pv[2] - p[2];
-
-          let nx = e1y * e2z - e1z * e2y;
-          let ny = e1z * e2x - e1x * e2z;
-          let nz = e1x * e2y - e1y * e2x;
-          const nlen = Math.hypot(nx, ny, nz) || 1;
-          nx /= nlen;
-          ny /= nlen;
-          nz /= nlen;
-
-          const [rx, ry, rz] = rotate(p);
-          const [, rny, rnz] = rotate([nx, ny, nz]);
-
-          const depth = viewer + rz;
-          if (depth <= 0.15) continue;
-          const invDepth = 1 / depth;
-
-          // Glyphs sit on a square cell grid, so no aspect correction is
-          // needed here. (A terminal would need roughly 2x on x.)
-          const sx = Math.round(centreX + scale * invDepth * rx);
-          const sy = Math.round(centreY - scale * invDepth * ry);
-
-          const column = Math.floor(sx / cellSize);
-          const row = Math.floor(sy / cellSize);
-          if (column < 0 || column >= columns || row < 0 || row >= rows)
-            continue;
-
-          const index = row * columns + column;
-          if (invDepth <= depthBuffer[index]) continue;
-
-          // Lambert against a fixed light; back faces fall away.
-          const luminance = rny * 0.62 - rnz * 0.78;
-          if (luminance <= 0) continue;
-
-          depthBuffer[index] = invDepth;
-          glyphBuffer[index] =
-            Math.min(
-              RAMP.length - 1,
-              Math.max(0, Math.round(luminance * (RAMP.length - 1))),
-            ) + 1;
-        }
-      }
-
-      for (let index = 0; index < glyphBuffer.length; index += 1) {
-        const stored = glyphBuffer[index];
-        if (stored === 0) continue;
-        const bucket = Math.min(
-          COLOR_LEVELS - 1,
-          Math.floor(((stored - 1) / (RAMP.length - 1)) * COLOR_LEVELS),
+        const age = Math.min(1, (sweep - i) / 8);
+        const level = Math.min(
+          WAVE_RAMP.length - 1,
+          Math.floor(age * WAVE_RAMP.length),
         );
-        buckets[bucket].push(index);
+        backContext!.fillStyle = colorAt(0.15, alpha * (0.35 + age * 0.65));
+        backContext!.fillText(
+          WAVE_RAMP[level],
+          i * cell + cell / 2 + offsetX,
+          y,
+        );
       }
+    }
 
-      for (let bucket = 0; bucket < COLOR_LEVELS; bucket += 1) {
-        const cells = buckets[bucket];
-        if (cells.length === 0) continue;
+    /* ------------- mid plate: a cubic sweeping the other way --------------- */
+    function drawCubic(t: number) {
+      const { cell, parallax, alpha } = LAYERS.mid;
+      midContext!.clearRect(0, 0, width, height);
 
-        const mix = bucket / (COLOR_LEVELS - 1);
-        const r = Math.round(dim[0] + (bright[0] - dim[0]) * mix);
-        const g = Math.round(dim[1] + (bright[1] - dim[1]) * mix);
-        const bl = Math.round(dim[2] + (bright[2] - dim[2]) * mix);
-        context!.fillStyle = `rgba(${r},${g},${bl},${(0.4 + mix * 0.6).toFixed(2)})`;
+      const { x: offsetX, y: offsetY } = offsets(parallax);
+      const columns = Math.ceil(width / cell);
+      const midY = height / 2 + offsetY;
+      const amplitude = Math.min(height * 0.34, 170);
 
-        for (const index of cells) {
-          const column = index % columns;
-          const row = (index - column) / columns;
-          context!.fillText(
-            RAMP[glyphBuffer[index] - 1],
-            column * cellSize + cellSize / 2,
-            row * cellSize + cellSize / 2,
+      // Roots drift, so the curve reshapes rather than merely sliding.
+      const r1 = Math.sin(t / 3300) * 0.72;
+      const r2 = Math.sin(t / 4700 + 1.1) * 0.72;
+      const r3 = Math.sin(t / 6100 + 2.3) * 0.72;
+
+      const sweep = (1 - ((t / 6400) % 1.3)) * columns;
+
+      for (let i = 0; i < columns; i += 1) {
+        if (i < sweep) continue;
+        const u = (i / columns) * 2 - 1;
+        // y = (u - r1)(u - r2)(u - r3), scaled into the banner.
+        const y = midY - (u - r1) * (u - r2) * (u - r3) * amplitude * 1.9;
+        if (y < -cell || y > height + cell) continue;
+
+        const age = Math.min(1, (i - sweep) / 10);
+        const level = Math.min(
+          CUBIC_RAMP.length - 1,
+          Math.floor(age * CUBIC_RAMP.length),
+        );
+        midContext!.fillStyle = colorAt(0.55, alpha * (0.3 + age * 0.7));
+        midContext!.fillText(
+          CUBIC_RAMP[level],
+          i * cell + cell / 2 + offsetX,
+          y,
+        );
+      }
+    }
+
+    /* ------------- front plate: the logomark spinning in 3D ---------------- */
+    function drawMark(t: number) {
+      const { cell, parallax, alpha } = LAYERS.front;
+      frontContext!.clearRect(0, 0, width, height);
+
+      const { x: offsetX, y: offsetY } = offsets(parallax);
+
+      // Spin about Y, with a gentle nod about X so it never looks like a decal.
+      const spin = t / 2400 + (easedX - 0.5) * 1.2;
+      const nod = Math.sin(t / 3600) * 0.42 + (easedY - 0.5) * 0.5;
+      const cosSpin = Math.cos(spin);
+      const sinSpin = Math.sin(spin);
+      const cosNod = Math.cos(nod);
+      const sinNod = Math.sin(nod);
+
+      // Mark units are a 300-wide box; this maps it to ~62% of the shorter
+      // side of the banner.
+      const markScale = (Math.min(width, height) * 0.62) / 300;
+      const centreX = width / 2 + offsetX;
+      const centreY = height / 2 + offsetY;
+      const viewer = 620;
+      const samples = 132;
+
+      for (const [cx, cy, cz] of MARK_CIRCLES) {
+        for (let s = 0; s < samples; s += 1) {
+          const a = (s / samples) * TAU;
+          const px = cx - 150 + Math.cos(a) * 96;
+          const py = cy - 150 + Math.sin(a) * 96;
+
+          // Rotate about Y, then about X.
+          const x1 = px * cosSpin + cz * sinSpin;
+          const z1 = -px * sinSpin + cz * cosSpin;
+          const y2 = py * cosNod - z1 * sinNod;
+          const z2 = py * sinNod + z1 * cosNod;
+
+          const depth = viewer + z2;
+          if (depth <= 1) continue;
+          const perspective = viewer / depth;
+
+          const sx = centreX + x1 * markScale * perspective;
+          const sy = centreY + y2 * markScale * perspective;
+          if (sx < -cell || sx > width + cell) continue;
+          if (sy < -cell || sy > height + cell) continue;
+
+          // Nearer samples are brighter and denser, so the spin reads as depth.
+          const nearness = Math.min(1, Math.max(0, (perspective - 0.82) / 0.4));
+          const level = Math.min(
+            MARK_RAMP.length - 1,
+            Math.floor(nearness * MARK_RAMP.length),
           );
+          frontContext!.fillStyle = colorAt(
+            0.55 + nearness * 0.45,
+            alpha * (0.28 + nearness * 0.72),
+          );
+          frontContext!.fillText(MARK_RAMP[level], sx, sy);
         }
       }
+    }
+
+    function draw(t: number) {
+      easedX += (pointerX - easedX) * 0.07;
+      easedY += (pointerY - easedY) * 0.07;
+      drawWave(t);
+      drawCubic(t);
+      drawMark(t);
     }
 
     function tick(now: number) {
@@ -354,16 +316,17 @@ export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
       if (running) return;
       measure();
       container!.dataset.asciiStatus = "live";
+
       if (isReduced()) {
-        draw(0);
+        easedX = 0.5;
+        easedY = 0.5;
+        draw(2600);
         return;
       }
-      // Draw one frame synchronously. requestAnimationFrame never fires while
-      // the tab is hidden, so without this a page opened in a background tab
-      // would show an empty canvas until it was focused.
+
+      // One synchronous frame: rAF never fires while the tab is hidden.
       startedAt = 0;
       draw(0);
-
       running = true;
       lastFrameAt = 0;
       frame = window.requestAnimationFrame(tick);
@@ -378,13 +341,13 @@ export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
     function handlePointerMove(event: PointerEvent) {
       if (isReduced()) return;
       const rect = container!.getBoundingClientRect();
-      targetTiltY = ((event.clientX - rect.left) / rect.width - 0.5) * 1.6;
-      targetTiltX = ((event.clientY - rect.top) / rect.height - 0.5) * 1.2;
+      pointerX = (event.clientX - rect.left) / rect.width;
+      pointerY = (event.clientY - rect.top) / rect.height;
     }
 
     function handlePointerLeave() {
-      targetTiltX = 0;
-      targetTiltY = 0;
+      pointerX = 0.5;
+      pointerY = 0.5;
     }
 
     function handleVisibility() {
@@ -412,7 +375,7 @@ export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
     if (typeof ResizeObserver !== "undefined") {
       resize = new ResizeObserver(() => {
         measure();
-        if (!running) draw(0);
+        if (!running) draw(2600);
       });
       resize.observe(container);
     }
@@ -442,7 +405,7 @@ export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, [cellSize]);
+  }, []);
 
   return (
     <div
@@ -450,8 +413,9 @@ export function AsciiField({ className, cellSize = 11 }: AsciiFieldProps) {
       className={`ascii-field ${className ?? ""}`}
       aria-hidden="true"
     >
-      <canvas ref={canvasRef} className="ascii-canvas" />
-      <p ref={captionRef} className="ascii-caption" />
+      <canvas ref={backRef} className="ascii-canvas ascii-canvas-back" />
+      <canvas ref={midRef} className="ascii-canvas ascii-canvas-mid" />
+      <canvas ref={frontRef} className="ascii-canvas ascii-canvas-front" />
     </div>
   );
 }

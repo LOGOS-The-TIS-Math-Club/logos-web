@@ -4,13 +4,21 @@
  * LOGOS interface system.
  *
  * Dark-first, biased toward the official brandmark ink (#2a212c) so the page
- * ground and the logo belong to one family. Depth comes from "one light, three
- * planes": every elevation step raises background AND border luminance together,
- * a hairline top highlight stands in for the light source, and drop shadows are
- * rationed to genuinely floating objects.
+ * ground and the logo belong to one family.
  *
- * Token names established in Phase 01 are preserved exactly. Everything here is
- * additive so existing member, auth, and admin surfaces keep rendering.
+ * Depth is built from four devices, in this order of importance:
+ *   1. Elevation steps that move background AND border luminance together.
+ *   2. A hairline top highlight standing in for a single light source above.
+ *   3. Offset plates — a second surface peeking out behind the first — which
+ *      read as physically stacked rather than as a drop shadow.
+ *   4. Parallax between layers that move at different rates.
+ *
+ * Corners are nearly square on purpose. Uniformly rounded bordered cards are
+ * the single strongest "generated template" signal, so radius is 2px and most
+ * surfaces are defined by a rule on one or two edges instead of a full outline.
+ *
+ * Phase 01 token names are preserved exactly; everything here is additive so
+ * existing member, auth and admin surfaces keep rendering.
  */
 
 @theme inline {
@@ -40,13 +48,13 @@
   --color-muted-foreground: #a79fae;
   --color-subtle-foreground: #7d7484;
 
-  /* ---- lines: a ramp, so panels can recede while inputs stay legible ---- */
+  /* ---- lines: a ramp, so panels recede while inputs stay legible ---- */
   --color-border: #2c2532;
   --color-border-strong: #443b4c;
   --color-border-accent: #5b4b86;
   --color-focus: #c4b5fd;
 
-  /* ---- semantic (unchanged roles, retuned for the new ground) ---- */
+  /* ---- semantic ---- */
   --color-success: #86efac;
   --color-success-surface: #0d1f16;
   --color-warning: #fcd34d;
@@ -64,12 +72,12 @@
     var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, "Liberation Mono", monospace;
 
-  /* ---- shape ---- */
-  --radius-component: 6px;
-  --radius-panel: 10px;
-  --radius-field: 14px;
+  /* ---- shape: near-square by design ---- */
+  --radius-component: 2px;
+  --radius-panel: 2px;
+  --radius-field: 3px;
 
-  /* ---- elevation: rationed, never applied to a resting panel ---- */
+  /* ---- elevation, rationed to genuinely floating objects ---- */
   --shadow-lifted:
     0 1px 2px rgb(0 0 0 / 0.5), 0 18px 40px -22px rgb(0 0 0 / 0.85);
   --shadow-header: 0 1px 0 rgb(0 0 0 / 0.6), 0 12px 28px -20px rgb(0 0 0 / 0.9);
@@ -84,8 +92,6 @@
 
 :root {
   color-scheme: dark;
-
-  /* Hairline top highlight — the primary depth cue on a dark ground. */
   --highlight-panel: inset 0 1px 0 rgb(255 255 255 / 0.05);
   --highlight-lifted: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
@@ -116,6 +122,7 @@ body {
  * ------------------------------------------------------------------ */
 
 .panel {
+  position: relative;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-panel);
   background-color: var(--color-surface);
@@ -123,6 +130,7 @@ body {
 }
 
 .panel-raised {
+  position: relative;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-panel);
   background-color: var(--color-surface-raised);
@@ -131,22 +139,59 @@ body {
 
 /* The one focal object per viewport. */
 .panel-lifted {
+  position: relative;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-field);
   background-color: var(--color-surface-lifted);
   box-shadow: var(--highlight-lifted), var(--shadow-lifted);
 }
 
-/* Interactive panels lift by one border step — never by scale. */
+/*
+ * Offset plate. A second surface sits behind and below-right, so the panel
+ * reads as a physical stack. This is the main depth device on the page and it
+ * replaces shadowing every card.
+ */
+.plated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  translate: 10px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: inherit;
+  background-color: var(--color-surface-sunken);
+  z-index: -1;
+  transition:
+    translate 0.35s var(--ease-out-expo),
+    border-color 0.35s var(--ease-out-expo);
+}
+
+.plated:hover::before {
+  translate: 14px 14px;
+  border-color: var(--color-border-strong);
+}
+
+/* A rule on one edge instead of a full outline: fewer boxes, more structure. */
+.ruled-left {
+  border-left: 1px solid var(--color-border);
+  transition: border-color 0.24s var(--ease-out-quint);
+}
+
+.ruled-left:hover {
+  border-left-color: var(--color-primary);
+}
+
+/* Interactive surfaces lift by one border step and nudge — never by scale. */
 .panel-interactive {
   transition:
-    border-color 0.18s var(--ease-out-quint),
-    background-color 0.18s var(--ease-out-quint);
+    border-color 0.22s var(--ease-out-quint),
+    background-color 0.22s var(--ease-out-quint),
+    translate 0.22s var(--ease-out-expo);
 }
 
 .panel-interactive:hover {
   border-color: var(--color-border-strong);
   background-color: var(--color-surface-raised);
+  translate: 0 -2px;
 }
 
 /* Faint diagonal rule texture. Reads as material, not as a gradient. */
@@ -164,7 +209,7 @@ body {
  * Action — the signature control.
  *
  * A duplicate, inverted label is clipped to a diagonal and wiped across the
- * button on hover. The press state is a 1px nudge, never a scale.
+ * control on hover. The press state is a 1px nudge, never a scale.
  * ------------------------------------------------------------------ */
 
 .action {
@@ -173,16 +218,16 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.6em;
-  min-height: 2.75rem;
-  padding: 0.7rem 1.25rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 1.1rem;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-component);
   background-color: var(--color-surface-raised);
   color: var(--color-foreground);
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
@@ -192,6 +237,15 @@ body {
     border-color 0.18s var(--ease-out-quint),
     background-color 0.18s var(--ease-out-quint),
     box-shadow 0.18s var(--ease-out-quint);
+}
+
+/* Compact variant for the header, where the action must not dominate. */
+.action-sm {
+  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  gap: 0.4em;
 }
 
 .action-label {
@@ -245,7 +299,7 @@ body {
   transform: none;
 }
 
-/* Primary variant: filled at rest, inverts to the page ground on hover. */
+/* Primary: filled at rest, inverts to the page ground on hover. */
 .action-primary {
   border-color: transparent;
   background-color: var(--color-primary);
@@ -278,7 +332,7 @@ body {
 }
 
 /* ------------------------------------------------------------------ *
- * Links
+ * Links and navigation
  * ------------------------------------------------------------------ */
 
 .link-underline {
@@ -305,24 +359,61 @@ body {
   transform: scaleX(1);
 }
 
-/* Navigation item: underline grows from the left, colour warms. */
+/*
+ * Navigation item.
+ *
+ * The label is duplicated and stacked; on hover the pair slides up one line so
+ * the incoming copy replaces the outgoing one, with a rule wiping in beneath.
+ * Two moving parts, both cheap, and it reads as mechanism rather than a tint.
+ */
 .nav-item {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
   color: var(--color-muted-foreground);
-  transition: color 0.16s var(--ease-out-quint);
+  transition: color 0.18s var(--ease-out-quint);
+}
+
+.nav-item-roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.nav-item-roll > span {
+  display: block;
+  transition: translate 0.36s var(--ease-out-expo);
+}
+
+.nav-item-roll > span:last-child {
+  position: absolute;
+  inset: 0;
+  translate: 0 100%;
+  color: var(--color-foreground);
 }
 
 .nav-item::after {
   content: "";
   position: absolute;
   left: 0;
+  right: 0;
   bottom: 0;
-  width: 100%;
   height: 1px;
   background-color: var(--color-primary);
-  transform: scaleX(0);
+  scale: 0 1;
   transform-origin: left;
-  transition: transform 0.24s var(--ease-out-expo);
+  transition: scale 0.32s var(--ease-out-expo);
+}
+
+@media (hover: hover) {
+  .nav-item:hover .nav-item-roll > span:first-child {
+    translate: 0 -100%;
+  }
+
+  .nav-item:hover .nav-item-roll > span:last-child {
+    translate: 0 0;
+  }
 }
 
 .nav-item:hover,
@@ -331,15 +422,81 @@ body {
 }
 
 .nav-item:hover::after,
-.nav-item[data-active="true"]::after {
-  transform: scaleX(1);
+.nav-item[data-active="true"]::after,
+.nav-item:focus-visible::after {
+  scale: 1 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Full-viewport breakout for sections inside the shell container.
+ * Uses margin rather than transform so it creates no containing block.
+ * ------------------------------------------------------------------ */
+
+.bleed {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+/* ------------------------------------------------------------------ *
+ * ASCII banner — three stacked plates
+ * ------------------------------------------------------------------ */
+
+.ascii-field {
+  --ascii-dim: #463e4e;
+  --ascii-bright: #c4b5fd;
+  --ascii-font: var(--font-mono);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ascii-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.7s var(--ease-out-expo);
+}
+
+/* Depth cue: the back plate is softened, the front plate is crisp. */
+.ascii-canvas-back {
+  z-index: 1;
+  filter: blur(1.1px);
+}
+
+.ascii-canvas-mid {
+  z-index: 2;
+  filter: blur(0.4px);
+}
+
+.ascii-canvas-front {
+  z-index: 3;
+}
+
+.ascii-field[data-ascii-status="live"] > .ascii-canvas {
+  opacity: 1;
+}
+
+/* The static mark sits behind the plates and fades once they go live. */
+.ascii-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-muted);
+  transition: opacity 0.6s var(--ease-out-expo);
+}
+
+.ascii-field[data-ascii-status="live"] ~ .ascii-fallback {
+  opacity: 0;
 }
 
 /* ------------------------------------------------------------------ *
  * Entrance and reveal
- *
- * A clip wipe plus a small rise. Applied once, never re-triggered, and only
- * to sections below the fold.
  * ------------------------------------------------------------------ */
 
 .reveal {
@@ -357,9 +514,9 @@ body {
 
 /*
  * `backwards` fill rather than an opacity:0 base rule. The element's own style
- * is visible; the animation only supplies the hidden start state, and holds it
- * during the delay. If animations are disabled, unsupported, or interrupted,
- * the content is simply visible instead of stuck at opacity 0.
+ * is visible; the animation only supplies the hidden start state and holds it
+ * during the delay. If animations are disabled, unsupported or interrupted, the
+ * content is simply visible instead of stuck at opacity 0.
  */
 .enter {
   animation: logos-enter 0.62s var(--ease-out-expo) var(--enter-delay, 0ms)
@@ -367,7 +524,7 @@ body {
 }
 
 /*
- * Stagger delays are classes rather than inline custom properties: the app's
+ * Stagger delays are classes, not inline custom properties: the app's
  * Content-Security-Policy has no 'unsafe-inline' in style-src, so inline style
  * attributes would be blocked.
  */
@@ -403,98 +560,6 @@ body {
     opacity: 1;
     transform: none;
   }
-}
-
-/*
- * Full-viewport breakout for sections inside the shell container.
- * Uses margin rather than transform so it does not create a containing block
- * for fixed children and does not affect scroll width.
- */
-.bleed {
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-}
-
-/* ------------------------------------------------------------------ *
- * ASCII field
- *
- * The canvas starts transparent and fades in once the renderer reports live,
- * so the server-rendered mark underneath is what shows if JS never runs.
- * ------------------------------------------------------------------ */
-
-.ascii-field {
-  --ascii-dim: #463e4e;
-  --ascii-bright: #c4b5fd;
-  --ascii-font: var(--font-mono);
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.ascii-caption {
-  position: absolute;
-  right: clamp(12px, 3vw, 32px);
-  bottom: clamp(12px, 3vw, 28px);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--color-subtle-foreground);
-  opacity: 0;
-  transition: opacity 0.6s var(--ease-out-expo);
-  pointer-events: none;
-}
-
-.ascii-field[data-ascii-status="live"] .ascii-caption {
-  opacity: 1;
-}
-
-.ascii-canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 0.6s var(--ease-out-expo);
-}
-
-.ascii-field[data-ascii-status="live"] > .ascii-caption {
-  position: absolute;
-  right: clamp(12px, 3vw, 32px);
-  bottom: clamp(12px, 3vw, 28px);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--color-subtle-foreground);
-  opacity: 0;
-  transition: opacity 0.6s var(--ease-out-expo);
-  pointer-events: none;
-}
-
-.ascii-field[data-ascii-status="live"] .ascii-caption {
-  opacity: 1;
-}
-
-.ascii-canvas {
-  opacity: 1;
-}
-
-/* The static mark sits behind the canvas and fades out once it goes live. */
-.ascii-fallback {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--color-primary-muted);
-  transition: opacity 0.6s var(--ease-out-expo);
-}
-
-.ascii-field[data-ascii-status="live"] ~ .ascii-fallback {
-  opacity: 0;
 }
 
 /* ------------------------------------------------------------------ *
