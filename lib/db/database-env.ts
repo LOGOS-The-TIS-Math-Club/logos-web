@@ -1,11 +1,18 @@
 import { z } from "zod";
 
-const appEnvironmentSchema = z.enum([
-  "development",
-  "preview",
-  "test",
-  "production",
-]);
+const appEnvironmentSchema = z
+  .enum(["development", "preview", "test", "production"])
+  .or(
+    z.string().transform((val) => {
+      const lower = val.toLowerCase().trim();
+      if (lower === "production" || lower === "prod") return "production";
+      if (lower === "preview" || lower === "staging") return "preview";
+      if (lower === "development" || lower === "dev") return "development";
+      if (lower === "test") return "test";
+      return "production";
+    }),
+  )
+  .pipe(z.enum(["development", "preview", "test", "production"]));
 
 const databaseUrlSchema = z
   .string()
@@ -24,7 +31,7 @@ const runtimeDatabaseEnvironmentSchema = z.object({
   DATABASE_URL: databaseUrlSchema,
 });
 
-export type AppEnvironment = z.infer<typeof appEnvironmentSchema>;
+export type AppEnvironment = "development" | "preview" | "test" | "production";
 
 export interface RuntimeDatabaseEnvironment {
   appEnvironment: AppEnvironment;
@@ -44,7 +51,17 @@ function hasRequiredTls(databaseUrl: string): boolean {
 export function parseRuntimeDatabaseEnvironment(
   environment: Readonly<Record<string, string | undefined>>,
 ): RuntimeDatabaseEnvironment {
-  const result = runtimeDatabaseEnvironmentSchema.safeParse(environment);
+  const rawAppEnv =
+    environment.APP_ENV ||
+    environment.NEXT_PUBLIC_VERCEL_ENV ||
+    environment.VERCEL_ENV ||
+    environment.NODE_ENV ||
+    "production";
+
+  const result = runtimeDatabaseEnvironmentSchema.safeParse({
+    ...environment,
+    APP_ENV: rawAppEnv,
+  });
 
   if (!result.success) {
     const variableNames = result.error.issues
