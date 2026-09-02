@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  describeAuthConfiguration,
+  formatAuthConfigurationReport,
+} from "@/lib/auth/auth-config";
 import { getNeonAuth } from "@/lib/auth/neon.server";
 import { withDatabase } from "@/lib/db/client.server";
 import {
@@ -7,6 +11,7 @@ import {
   getCorrelationId,
 } from "@/lib/security/correlation";
 import { recordSecurityAuditEvent } from "@/lib/security/audit";
+import { sanitizeAllowedObject } from "@/lib/security/redaction";
 import { AUTH_ATTEMPT_POLICY, checkRateLimit } from "@/lib/security/rate-limit";
 
 function rateLimitSubject(request: Request): string {
@@ -19,6 +24,22 @@ function rateLimitSubject(request: Request): string {
 export async function POST(request: Request) {
   const correlationId =
     getCorrelationId(request.headers) ?? generateCorrelationId();
+
+  // Fail fast and legibly on a misconfigured deployment. Only variable NAMES
+  // are logged, never values, so this is safe in the platform log stream.
+  const configuration = describeAuthConfiguration(process.env);
+  if (!configuration.ready) {
+    console.error(
+      "[AUTH_CONFIG_INCOMPLETE]",
+      formatAuthConfigurationReport(configuration),
+      `correlationId=${correlationId}`,
+    );
+    return NextResponse.json(
+      { code: "AUTH_NOT_CONFIGURED", correlationId },
+      { status: 503 },
+    );
+  }
+
   try {
     const limit = await withDatabase((database) =>
       database.transaction(async (transaction) => {
@@ -59,8 +80,17 @@ export async function POST(request: Request) {
       callbackURL: "/auth/complete",
       scopes: ["openid", "email", "profile"],
     });
+    if (result.error) {
+      console.error(
+        "[AUTH_GOOGLE_START_PROVIDER_ERROR]",
+        sanitizeAllowedObject(result.error, ["name", "message", "code"]),
+        `correlationId=${correlationId}`,
+      );
+    }
     const url = result.data?.url;
-    if (!url) throw new Error("Provider redirect unavailable");
+    if (!url) {
+      throw new Error("Provider redirect unavailable");
+    }
     await withDatabase((database) =>
       recordSecurityAuditEvent(database, {
         actorType: "anonymous",
@@ -76,7 +106,12 @@ export async function POST(request: Request) {
       }),
     );
     return NextResponse.json({ url });
-  } catch {
+  } catch (error) {
+    console.error(
+      "[AUTH_GOOGLE_START_EXCEPTION]",
+      sanitizeAllowedObject(error, ["name", "message", "code"]),
+      `correlationId=${correlationId}`,
+    );
     await withDatabase((database) =>
       recordSecurityAuditEvent(database, {
         actorType: "anonymous",
