@@ -32,18 +32,34 @@ export type VerifiedGoogleClaims = {
   hostedDomain: string | null;
 };
 
+export const NEON_DEFAULT_GOOGLE_CLIENT_ID =
+  "516759701042-1j43chkqtgl8hf49j0cql8gf34sun3e9.apps.googleusercontent.com";
+
 export async function verifyGoogleIdToken(
   idToken: string,
-  audience = process.env.GOOGLE_OAUTH_CLIENT_ID,
+  audience?: string | string[],
 ): Promise<VerifiedGoogleClaims> {
-  if (!audience) throw new Error("Google OAuth audience is not configured");
+  const customAudience = process.env.GOOGLE_OAUTH_CLIENT_ID;
+  const allowedAudiences = Array.from(
+    new Set(
+      [
+        ...(audience ? (Array.isArray(audience) ? audience : [audience]) : []),
+        ...(customAudience ? [customAudience] : []),
+        NEON_DEFAULT_GOOGLE_CLIENT_ID,
+      ].filter(Boolean),
+    ),
+  );
 
-  return verifyGoogleIdTokenWithKey(idToken, audience, googleKeys);
+  if (allowedAudiences.length === 0) {
+    throw new Error("Google OAuth audience is not configured");
+  }
+
+  return verifyGoogleIdTokenWithKey(idToken, allowedAudiences, googleKeys);
 }
 
 export async function verifyGoogleIdTokenWithKey(
   idToken: string,
-  audience: string,
+  audience: string | string[],
   key: CryptoKey | Uint8Array | JWTVerifyGetKey,
 ): Promise<VerifiedGoogleClaims> {
   const { payload } = await jwtVerify(idToken, key, {

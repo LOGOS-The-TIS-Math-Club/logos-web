@@ -17,7 +17,8 @@ export async function GET(request: Request) {
     if (!session?.session.id) throw new Error("Session unavailable");
     await issueSessionCsrfCookie(session.session.id);
     return NextResponse.redirect(new URL("/auth/status", request.url));
-  } catch {
+  } catch (error) {
+    console.error("[auth/complete] failed to associate identity:", error);
     await withDatabase((database) =>
       recordSecurityAuditEvent(database, {
         actorType: "anonymous",
