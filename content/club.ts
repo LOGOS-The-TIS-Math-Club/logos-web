@@ -10,6 +10,16 @@
  * programmes folder. Do not add claims here that are not true of the club.
  */
 
+/**
+ * Public contact address for the club.
+ *
+ * See docs/school-it-requests.md item 1: this is a school Workspace address,
+ * so it must exist as a group or shared mailbox before it will receive mail.
+ * Publishing it is deliberate — it is the sustainable address across leadership
+ * handovers, unlike a personal account.
+ */
+export const CONTACT_EMAIL = "mathclub@tokyois.com";
+
 export interface SessionEntry {
   /** ISO date, so it sorts and formats predictably. */
   readonly date: string;

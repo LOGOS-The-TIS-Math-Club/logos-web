@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PageBanner } from "@/components/layout/page-banner";
+import { CONTACT_EMAIL } from "@/content/club";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 
@@ -48,7 +49,8 @@ export default function AboutPage() {
   return (
     <div className="space-y-24 sm:space-y-32">
       <PageBanner
-        variant="mark"
+        scene="mark"
+        theme="ascii-theme-amber"
         titleId="about-title"
         eyebrow="About the club"
         title={
@@ -198,9 +200,23 @@ export default function AboutPage() {
               programme, and is accountable to the charter.
             </p>
             <p className="text-subtle-foreground text-sm leading-relaxed">
-              Named roles are not published here yet. To reach leadership, come
-              to Room 101 on a Friday or speak to a member.
+              Named roles are not published here yet.
             </p>
+
+            <div className="plated max-w-md">
+              <div className="panel-lifted space-y-3 p-7">
+                <p className="eyebrow">Contact</p>
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="datum link-underline inline-block text-lg break-all"
+                >
+                  {CONTACT_EMAIL}
+                </a>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Or come to Room 101 on a Friday and speak to a member.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </Reveal>

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AsciiField, type AsciiVariant } from "@/components/brand/ascii-field";
+import { AsciiField, type AsciiScene } from "@/components/brand/ascii-field";
 import { LogosLogomark } from "@/components/brand/marks";
 
 /*
@@ -21,7 +21,10 @@ export interface PageBannerProps {
   readonly subtitle?: ReactNode;
   /** Rendered under the subtitle — usually one or two ActionLinks. */
   readonly actions?: ReactNode;
-  readonly variant?: AsciiVariant;
+  /** Which animated scene the banner plays. */
+  readonly scene?: AsciiScene;
+  /** Tailwind-derived tint class, e.g. "ascii-theme-sky". */
+  readonly theme?: string;
   /** Set on the h1 so the page's <section> can label itself against it. */
   readonly titleId?: string;
   /** Shorter banner for pages whose content should start sooner. */
@@ -33,7 +36,8 @@ export function PageBanner({
   title,
   subtitle,
   actions,
-  variant = "full",
+  scene = "collapse",
+  theme = "ascii-theme-violet",
   titleId = "page-title",
   compact = false,
 }: PageBannerProps) {
@@ -48,7 +52,7 @@ export function PageBanner({
         }`}
       >
         <div className="absolute inset-0 lg:left-[42%]">
-          <AsciiField variant={variant} />
+          <AsciiField scene={scene} className={theme} />
           <div className="ascii-fallback">
             <LogosLogomark className="h-40 w-40 opacity-40" />
           </div>
