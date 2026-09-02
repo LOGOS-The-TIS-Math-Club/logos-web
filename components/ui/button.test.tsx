@@ -58,8 +58,10 @@ describe("Button", () => {
     );
 
     rerender(<Button variant="outline">Outline</Button>);
+    // Outline sits on the stronger border step so its edge stays legible
+    // against the raised surfaces it is used on.
     expect(screen.getByRole("button", { name: "Outline" })).toHaveClass(
-      "border-border",
+      "border-border-strong",
       "bg-transparent",
     );
 

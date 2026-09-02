@@ -15,6 +15,9 @@ describe("AppShell", () => {
     expect(
       screen.getByRole("navigation", { name: "Main navigation" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Footer navigation" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
@@ -46,39 +49,38 @@ describe("AppShell", () => {
     expect(skipLink).toHaveAttribute("href", "#main-content");
   });
 
-  it("renders navigation links to home", () => {
+  it("uses the brandmark as the accessible link home", () => {
     render(
       <AppShell>
         <p>Content</p>
       </AppShell>,
     );
 
-    const logosLink = screen.getByRole("link", { name: "LOGOS" });
-    expect(logosLink).toHaveAttribute("href", "/");
-
-    const nav = screen.getByRole("navigation", { name: "Main navigation" });
-    const homeLink = screen.getByRole("link", { name: "Home" });
-    expect(nav).toContainElement(homeLink);
+    const homeLink = screen.getByRole("link", { name: "LOGOS — home" });
     expect(homeLink).toHaveAttribute("href", "/");
   });
 
-  it("applies 44px target sizing conventions to header links", () => {
+  it("keeps the application action reachable from the header", () => {
     render(
       <AppShell>
         <p>Content</p>
       </AppShell>,
     );
 
-    const logosLink = screen.getByRole("link", { name: "LOGOS" });
-    expect(logosLink).toHaveClass(
-      "inline-flex",
-      "min-h-11",
-      "items-center",
-      "px-2",
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    const applyLink = screen.getByRole("link", { name: /apply/i });
+    expect(nav).toContainElement(applyLink);
+    expect(applyLink).toHaveAttribute("href", "/apply");
+  });
+
+  it("applies 44px target sizing conventions to the header brand link", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
     );
 
-    const homeLink = screen.getByRole("link", { name: "Home" });
-    expect(homeLink).toHaveClass(
+    expect(screen.getByRole("link", { name: "LOGOS — home" })).toHaveClass(
       "inline-flex",
       "min-h-11",
       "items-center",
@@ -86,7 +88,7 @@ describe("AppShell", () => {
     );
   });
 
-  it("renders footer information with organization and license", () => {
+  it("names the organisation for assistive technology despite a decorative lockup", () => {
     render(
       <AppShell>
         <p>Content</p>

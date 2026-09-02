@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!--
+    Small-size LOGOS logomark.
+
+    The official mark's 4% stroke collapses into a smudge below ~32px, so this
+    favicon variant thickens the stroke and pulls the quincunx in slightly to
+    preserve the five-circle reading. The construction is otherwise unchanged.
+
+    The mark is a single colour, so it inverts with the browser's theme rather
+    than disappearing against a dark tab strip.
+  -->
+  <style>
+    .mark { fill: none; stroke: #2a212c; stroke-width: 26; stroke-miterlimit: 10; }
+    @media (prefers-color-scheme: dark) {
+      .mark { stroke: #c4b5fd; }
+    }
+  </style>
+  <g class="mark">
+    <circle cx="150" cy="150" r="88"/>
+    <circle cx="187.44" cy="187.44" r="88"/>
+    <circle cx="112.56" cy="112.56" r="88"/>
+    <circle cx="112.56" cy="187.44" r="88"/>
+    <circle cx="187.44" cy="112.56" r="88"/>
+  </g>
+</svg>

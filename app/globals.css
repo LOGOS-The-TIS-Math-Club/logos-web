@@ -1,51 +1,93 @@
 @import "tailwindcss";
 
+/*
+ * LOGOS interface system.
+ *
+ * Dark-first, biased toward the official brandmark ink (#2a212c) so the page
+ * ground and the logo belong to one family. Depth comes from "one light, three
+ * planes": every elevation step raises background AND border luminance together,
+ * a hairline top highlight stands in for the light source, and drop shadows are
+ * rationed to genuinely floating objects.
+ *
+ * Token names established in Phase 01 are preserved exactly. Everything here is
+ * additive so existing member, auth, and admin surfaces keep rendering.
+ */
+
 @theme inline {
-  --color-background: var(--color-zinc-950);
-  --color-foreground: var(--color-zinc-100);
-  --color-surface: var(--color-zinc-900);
-  --color-surface-raised: var(--color-zinc-800);
+  /* ---- ground and surfaces (mauve-biased neutral ramp) ---- */
+  --color-background: #100d12;
+  --color-foreground: #f3eff5;
+  --color-surface: #17131a;
+  --color-surface-raised: #1f1a23;
+  --color-surface-lifted: #272030;
+  --color-surface-sunken: #0b090d;
 
-  --color-primary: var(--color-violet-300);
-  --color-primary-hover: var(--color-violet-200);
-  --color-primary-active: var(--color-violet-400);
-  --color-primary-foreground: var(--color-zinc-950);
+  /* ---- brand ---- */
+  --color-brand-ink: #2a212c;
 
-  --color-secondary: var(--color-zinc-800);
-  --color-secondary-hover: var(--color-zinc-700);
-  --color-secondary-active: var(--color-zinc-600);
-  --color-secondary-foreground: var(--color-zinc-100);
+  --color-primary: #c4b5fd;
+  --color-primary-hover: #d8ccff;
+  --color-primary-active: #a78bfa;
+  --color-primary-foreground: #17131a;
+  --color-primary-muted: #4c3f74;
 
-  --color-muted: var(--color-zinc-800);
-  --color-muted-foreground: var(--color-zinc-400);
+  --color-secondary: #1f1a23;
+  --color-secondary-hover: #2a2431;
+  --color-secondary-active: #352d3e;
+  --color-secondary-foreground: #f3eff5;
 
-  --color-border: var(--color-zinc-500);
-  --color-focus: var(--color-violet-300);
+  --color-muted: #1f1a23;
+  --color-muted-foreground: #a79fae;
+  --color-subtle-foreground: #7d7484;
 
-  --color-success: var(--color-emerald-300);
-  --color-success-surface: var(--color-emerald-950);
+  /* ---- lines: a ramp, so panels can recede while inputs stay legible ---- */
+  --color-border: #2c2532;
+  --color-border-strong: #443b4c;
+  --color-border-accent: #5b4b86;
+  --color-focus: #c4b5fd;
 
-  --color-warning: var(--color-amber-300);
-  --color-warning-surface: var(--color-amber-950);
+  /* ---- semantic (unchanged roles, retuned for the new ground) ---- */
+  --color-success: #86efac;
+  --color-success-surface: #0d1f16;
+  --color-warning: #fcd34d;
+  --color-warning-surface: #241b09;
+  --color-danger: #fda4af;
+  --color-danger-surface: #26121a;
+  --color-info: #7dd3fc;
+  --color-info-surface: #0b1c26;
 
-  --color-danger: var(--color-rose-300);
-  --color-danger-surface: var(--color-rose-950);
-
-  --color-info: var(--color-sky-300);
-  --color-info-surface: var(--color-sky-950);
-
+  /* ---- type ---- */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    monospace;
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", monospace;
 
+  /* ---- shape ---- */
   --radius-component: 6px;
+  --radius-panel: 10px;
+  --radius-field: 14px;
+
+  /* ---- elevation: rationed, never applied to a resting panel ---- */
+  --shadow-lifted:
+    0 1px 2px rgb(0 0 0 / 0.5), 0 18px 40px -22px rgb(0 0 0 / 0.85);
+  --shadow-header: 0 1px 0 rgb(0 0 0 / 0.6), 0 12px 28px -20px rgb(0 0 0 / 0.9);
+  --shadow-halo:
+    0 0 0 1px rgb(196 181 253 / 0.14), 0 8px 30px -14px rgb(196 181 253 / 0.28);
+
+  /* ---- motion: expo-out curves; nothing overshoots ---- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-wipe: cubic-bezier(0.25, 0, 0, 1);
 }
 
 :root {
   color-scheme: dark;
+
+  /* Hairline top highlight — the primary depth cue on a dark ground. */
+  --highlight-panel: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --highlight-lifted: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 
 ::selection {
@@ -63,11 +105,420 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+/* ------------------------------------------------------------------ *
+ * Surfaces
+ * ------------------------------------------------------------------ */
+
+.panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background-color: var(--color-surface);
+  box-shadow: var(--highlight-panel);
+}
+
+.panel-raised {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--highlight-panel);
+}
+
+/* The one focal object per viewport. */
+.panel-lifted {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-lifted);
+  box-shadow: var(--highlight-lifted), var(--shadow-lifted);
+}
+
+/* Interactive panels lift by one border step — never by scale. */
+.panel-interactive {
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    background-color 0.18s var(--ease-out-quint);
+}
+
+.panel-interactive:hover {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-surface-raised);
+}
+
+/* Faint diagonal rule texture. Reads as material, not as a gradient. */
+.hatched {
+  background-image: repeating-linear-gradient(
+    119deg,
+    rgb(255 255 255 / 0.022) 0,
+    rgb(255 255 255 / 0.022) 1px,
+    transparent 1px,
+    transparent 9px
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Action — the signature control.
+ *
+ * A duplicate, inverted label is clipped to a diagonal and wiped across the
+ * button on hover. The press state is a 1px nudge, never a scale.
+ * ------------------------------------------------------------------ */
+
+.action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-component);
+  background-color: var(--color-surface-raised);
+  color: var(--color-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    background-color 0.18s var(--ease-out-quint),
+    box-shadow 0.18s var(--ease-out-quint);
+}
+
+.action-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+
+.action-label-hover {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  padding: inherit;
+  background-color: var(--color-primary-hover);
+  color: var(--color-primary-foreground);
+  pointer-events: none;
+  /* Parked off the left edge, sheared so the leading edge is diagonal. */
+  clip-path: polygon(-1% 0%, -1% 0%, -100% 100%, -1% 100%);
+  transition: clip-path 0.42s var(--ease-wipe);
+}
+
+@media (hover: hover) {
+  .action:hover {
+    border-color: var(--color-border-accent);
+  }
+
+  .action:hover .action-label-hover {
+    clip-path: polygon(0% 0%, 200% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+.action:active {
+  transform: translateY(1px);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.action[aria-disabled="true"],
+.action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary variant: filled at rest, inverts to the page ground on hover. */
+.action-primary {
+  border-color: transparent;
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+  box-shadow: var(--highlight-lifted);
+}
+
+.action-primary .action-label-hover {
+  background-color: var(--color-foreground);
+  color: var(--color-background);
+}
+
+@media (hover: hover) {
+  .action-primary:hover {
+    border-color: transparent;
+    box-shadow: var(--highlight-lifted), var(--shadow-halo);
+  }
+}
+
+.action-quiet {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+@media (hover: hover) {
+  .action-quiet:hover {
+    border-color: var(--color-border);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Links
+ * ------------------------------------------------------------------ */
+
+.link-underline {
+  position: relative;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.24s var(--ease-out-expo);
+}
+
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Navigation item: underline grows from the left, colour warms. */
+.nav-item {
+  position: relative;
+  color: var(--color-muted-foreground);
+  transition: color 0.16s var(--ease-out-quint);
+}
+
+.nav-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.24s var(--ease-out-expo);
+}
+
+.nav-item:hover,
+.nav-item[data-active="true"] {
+  color: var(--color-foreground);
+}
+
+.nav-item:hover::after,
+.nav-item[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* ------------------------------------------------------------------ *
+ * Entrance and reveal
+ *
+ * A clip wipe plus a small rise. Applied once, never re-triggered, and only
+ * to sections below the fold.
+ * ------------------------------------------------------------------ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.55s var(--ease-out-expo),
+    transform 0.55s var(--ease-out-expo);
+}
+
+.reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * `backwards` fill rather than an opacity:0 base rule. The element's own style
+ * is visible; the animation only supplies the hidden start state, and holds it
+ * during the delay. If animations are disabled, unsupported, or interrupted,
+ * the content is simply visible instead of stuck at opacity 0.
+ */
+.enter {
+  animation: logos-enter 0.62s var(--ease-out-expo) var(--enter-delay, 0ms)
+    backwards;
+}
+
+/*
+ * Stagger delays are classes rather than inline custom properties: the app's
+ * Content-Security-Policy has no 'unsafe-inline' in style-src, so inline style
+ * attributes would be blocked.
+ */
+.enter-1 {
+  --enter-delay: 60ms;
+}
+.enter-2 {
+  --enter-delay: 140ms;
+}
+.enter-3 {
+  --enter-delay: 220ms;
+}
+.enter-4 {
+  --enter-delay: 300ms;
+}
+.enter-5 {
+  --enter-delay: 380ms;
+}
+
+@keyframes logos-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/*
+ * The reveal needs JavaScript to set data-revealed. Where scripting is
+ * unavailable the content must never stay hidden, so opt out entirely.
+ */
+@media (scripting: none) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Full-viewport breakout for sections inside the shell container.
+ * Uses margin rather than transform so it does not create a containing block
+ * for fixed children and does not affect scroll width.
+ */
+.bleed {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+/* ------------------------------------------------------------------ *
+ * ASCII field
+ *
+ * The canvas starts transparent and fades in once the renderer reports live,
+ * so the server-rendered mark underneath is what shows if JS never runs.
+ * ------------------------------------------------------------------ */
+
+.ascii-field {
+  --ascii-dim: #463e4e;
+  --ascii-bright: #c4b5fd;
+  --ascii-font: var(--font-mono);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ascii-caption {
+  position: absolute;
+  right: clamp(12px, 3vw, 32px);
+  bottom: clamp(12px, 3vw, 28px);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-subtle-foreground);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.ascii-field[data-ascii-status="live"] .ascii-caption {
+  opacity: 1;
+}
+
+.ascii-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out-expo);
+}
+
+.ascii-field[data-ascii-status="live"] > .ascii-caption {
+  position: absolute;
+  right: clamp(12px, 3vw, 32px);
+  bottom: clamp(12px, 3vw, 28px);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-subtle-foreground);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.ascii-field[data-ascii-status="live"] .ascii-caption {
+  opacity: 1;
+}
+
+.ascii-canvas {
+  opacity: 1;
+}
+
+/* The static mark sits behind the canvas and fades out once it goes live. */
+.ascii-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-muted);
+  transition: opacity 0.6s var(--ease-out-expo);
+}
+
+.ascii-field[data-ascii-status="live"] ~ .ascii-fallback {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Data type — meeting facts, labels, counters
+ * ------------------------------------------------------------------ */
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-subtle-foreground);
+}
+
+.datum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion — the existing global guarantee, kept intact.
+ * ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -77,5 +528,14 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0s !important;
     scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .enter {
+    animation: none;
   }
 }
