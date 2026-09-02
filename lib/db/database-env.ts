@@ -1,18 +1,14 @@
 import { z } from "zod";
 
-const appEnvironmentSchema = z
-  .enum(["development", "preview", "test", "production"])
-  .or(
-    z.string().transform((val) => {
-      const lower = val.toLowerCase().trim();
-      if (lower === "production" || lower === "prod") return "production";
-      if (lower === "preview" || lower === "staging") return "preview";
-      if (lower === "development" || lower === "dev") return "development";
-      if (lower === "test") return "test";
-      return "production";
-    }),
-  )
-  .pipe(z.enum(["development", "preview", "test", "production"]));
+const appEnvironmentSchema = z.preprocess((val) => {
+  if (typeof val !== "string" || !val.trim()) return "production";
+  const lower = val.toLowerCase().trim();
+  if (lower === "production" || lower === "prod") return "production";
+  if (lower === "preview" || lower === "staging") return "preview";
+  if (lower === "development" || lower === "dev") return "development";
+  if (lower === "test") return "test";
+  return "production";
+}, z.enum(["development", "preview", "test", "production"]));
 
 const databaseUrlSchema = z
   .string()
