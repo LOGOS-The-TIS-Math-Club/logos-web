@@ -81,7 +81,11 @@ export function AppShell({ children, className }: AppShellProps) {
         admin) keeps its layout unchanged. Sections that need the full viewport
         width opt out with the `.bleed` utility rather than the shell changing.
       */}
-      <main id="main-content" tabIndex={-1} className={`${mainClasses} overflow-x-clip`}>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className={`${mainClasses} overflow-x-clip`}
+      >
         <Container className="py-8 sm:py-12">{children}</Container>
       </main>
 
