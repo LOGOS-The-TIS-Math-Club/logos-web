@@ -1,4 +1,7 @@
 import { resolveCurrentIdentity } from "@/lib/auth/identity-access.server";
+import Link from "next/link";
+
+import { hasCapability } from "@/lib/auth/capabilities";
 import { SignOutButton } from "../auth-controls";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +50,14 @@ export default async function AuthStatusPage() {
           <p className="text-muted-foreground text-sm">
             Technical access: {identity.accessLevel ?? "none"}
           </p>
+          {/* Leadership tools were previously reachable only by typing the
+              URL. The identity is already resolved here, so surfacing the
+              entry point costs nothing extra. */}
+          {hasCapability(identity.accessLevel, "application:review") ? (
+            <Link href="/admin" className="link-underline text-sm font-medium">
+              Open leadership tools
+            </Link>
+          ) : null}
           <SignOutButton />
         </>
       )}

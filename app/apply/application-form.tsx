@@ -263,7 +263,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, preferredName: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
           placeholder="e.g. Alex Rivera"
         />
         {errors.preferredName && (
@@ -298,7 +298,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
             return (
               <label
                 key={g}
-                className={`border-border rounded-component flex cursor-pointer items-center justify-center border p-3 text-sm font-medium transition-colors ${
+                className={`border-border-input rounded-component flex cursor-pointer items-center justify-center border p-3 text-sm font-medium transition-colors ${
                   isSelected
                     ? "bg-primary text-primary-foreground border-transparent font-semibold"
                     : "bg-surface text-foreground hover:bg-surface-raised"
@@ -350,7 +350,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
             return (
               <label
                 key={key}
-                className={`border-border rounded-component flex cursor-pointer items-start gap-3 border p-3 text-sm transition-colors ${
+                className={`border-border-input rounded-component flex cursor-pointer items-start gap-3 border p-3 text-sm transition-colors ${
                   checked
                     ? "border-primary bg-surface-raised text-foreground"
                     : "bg-surface text-muted-foreground hover:text-foreground"
@@ -420,7 +420,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, joinReason: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
           placeholder="Share your thoughts on exploring problems, working with others, or what drew you to LOGOS..."
         />
         {errors.joinReason && (
@@ -476,7 +476,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, goals: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
           placeholder="Topics you're curious about, ideas for workshops, or skills you'd like to develop..."
         />
         {errors.goals && (
@@ -520,7 +520,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, experience: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
           placeholder="Optional: AMC 8/10, math circles, independent study, or puzzle hobbies..."
         />
         {errors.experience && (
@@ -556,7 +556,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
             return (
               <label
                 key={key}
-                className={`border-border rounded-component flex cursor-pointer items-center gap-3 border p-3.5 text-sm transition-colors ${
+                className={`border-border-input rounded-component flex cursor-pointer items-center gap-3 border p-3.5 text-sm transition-colors ${
                   isSelected
                     ? "border-primary bg-surface-raised text-foreground font-medium"
                     : "bg-surface text-muted-foreground hover:text-foreground"

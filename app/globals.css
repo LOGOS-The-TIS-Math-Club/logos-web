@@ -22,13 +22,20 @@
  */
 
 @theme inline {
-  /* ---- ground and surfaces (mauve-biased neutral ramp) ---- */
-  --color-background: #100d12;
-  --color-foreground: #f3eff5;
-  --color-surface: #17131a;
-  --color-surface-raised: #1f1a23;
-  --color-surface-lifted: #272030;
-  --color-surface-sunken: #0b090d;
+  /*
+   * Ground and surfaces.
+   *
+   * The ramp is warm taupe rather than the previous mauve: same luminance
+   * steps, hue rotated toward 35deg, so the dark theme reads like unbleached
+   * paper in low light instead of cold purple-grey. Warmth is what was missing
+   * — flatness was as much a temperature problem as a layering one.
+   */
+  --color-background: #14110d;
+  --color-foreground: #f4f0e7;
+  --color-surface: #1b1712;
+  --color-surface-raised: #241f18;
+  --color-surface-lifted: #2e2820;
+  --color-surface-sunken: #0e0b08;
 
   /* ---- brand ---- */
   --color-brand-ink: #2a212c;
@@ -36,23 +43,41 @@
   --color-primary: #c4b5fd;
   --color-primary-hover: #d8ccff;
   --color-primary-active: #a78bfa;
-  --color-primary-foreground: #17131a;
-  --color-primary-muted: #4c3f74;
+  --color-primary-foreground: #1b1712;
+  --color-primary-muted: #52466f;
 
-  --color-secondary: #1f1a23;
-  --color-secondary-hover: #2a2431;
-  --color-secondary-active: #352d3e;
-  --color-secondary-foreground: #f3eff5;
+  /*
+   * Sand: the second accent. Violet stays the action colour so buttons keep
+   * their meaning; sand carries data, eyebrows and mathematical marks, which
+   * is most of the type on the page. Aubergine and camel, not purple on grey.
+   */
+  --color-sand: #e3cfa4;
+  --color-sand-muted: #9a8a68;
+  --color-sand-deep: #6d5c3c;
 
-  --color-muted: #1f1a23;
-  --color-muted-foreground: #a79fae;
-  --color-subtle-foreground: #7d7484;
+  --color-secondary: #241f18;
+  --color-secondary-hover: #302920;
+  --color-secondary-active: #3b3228;
+  --color-secondary-foreground: #f4f0e7;
+
+  --color-muted: #241f18;
+  --color-muted-foreground: #b0a693;
+  --color-subtle-foreground: #877d6b;
 
   /* ---- lines: a ramp, so panels recede while inputs stay legible ---- */
-  --color-border: #2c2532;
-  --color-border-strong: #443b4c;
-  --color-border-accent: #5b4b86;
-  --color-focus: #c4b5fd;
+  --color-border: #2f2920;
+  --color-border-strong: #4a4234;
+  --color-border-accent: #6d5c3c;
+
+  /*
+   * Form controls need a visible boundary to satisfy WCAG 1.4.11 (3:1 for
+   * non-text UI). The decorative border tokens above sit deliberately below
+   * that so panels can recede — inputs must not use them.
+   * Measured >= 3.4:1 against every surface token.
+   */
+  --color-border-input: #847a66;
+
+  --color-focus: #e3cfa4;
 
   /* ---- semantic ---- */
   --color-success: #86efac;
@@ -489,24 +514,29 @@ body {
  * they sit in the same low-light atmosphere as the mauve ground. The dim value
  * is the far/dark end of the ramp, the bright value the near/lit end.
  */
+/*
+ * Each dim value is a darkened, desaturated cousin of its bright value rather
+ * than a neutral grey, so the far side of a rotating shape stays in the same
+ * hue family as the near side and the form reads as one solid object.
+ */
 .ascii-theme-violet {
-  --ascii-dim: #463e4e; /* mauve shadow */
-  --ascii-bright: #c4b5fd; /* violet-300 */
+  --ascii-dim: #4a4152; /* violet shadow */
+  --ascii-bright: #c9bcf7; /* violet, warmed slightly toward the ground */
 }
 
 .ascii-theme-sky {
-  --ascii-dim: #2b3b46; /* slate-tinted shadow */
-  --ascii-bright: #7dd3fc; /* sky-300 */
+  --ascii-dim: #33424b; /* slate shadow */
+  --ascii-bright: #93cfe4; /* muted sky */
 }
 
 .ascii-theme-emerald {
-  --ascii-dim: #2a3d38; /* deep green shadow */
-  --ascii-bright: #6ee7b7; /* emerald-300 */
+  --ascii-dim: #33443c; /* deep green shadow */
+  --ascii-bright: #8fceb0; /* muted emerald */
 }
 
-.ascii-theme-amber {
-  --ascii-dim: #43382a; /* warm shadow */
-  --ascii-bright: #fcd34d; /* amber-300 */
+.ascii-theme-sand {
+  --ascii-dim: #4a4130; /* warm shadow */
+  --ascii-bright: #e3cfa4; /* sand, matching --color-sand */
 }
 
 .ascii-canvas {

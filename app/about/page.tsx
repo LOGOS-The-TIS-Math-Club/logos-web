@@ -50,7 +50,7 @@ export default function AboutPage() {
     <div className="space-y-24 sm:space-y-32">
       <PageBanner
         scene="mark"
-        theme="ascii-theme-amber"
+        theme="ascii-theme-sand"
         titleId="about-title"
         eyebrow="About the club"
         title={
