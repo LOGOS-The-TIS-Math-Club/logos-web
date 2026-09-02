@@ -59,8 +59,15 @@ export async function POST(request: Request) {
       callbackURL: "/auth/complete",
       scopes: ["openid", "email", "profile"],
     });
+    if (result.error) {
+      console.error("[AUTH_GOOGLE_START_NEON_ERROR]", result.error);
+    }
     const url = result.data?.url;
-    if (!url) throw new Error("Provider redirect unavailable");
+    if (!url) {
+      throw new Error(
+        `Provider redirect unavailable: ${JSON.stringify(result.error || "no data url")}`,
+      );
+    }
     await withDatabase((database) =>
       recordSecurityAuditEvent(database, {
         actorType: "anonymous",
@@ -76,7 +83,8 @@ export async function POST(request: Request) {
       }),
     );
     return NextResponse.json({ url });
-  } catch {
+  } catch (error) {
+    console.error("[AUTH_GOOGLE_START_EXCEPTION]", error);
     await withDatabase((database) =>
       recordSecurityAuditEvent(database, {
         actorType: "anonymous",
