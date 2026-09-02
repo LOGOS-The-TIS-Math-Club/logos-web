@@ -66,3 +66,40 @@ describe("parseRuntimeDatabaseEnvironment", () => {
     await expect(import("@/lib/db/database-env")).resolves.toBeDefined();
   });
 });
+
+describe("resolveAppEnvironment", () => {
+  test("rejects an unrecognised APP_ENV instead of coercing it", () => {
+    expect(() =>
+      parseRuntimeDatabaseEnvironment({
+        APP_ENV: "staging",
+        DATABASE_URL: "postgresql://127.0.0.1:5432/logos?sslmode=disable",
+      }),
+    ).toThrow("APP_ENV must be one of");
+  });
+
+  test("derives the environment from VERCEL_ENV when APP_ENV is absent", () => {
+    expect(
+      parseRuntimeDatabaseEnvironment({
+        VERCEL_ENV: "preview",
+        DATABASE_URL: "postgresql://example.invalid/logos?sslmode=require",
+      }).appEnvironment,
+    ).toBe("preview");
+  });
+
+  test("ignores NEXT_PUBLIC_VERCEL_ENV as a trust source", () => {
+    expect(() =>
+      parseRuntimeDatabaseEnvironment({
+        NEXT_PUBLIC_VERCEL_ENV: "production",
+        DATABASE_URL: "postgresql://example.invalid/logos?sslmode=require",
+      }),
+    ).toThrow("could not be derived");
+  });
+
+  test("never silently falls back to production", () => {
+    expect(() =>
+      parseRuntimeDatabaseEnvironment({
+        DATABASE_URL: "postgresql://example.invalid/logos?sslmode=require",
+      }),
+    ).toThrow("could not be derived");
+  });
+});
