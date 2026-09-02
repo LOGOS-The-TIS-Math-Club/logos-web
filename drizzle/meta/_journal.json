@@ -43,6 +43,13 @@
       "when": 1788268791873,
       "tag": "0005_keen_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788366783650,
+      "tag": "0006_add_announcements",
+      "breakpoints": true
     }
   ]
 }

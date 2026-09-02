@@ -2,7 +2,11 @@ import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 import {
-  ANNOUNCEMENTS,
+  listPublishedAnnouncements,
+  type PublicAnnouncement,
+} from "@/lib/announcements/service.server";
+import {
+  formatAnnouncementDate,
   formatSessionDate,
   SEMESTER_FOCUS,
   SESSIONS,
@@ -21,7 +25,20 @@ import {
  * room and grade range are user-confirmed.
  */
 
-export default function Home() {
+export default async function Home() {
+  /*
+   * Announcements come from the database so leadership can post without a
+   * deploy. A failure here must not take down the public page — the section
+   * has a real empty state, so falling back to none is a graceful degradation
+   * rather than a blank hole.
+   */
+  let announcements: PublicAnnouncement[] = [];
+  try {
+    announcements = await listPublishedAnnouncements();
+  } catch {
+    announcements = [];
+  }
+
   // Rendered per request (the root layout opts into dynamic rendering), so
   // "this week" is genuinely current rather than frozen at build time.
   const { past, next } = splitSessions(SESSIONS, new Date());
@@ -149,15 +166,15 @@ export default function Home() {
             </h2>
           </div>
 
-          {ANNOUNCEMENTS.length > 0 ? (
+          {announcements.length > 0 ? (
             <ul className="space-y-4">
-              {ANNOUNCEMENTS.map((item) => (
+              {announcements.map((item) => (
                 <li
-                  key={item.title}
+                  key={item.id}
                   className="panel panel-interactive ruled-left border-l-2 p-6"
                 >
                   <p className="datum text-subtle-foreground text-xs">
-                    {formatSessionDate(item.date)}
+                    {formatAnnouncementDate(item.publishedAt)}
                   </p>
                   <p className="mt-2 font-semibold">{item.title}</p>
                   <p className="text-muted-foreground mt-2 text-sm leading-relaxed">

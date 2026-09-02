@@ -545,6 +545,50 @@ export const studentApplications = logosSchema.table(
   ],
 );
 
+/*
+ * Public announcements.
+ *
+ * Exists so leadership can change what the site says without a code change and
+ * a redeploy. Drafts are rows with published = false; the public read only ever
+ * selects published rows, so an unfinished notice is never reachable.
+ */
+export const announcements = logosSchema.table(
+  "announcements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    published: boolean("published").notNull().default(false),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("announcements_published_idx").on(t.published, t.publishedAt),
+    check(
+      "announcements_title_len_check",
+      sql`char_length("title") BETWEEN 1 AND 120`,
+    ),
+    check(
+      "announcements_body_len_check",
+      sql`char_length("body") BETWEEN 1 AND 2000`,
+    ),
+    // A published row must record when it went live, so the public ordering
+    // can never fall back to an implicit or missing timestamp.
+    check(
+      "announcements_published_at_check",
+      sql`("published" = false AND "published_at" IS NULL) OR ("published" = true AND "published_at" IS NOT NULL)`,
+    ),
+  ],
+);
+
 export const clubMemberStatusEnum = logosSchema.enum("club_member_status", [
   "active",
   "inactive",

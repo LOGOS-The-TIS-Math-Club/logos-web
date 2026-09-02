@@ -36,6 +36,13 @@ const SECTIONS: readonly {
       "Read every submitted application, set its review status, and export the full list as CSV.",
   },
   {
+    href: "/admin/announcements",
+    label: "Announcements",
+    capability: "announcement:manage",
+    description:
+      "Post and edit the notices on the home page. Published changes appear immediately, with no deploy.",
+  },
+  {
     href: "/admin/members",
     label: "Members",
     capability: "membership:read",
