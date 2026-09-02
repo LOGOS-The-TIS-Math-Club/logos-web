@@ -58,6 +58,16 @@ describe("Google identity claims", () => {
       hostedDomain: "tokyois.com",
     });
     await expect(
+      verifyGoogleIdTokenWithKey(
+        token,
+        ["other-id", "synthetic-client-id"],
+        publicKey,
+      ),
+    ).resolves.toMatchObject({
+      subject: "google-subject-1",
+      hostedDomain: "tokyois.com",
+    });
+    await expect(
       verifyGoogleIdTokenWithKey(token, "wrong-client-id", publicKey),
     ).rejects.toThrow();
   });
