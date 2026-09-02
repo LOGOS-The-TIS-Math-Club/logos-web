@@ -10,6 +10,7 @@ import {
   SIGN_SOURCES,
   SIGN_TARGETS,
 } from "./mark-geometry";
+import { triangleWave } from "./scene-timing";
 
 /*
  * Animated ASCII banner.
@@ -119,7 +120,13 @@ function pushCircle(
 /** ∴ and ∵ drifting together, then opening into the five-circle mark. */
 function sceneCollapse(t: number): Point3[] {
   const CYCLE = 12000;
-  const phase = (t % CYCLE) / CYCLE;
+
+  // A plain (t % CYCLE) / CYCLE sawtooth snaps from 1 back to 0 every cycle —
+  // the fully-formed mark would vanish and reappear as two separated dots in
+  // a single frame, which reads as the whole animation resetting. A triangle
+  // wave climbs to 1 and eases back down instead, so the signs converge, hold
+  // as the mark, then un-collapse back apart continuously before repeating.
+  const phase = triangleWave(t, CYCLE);
 
   // 0.00–0.20 the two signs hold apart, on separate planes.
   // 0.20–0.58 they converge; the dots open into circles.
@@ -220,8 +227,9 @@ function sceneNetwork(t: number): Point3[] {
     ]);
   }
 
-  // Edges draw in progressively, then the set resets and rebuilds.
-  const progress = (t % 9500) / 9500;
+  // Edges draw in progressively, then retract and redraw — a triangle wave
+  // rather than a sawtooth, so the full set never disappears in one frame.
+  const progress = triangleWave(t, 9500);
   const wanted = Math.floor(progress * NODES * 2);
   let drawn = 0;
 
@@ -455,9 +463,15 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       const viewer = 620;
 
       for (const point of points) {
-        // Yaw about Y, then pitch about X.
-        const x1 = point.x * cosYaw + point.z * sinYaw;
-        const z1 = -point.x * sinYaw + point.z * cosYaw;
+        // Yaw about Y, then pitch about X. Both use the same handedness
+        // convention (increasing angle turns the near/front-facing side of
+        // the object toward positive x, or toward positive y for pitch) so a
+        // drag in a given direction always turns the surface the same way it
+        // moves — dragging right and dragging down both feel like pushing
+        // the front of the object in that direction, rather than one axis
+        // reacting backwards from the other.
+        const x1 = point.x * cosYaw - point.z * sinYaw;
+        const z1 = point.x * sinYaw + point.z * cosYaw;
         const y2 = point.y * cosPitch - z1 * sinPitch;
         const z2 = point.y * sinPitch + z1 * cosPitch;
 
