@@ -80,10 +80,12 @@ test("renders primary semantic landmarks and heading hierarchy", async ({
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      level: 2,
-      name: /What we did|Where we|Announcements|Want to join/i,
-    }).first(),
+    page
+      .getByRole("heading", {
+        level: 2,
+        name: /What we did|Where we|Announcements|Want to join/i,
+      })
+      .first(),
   ).toBeVisible();
 });
 
@@ -156,7 +158,10 @@ test("prevents horizontal overflow across mobile (320px) and desktop viewports",
     const hasOverflow = await page.evaluate(() => {
       return document.documentElement.scrollWidth > window.innerWidth;
     });
-    expect(hasOverflow, `Viewport ${viewport.width}x${viewport.height} had horizontal overflow`).toBe(false);
+    expect(
+      hasOverflow,
+      `Viewport ${viewport.width}x${viewport.height} had horizontal overflow`,
+    ).toBe(false);
   }
 });
 
