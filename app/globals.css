@@ -444,12 +444,43 @@ body {
  * ------------------------------------------------------------------ */
 
 .ascii-field {
+  /* Violet is the brand default; pages retint with the themes below. */
   --ascii-dim: #463e4e;
   --ascii-bright: #c4b5fd;
   --ascii-font: var(--font-mono);
   position: absolute;
   inset: 0;
   overflow: hidden;
+  cursor: grab;
+}
+
+.ascii-field[data-grabbing="true"] {
+  cursor: grabbing;
+}
+
+/*
+ * Per-page tints, drawn from the Tailwind palette and deliberately muted so
+ * they sit in the same low-light atmosphere as the mauve ground. The dim value
+ * is the far/dark end of the ramp, the bright value the near/lit end.
+ */
+.ascii-theme-violet {
+  --ascii-dim: #463e4e; /* mauve shadow */
+  --ascii-bright: #c4b5fd; /* violet-300 */
+}
+
+.ascii-theme-sky {
+  --ascii-dim: #2b3b46; /* slate-tinted shadow */
+  --ascii-bright: #7dd3fc; /* sky-300 */
+}
+
+.ascii-theme-emerald {
+  --ascii-dim: #2a3d38; /* deep green shadow */
+  --ascii-bright: #6ee7b7; /* emerald-300 */
+}
+
+.ascii-theme-amber {
+  --ascii-dim: #43382a; /* warm shadow */
+  --ascii-bright: #fcd34d; /* amber-300 */
 }
 
 .ascii-canvas {
@@ -560,6 +591,73 @@ body {
     opacity: 1;
     transform: none;
   }
+}
+
+/* ------------------------------------------------------------------ *
+ * Disclosure (FAQ)
+ *
+ * Native <details> keeps the keyboard and screen-reader behaviour for free.
+ * The open/close is animated with grid-template-rows, which is the only way to
+ * transition to an unknown content height without measuring it in JavaScript.
+ * ------------------------------------------------------------------ */
+
+.disclosure summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition:
+    grid-template-rows 0.42s var(--ease-out-expo),
+    opacity 0.32s var(--ease-out-expo);
+  opacity: 0;
+}
+
+.disclosure[open] .disclosure-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.disclosure-body > div {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* The marker rotates into a minus, and the row warms on hover. */
+.disclosure-marker {
+  transition:
+    rotate 0.42s var(--ease-out-expo),
+    color 0.22s var(--ease-out-quint);
+}
+
+.disclosure[open] .disclosure-marker {
+  rotate: 135deg;
+  color: var(--color-primary);
+}
+
+/* A rule sweeps in from the left while the answer opens. */
+.disclosure summary::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-primary);
+  scale: 0 1;
+  transform-origin: left;
+  transition: scale 0.42s var(--ease-out-expo);
+}
+
+.disclosure[open] summary::after,
+.disclosure summary:hover::after {
+  scale: 1 1;
 }
 
 /* Scroll cue: drifts down and fades, hinting the page continues. */

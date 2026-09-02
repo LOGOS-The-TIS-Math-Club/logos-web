@@ -21,7 +21,8 @@ export default function MeetingsPage() {
   return (
     <div className="space-y-24 sm:space-y-32">
       <PageBanner
-        variant="wave"
+        scene="orbit"
+        theme="ascii-theme-sky"
         titleId="meetings-title"
         eyebrow="Meetings"
         title={

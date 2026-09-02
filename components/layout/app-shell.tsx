@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { LogosLockup, LogosLogomark } from "@/components/brand/marks";
+import { CONTACT_EMAIL } from "@/content/club";
 import { ActionLink } from "@/components/ui/action";
 
 import { Container } from "./container";
@@ -139,6 +140,12 @@ export function AppShell({ children, className }: AppShellProps) {
               Applications are identified with a verified Tokyo International
               School Google account.
             </p>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="link-underline datum"
+            >
+              {CONTACT_EMAIL}
+            </a>
             <p>MIT License</p>
           </div>
         </Container>
