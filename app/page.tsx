@@ -33,7 +33,8 @@ export default function Home() {
   return (
     <div className="space-y-24 sm:space-y-32">
       <PageBanner
-        variant="full"
+        scene="collapse"
+        theme="ascii-theme-violet"
         titleId="hero-heading"
         eyebrow="Tokyo International School · Grades 9–12"
         title={

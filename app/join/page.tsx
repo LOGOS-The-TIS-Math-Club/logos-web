@@ -44,7 +44,7 @@ const FAQ = [
   {
     question: "What happens to the information I submit?",
     answer:
-      "It is stored securely and seen only by leadership members with explicit review access. We never ask for your address, phone number or any medical information.",
+      "It is stored securely and seen only by leadership members with explicit review access. We never ask for your address, phone number or any medical information. To correct or withdraw an application, email the club.",
   },
 ] as const;
 
@@ -52,7 +52,8 @@ export default function JoinPage() {
   return (
     <div className="space-y-24 sm:space-y-32">
       <PageBanner
-        variant="cubic"
+        scene="network"
+        theme="ascii-theme-emerald"
         titleId="join-title"
         eyebrow="Joining"
         title={
@@ -147,19 +148,23 @@ export default function JoinPage() {
 
           <div className="border-border divide-border divide-y border-t border-b">
             {FAQ.map((item) => (
-              <details key={item.question} className="group">
-                <summary className="hover:text-primary focus-visible:outline-focus flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+              <details key={item.question} className="disclosure group">
+                <summary className="hover:text-primary focus-visible:outline-focus relative flex items-center justify-between gap-6 py-5 font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none">
                   {item.question}
                   <span
                     aria-hidden="true"
-                    className="text-subtle-foreground shrink-0 text-lg transition-transform duration-300 group-open:rotate-45 motion-reduce:transition-none"
+                    className="disclosure-marker text-subtle-foreground shrink-0 text-lg"
                   >
                     +
                   </span>
                 </summary>
-                <p className="text-muted-foreground max-w-2xl pb-6 text-sm leading-relaxed">
-                  {item.answer}
-                </p>
+                <div className="disclosure-body">
+                  <div>
+                    <p className="text-muted-foreground max-w-2xl pb-6 text-sm leading-relaxed">
+                      {item.answer}
+                    </p>
+                  </div>
+                </div>
               </details>
             ))}
           </div>
