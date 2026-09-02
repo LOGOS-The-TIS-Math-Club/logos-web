@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 
@@ -49,17 +50,25 @@ const FAQ = [
 
 export default function JoinPage() {
   return (
-    <div className="space-y-24 py-4 sm:space-y-32">
-      <header className="max-w-3xl space-y-6">
-        <p className="eyebrow enter enter-1">Joining</p>
-        <h1 className="enter enter-2 text-4xl font-extrabold tracking-[-0.035em] text-balance sm:text-6xl">
-          Open to every high school student.
-        </h1>
-        <p className="enter enter-3 text-muted-foreground text-lg leading-relaxed">
-          All Tokyo International School students in Grades 9–12 are welcome. No
-          prior competition experience is required.
-        </p>
-      </header>
+    <div className="space-y-24 sm:space-y-32">
+      <PageBanner
+        variant="cubic"
+        titleId="join-title"
+        eyebrow="Joining"
+        title={
+          <>
+            Open to every
+            <br />
+            high school student.
+          </>
+        }
+        subtitle="All Tokyo International School students in Grades 9–12 are welcome. No prior competition experience is required."
+        actions={
+          <ActionLink href="/apply" variant="primary">
+            Apply to LOGOS
+          </ActionLink>
+        }
+      />
 
       <Reveal as="section" aria-labelledby="who-heading">
         <h2 id="who-heading" className="sr-only">
