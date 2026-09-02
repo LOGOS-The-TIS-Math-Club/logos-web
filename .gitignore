@@ -19,6 +19,7 @@ out/
 .vercel/
 
 # Build output and generated artifacts
+.neon
 build/
 dist/
 storybook-static/
