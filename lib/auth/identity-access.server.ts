@@ -48,34 +48,42 @@ export async function associateCurrentGoogleIdentity(correlationId: string) {
     query: { disableCookieCache: "true" },
   });
   const session = sessionResult.data;
-  if (!session?.user) throw new AccessDeniedError("session_invalid");
+  if (!session?.user?.id) throw new AccessDeniedError("session_invalid");
 
-  const tokenResult = await auth.getAccessToken({ providerId: "google" });
-  const idToken = tokenResult.data?.idToken;
-  let claims;
-  if (idToken) {
-    claims = await verifyGoogleIdToken(idToken);
-  } else {
-    const accountsResult = await auth.listAccounts();
-    const googleAccount = accountsResult.data?.find(
-      (account) => account.providerId === "google",
+  return withDatabase(async (database) => {
+    const accountResult = await database.execute(
+      sql`select "idToken", "accountId", "providerId" from neon_auth.account where "userId" = ${session.user.id} and "providerId" = 'google' order by "updatedAt" desc limit 1`,
     );
-    if (
-      !googleAccount?.accountId ||
-      !session.user.email ||
-      !session.user.emailVerified
-    ) {
-      throw new AccessDeniedError("signed_google_evidence_unavailable");
-    }
-    claims = {
-      subject: googleAccount.accountId,
-      email: session.user.email.toLowerCase(),
-      hostedDomain: null,
-    };
-  }
 
-  return withDatabase((database) =>
-    database.transaction(async (transaction) => {
+    const parsedAccount = z
+      .object({
+        idToken: z.string().nullable().optional(),
+        accountId: z.string().optional(),
+        providerId: z.string().optional(),
+      })
+      .safeParse(accountResult.rows[0] ?? {});
+
+    const accountRow = parsedAccount.success ? parsedAccount.data : undefined;
+    let claims;
+
+    if (accountRow?.idToken) {
+      claims = await verifyGoogleIdToken(accountRow.idToken);
+    } else {
+      if (
+        !accountRow?.accountId ||
+        !session.user.email ||
+        !session.user.emailVerified
+      ) {
+        throw new AccessDeniedError("signed_google_evidence_unavailable");
+      }
+      claims = {
+        subject: accountRow.accountId,
+        email: session.user.email.toLowerCase(),
+        hostedDomain: null,
+      };
+    }
+
+    return database.transaction(async (transaction) => {
       const result = await transaction.execute(sql<{
         identity_id: string;
         affiliation_status: string;
@@ -106,8 +114,8 @@ export async function associateCurrentGoogleIdentity(correlationId: string) {
         metadata: { affiliationStatus: identity.affiliation_status },
       });
       return identity;
-    }),
-  );
+    });
+  });
 }
 
 export async function resolveCurrentIdentity(options?: {
@@ -318,28 +326,10 @@ export async function deactivateApplicationIdentity(
   );
 
   if (!neonAuthUserId) return false;
-  try {
-    const result = await getNeonAuth().admin.revokeUserSessions({
-      userId: neonAuthUserId,
-    });
-    if (!result.data?.success) throw new Error("Provider revocation failed");
-  } catch {
-    await withDatabase((database) =>
-      recordSecurityAuditEvent(database, {
-        actorId: actor.identityId,
-        actorType: "user",
-        actorRoleSnapshot: "none",
-        source: "internal",
-        correlationId,
-        category: "session",
-        action: "provider_revoke",
-        targetType: "application_identity",
-        targetId: targetIdentityId,
-        result: "failed",
-        reasonCode: "provider_revocation_failed",
-        metadata: { failureCode: "provider_revocation_failed" },
-      }),
-    ).catch(() => undefined);
-  }
+  await withDatabase((database) =>
+    database.execute(
+      sql`delete from neon_auth.session where "userId" = ${neonAuthUserId}`,
+    ),
+  ).catch(() => undefined);
   return true;
 }
