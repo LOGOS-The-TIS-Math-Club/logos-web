@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 
@@ -45,18 +46,28 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="space-y-24 py-4 sm:space-y-32">
-      <header className="max-w-3xl space-y-6">
-        <p className="eyebrow enter enter-1">About the club</p>
-        <h1 className="enter enter-2 text-4xl font-extrabold tracking-[-0.035em] text-balance sm:text-6xl">
-          The first fully student-run club at TIS.
-        </h1>
-        <p className="enter enter-3 text-muted-foreground text-lg leading-relaxed">
-          LOGOS was founded in early 2025 as a student-led academic organisation
-          of Tokyo International School, and remains the first club of the
-          school to operate under a fully student-driven model.
-        </p>
-      </header>
+    <div className="space-y-24 sm:space-y-32">
+      <PageBanner
+        variant="mark"
+        titleId="about-title"
+        eyebrow="About the club"
+        title={
+          <>
+            The first fully
+            <br />
+            student-run club at TIS.
+          </>
+        }
+        subtitle="Founded in early 2025 as a student-led academic organisation of Tokyo International School."
+        actions={
+          <>
+            <ActionLink href="/join" variant="primary">
+              Who can join
+            </ActionLink>
+            <ActionLink href="/meetings">When we meet</ActionLink>
+          </>
+        }
+      />
 
       {/* ---------------- Purpose ---------------- */}
       <Reveal as="section" aria-labelledby="purpose-heading">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 import { formatSessionDate, SEMESTER_FOCUS, SESSIONS } from "@/content/club";
@@ -18,17 +19,28 @@ const FACTS = [
 
 export default function MeetingsPage() {
   return (
-    <div className="space-y-24 py-4 sm:space-y-32">
-      <header className="max-w-3xl space-y-6">
-        <p className="eyebrow enter enter-1">Meetings</p>
-        <h1 className="enter enter-2 text-4xl font-extrabold tracking-[-0.035em] text-balance sm:text-6xl">
-          One hour, every Friday.
-        </h1>
-        <p className="enter enter-3 text-muted-foreground text-lg leading-relaxed">
-          Sessions build on each other, so coming regularly matters more than
-          coming prepared with prior knowledge.
-        </p>
-      </header>
+    <div className="space-y-24 sm:space-y-32">
+      <PageBanner
+        variant="wave"
+        titleId="meetings-title"
+        eyebrow="Meetings"
+        title={
+          <>
+            One hour,
+            <br />
+            every Friday.
+          </>
+        }
+        subtitle="Sessions build on each other, so coming regularly matters more than arriving with prior knowledge."
+        actions={
+          <>
+            <ActionLink href="/apply" variant="primary">
+              Apply to LOGOS
+            </ActionLink>
+            <ActionLink href="/join">Who can join</ActionLink>
+          </>
+        }
+      />
 
       <section aria-labelledby="facts-heading">
         <h2 id="facts-heading" className="sr-only">
