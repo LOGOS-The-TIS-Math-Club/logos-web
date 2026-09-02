@@ -49,6 +49,9 @@ describe("Application Service (submitStudentApplication)", () => {
     goals:
       "I want to learn number theory and help prepare mock contests for club members.",
     experience: null,
+    mathCourse: null,
+    contestInterest: "yes" as const,
+    presentInterest: "maybe" as const,
     attendanceConfirmation: "regular" as const,
     accuracyAcknowledged: true as const,
   };
@@ -277,6 +280,9 @@ describe("CSV Export Service", () => {
         joinReason: "Math enthusiast",
         goals: "Learn competitive math",
         experience: null,
+        mathCourse: null,
+        contestInterest: "yes",
+        presentInterest: "maybe",
         attendanceConfirmation: "regular",
         status: "submitted",
         statusReason: null,

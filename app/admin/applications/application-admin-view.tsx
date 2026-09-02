@@ -1,7 +1,10 @@
 "use client";
 
 import { useId, useState } from "react";
-import { type ApplicationStatus } from "@/lib/applications/schema";
+import {
+  type ApplicationStatus,
+  MATH_COURSES,
+} from "@/lib/applications/schema";
 import {
   StatusBadge,
   type StatusBadgeVariant,
@@ -14,6 +17,9 @@ export interface ApplicationAdminItem {
   preferredName: string;
   grade: string;
   academicInterests: string[];
+  mathCourse: string | null;
+  contestInterest: string | null;
+  presentInterest: string | null;
   attendanceConfirmation: string;
   status: ApplicationStatus;
   statusReason: string | null;
@@ -36,6 +42,13 @@ const statusBadgeMap: Record<ApplicationStatus, StatusBadgeVariant> = {
   reviewing: "warning",
   accepted: "success",
   declined: "neutral",
+};
+
+/** Short labels for the shared yes / maybe / no scale. */
+const SCALE_LABELS: Record<string, string> = {
+  yes: "Yes",
+  maybe: "Maybe",
+  no: "No",
 };
 
 export function ApplicationAdminView({
@@ -328,6 +341,39 @@ export function ApplicationAdminView({
                       {Array.isArray(activeApp.academicInterests)
                         ? activeApp.academicInterests.join(", ")
                         : activeApp.academicInterests}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-muted-foreground font-semibold">
+                      Maths Course
+                    </p>
+                    <p className="text-foreground mt-0.5">
+                      {activeApp.mathCourse
+                        ? (MATH_COURSES.find(
+                            (course) => course.key === activeApp.mathCourse,
+                          )?.label ?? activeApp.mathCourse)
+                        : "Not shared"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-muted-foreground font-semibold">
+                      In-club Contests
+                    </p>
+                    <p className="text-foreground mt-0.5">
+                      {SCALE_LABELS[activeApp.contestInterest ?? ""] ??
+                        "Not answered"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-muted-foreground font-semibold">
+                      Presenting
+                    </p>
+                    <p className="text-foreground mt-0.5">
+                      {SCALE_LABELS[activeApp.presentInterest ?? ""] ??
+                        "Not answered"}
                     </p>
                   </div>
 

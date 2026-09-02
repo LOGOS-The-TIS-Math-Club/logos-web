@@ -15,6 +15,9 @@ describe("StudentApplicationInputSchema", () => {
     goals:
       "I want to improve my geometry problem-solving and help prepare workshop sets.",
     experience: "Attended school math competition in grade 8.",
+    mathCourse: null,
+    contestInterest: "yes",
+    presentInterest: "maybe",
     attendanceConfirmation: "regular",
     accuracyAcknowledged: true,
   };
@@ -156,6 +159,9 @@ describe("CSV Formula Injection Defense (sanitizeCsvCell & generateApplicationsC
         joinReason: '=HYPERLINK("http://malicious.example.com", "Click")',
         goals: "Learn competitive math techniques and meet fellow enthusiasts.",
         experience: "+cmd|' /C calc'!A0",
+        mathCourse: null,
+        contestInterest: "yes",
+        presentInterest: "maybe",
         attendanceConfirmation: "regular",
         status: "submitted",
         statusReason: null,
@@ -168,5 +174,60 @@ describe("CSV Formula Injection Defense (sanitizeCsvCell & generateApplicationsC
     expect(csv).toContain('"student@tokyois.com"');
     expect(csv).toContain("\"'=HYPERLINK");
     expect(csv).toContain("\"'+cmd|");
+  });
+});
+
+describe("optional course level", () => {
+  const base = {
+    preferredName: "Sam",
+    grade: "Grade 10" as const,
+    academicInterests: ["algebra"],
+    joinReason: "I want to get better at solving problems that take real time.",
+    goals: "I would like to understand proofs properly rather than memorise.",
+    experience: null,
+    contestInterest: "maybe" as const,
+    presentInterest: "no" as const,
+    attendanceConfirmation: "regular" as const,
+    accuracyAcknowledged: true as const,
+  };
+
+  it("accepts an application with no course level given", () => {
+    const parsed = StudentApplicationInputSchema.parse({
+      ...base,
+      mathCourse: null,
+    });
+    expect(parsed.mathCourse).toBeNull();
+  });
+
+  it("accepts an application when the field is omitted entirely", () => {
+    const parsed = StudentApplicationInputSchema.parse(base);
+    expect(parsed.mathCourse).toBeNull();
+  });
+
+  it("stores 'prefer not to say' as no data rather than as a refusal", () => {
+    // Declining should leave no record about the student, not a record that
+    // they declined.
+    const parsed = StudentApplicationInputSchema.parse({
+      ...base,
+      mathCourse: "prefer_not_to_say",
+    });
+    expect(parsed.mathCourse).toBeNull();
+  });
+
+  it("keeps a real course selection", () => {
+    const parsed = StudentApplicationInputSchema.parse({
+      ...base,
+      mathCourse: "dp_aa_hl",
+    });
+    expect(parsed.mathCourse).toBe("dp_aa_hl");
+  });
+
+  it("still requires the two interest questions", () => {
+    expect(() =>
+      StudentApplicationInputSchema.parse({
+        ...base,
+        contestInterest: undefined,
+      }),
+    ).toThrow();
   });
 });

@@ -481,6 +481,15 @@ export const studentApplications = logosSchema.table(
     joinReason: text("join_reason").notNull(),
     goals: text("goals").notNull(),
     experience: text("experience"),
+    /*
+     * Added after the first intake. Nullable so the migration stays additive
+     * and existing rows remain valid; new submissions are completed at the
+     * application layer instead. mathCourse is optional by design — course
+     * level is the kind of thing a student may not want to share.
+     */
+    mathCourse: text("math_course"),
+    contestInterest: text("contest_interest"),
+    presentInterest: text("present_interest"),
     attendanceConfirmation: text("attendance_confirmation").notNull(),
     accuracyAcknowledged: boolean("accuracy_acknowledged")
       .notNull()
@@ -529,6 +538,18 @@ export const studentApplications = logosSchema.table(
     check(
       "student_applications_experience_len_check",
       sql`"experience" IS NULL OR char_length("experience") <= 500`,
+    ),
+    check(
+      "student_applications_math_course_check",
+      sql`"math_course" IS NULL OR "math_course" IN ('myp_standard', 'myp_extended', 'dp_aa_sl', 'dp_aa_hl', 'dp_ai_sl', 'dp_ai_hl', 'other', 'prefer_not_to_say')`,
+    ),
+    check(
+      "student_applications_contest_interest_check",
+      sql`"contest_interest" IS NULL OR "contest_interest" IN ('yes', 'maybe', 'no')`,
+    ),
+    check(
+      "student_applications_present_interest_check",
+      sql`"present_interest" IS NULL OR "present_interest" IN ('yes', 'maybe', 'no')`,
     ),
     check(
       "student_applications_attendance_check",
