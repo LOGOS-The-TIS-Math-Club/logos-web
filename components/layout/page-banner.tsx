@@ -44,7 +44,7 @@ export function PageBanner({
   return (
     <section
       aria-labelledby={titleId}
-      className="bleed border-border relative -mt-8 border-b sm:-mt-12"
+      className="bleed border-border relative -mt-8 overflow-x-clip border-b sm:-mt-12"
     >
       <div
         className={`relative grid grid-cols-1 items-center lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] ${
@@ -60,12 +60,12 @@ export function PageBanner({
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="plated max-w-lg">
-            <div className="panel-lifted hatched space-y-6 p-8 sm:p-10">
+            <div className="panel-lifted hatched space-y-6 p-6 sm:p-10">
               <p className="eyebrow enter enter-1">{eyebrow}</p>
 
               <h1
                 id={titleId}
-                className="enter enter-2 text-4xl leading-[1.02] font-extrabold tracking-[-0.035em] text-balance sm:text-5xl"
+                className="enter enter-2 text-3xl leading-[1.05] font-extrabold tracking-[-0.035em] text-balance sm:text-5xl sm:leading-[1.02]"
               >
                 {title}
               </h1>

@@ -33,7 +33,7 @@ export function AppShell({ children, className }: AppShellProps) {
     .join(" ");
 
   return (
-    <div className="bg-background text-foreground flex min-h-[100dvh] flex-col">
+    <div className="bg-background text-foreground flex min-h-[100dvh] flex-col overflow-x-clip">
       <SkipLink />
 
       <header className="border-border bg-surface/95 sticky top-0 z-50 border-b">
@@ -81,7 +81,7 @@ export function AppShell({ children, className }: AppShellProps) {
         admin) keeps its layout unchanged. Sections that need the full viewport
         width opt out with the `.bleed` utility rather than the shell changing.
       */}
-      <main id="main-content" tabIndex={-1} className={mainClasses}>
+      <main id="main-content" tabIndex={-1} className={`${mainClasses} overflow-x-clip`}>
         <Container className="py-8 sm:py-12">{children}</Container>
       </main>
 
