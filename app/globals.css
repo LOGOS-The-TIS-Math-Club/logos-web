@@ -183,6 +183,14 @@ body {
  */
 .plated {
   position: relative;
+  /*
+   * Establishes a stacking context. Without it, the z-index:-1 plate below
+   * escapes to the nearest ancestor that has one and paints behind that
+   * ancestor's opaque background — so the plate silently vanished everywhere
+   * except the page banner, whose wrapper happens to be `relative z-10`.
+   * `isolation` does this without changing layout or the element's own paint.
+   */
+  isolation: isolate;
   width: auto;
   max-width: calc(100% - 14px);
   margin-right: 14px;
