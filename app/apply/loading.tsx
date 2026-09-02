@@ -1,11 +1,12 @@
+import { WaitingProblems } from "@/components/ui/waiting-problems";
+
 /*
  * Shown the instant "Apply" is pressed.
  *
  * /apply is force-dynamic and resolves the Neon Auth session plus two database
  * reads before it can render. On the free Neon plan the compute suspends after
  * five minutes idle, so the first visitor after a quiet period waits for a cold
- * start. This skeleton makes that wait legible instead of blank, and is shaped
- * like the page that follows so nothing jumps when it arrives.
+ * start. Rather than a bare spinner, give them a problem to chew on.
  */
 export default function ApplyLoading() {
   return (
@@ -18,28 +19,23 @@ export default function ApplyLoading() {
       <span className="sr-only">Loading the application form…</span>
 
       <header className="space-y-3">
-        <div className="bg-surface-raised h-9 w-72 max-w-full animate-pulse rounded motion-reduce:animate-none" />
-        <div className="bg-surface h-4 w-96 max-w-full animate-pulse rounded motion-reduce:animate-none" />
+        <p className="eyebrow">Opening the application</p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.03em] text-balance">
+          One moment.
+        </h1>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          The application service sleeps when nobody has used it recently. It is
+          waking up — this usually takes a few seconds.
+        </p>
       </header>
 
-      <div className="panel space-y-6 p-6 sm:p-8">
-        <div className="space-y-2">
-          <div className="bg-surface-raised h-5 w-64 max-w-full animate-pulse rounded motion-reduce:animate-none" />
-          <div className="bg-surface h-4 w-full animate-pulse rounded motion-reduce:animate-none" />
-          <div className="bg-surface h-4 w-4/5 animate-pulse rounded motion-reduce:animate-none" />
-        </div>
+      <WaitingProblems />
 
-        <div className="panel-raised space-y-2 p-4">
-          <div className="bg-surface h-3 w-full animate-pulse rounded motion-reduce:animate-none" />
-          <div className="bg-surface h-3 w-3/4 animate-pulse rounded motion-reduce:animate-none" />
-        </div>
-
-        <div className="bg-surface-raised h-11 w-56 animate-pulse rounded motion-reduce:animate-none" />
+      <div className="border-border space-y-3 border-t pt-6">
+        <div className="bg-surface-raised h-4 w-56 animate-pulse motion-reduce:animate-none" />
+        <div className="bg-surface h-3 w-full animate-pulse motion-reduce:animate-none" />
+        <div className="bg-surface h-3 w-4/5 animate-pulse motion-reduce:animate-none" />
       </div>
-
-      <p className="text-subtle-foreground text-center text-xs">
-        Waking the application service…
-      </p>
     </div>
   );
 }

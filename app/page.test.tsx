@@ -3,12 +3,13 @@ import { describe, expect, it } from "vitest";
 
 import Home from "./page";
 
-describe("Home recruitment landing page", () => {
-  it("renders the main heading and recruitment call to action", () => {
+describe("Home noticeboard", () => {
+  it("leads with the club identity and the application action", () => {
     render(<Home />);
 
-    const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent(/Mathematics,\s*taken seriously\./);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      /Mathematics,\s*taken seriously\./,
+    );
 
     const applyLinks = screen.getAllByRole("link", { name: /apply to logos/i });
     expect(applyLinks.length).toBeGreaterThanOrEqual(1);
@@ -17,27 +18,13 @@ describe("Home recruitment landing page", () => {
     }
   });
 
-  it("states the confirmed meeting facts and eligibility", () => {
-    render(<Home />);
-
-    expect(screen.getByText("Friday")).toBeInTheDocument();
-    expect(screen.getByText("15:30–16:30")).toBeInTheDocument();
-    expect(screen.getByText("Room 101")).toBeInTheDocument();
-    expect(screen.getAllByText(/Grades 9/i).length).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText(/no prior competition experience/i).length,
-    ).toBeGreaterThanOrEqual(1);
-  });
-
-  it("renders each public section with an accessible heading", () => {
+  it("shows what the club is doing now rather than a standing description", () => {
     render(<Home />);
 
     for (const name of [
-      "A club built on reasoning, not recall.",
-      "Algebra, in depth.",
-      "Open to every high school student.",
-      "Three steps, about five minutes.",
-      "Before you apply.",
+      "What we did.",
+      "Where we’re going.",
+      "Announcements.",
     ]) {
       expect(
         screen.getByRole("heading", { level: 2, name }),
@@ -45,21 +32,17 @@ describe("Home recruitment landing page", () => {
     }
   });
 
-  it("explains that Google sign-in does not grant membership", () => {
+  it("renders a graceful empty state when there are no announcements", () => {
     render(<Home />);
 
-    expect(
-      screen.getByText(/It does not make you a member\./i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Does signing in with Google make me a member\?/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Membership is a separate decision/i),
-    ).toBeInTheDocument();
+    // The content module ships with no announcements, so the fallback copy
+    // must carry the meeting facts instead of leaving a gap.
+    expect(screen.getByText(/No announcements right now/i)).toBeInTheDocument();
+    // Room 101 appears in the banner too, so more than one match is expected.
+    expect(screen.getAllByText(/Room 101/i).length).toBeGreaterThanOrEqual(1);
   });
 
-  it("makes no competition or archive claim that lacks an official source", () => {
+  it("makes no claim that lacks an official source", () => {
     const { container } = render(<Home />);
     const text = container.textContent ?? "";
 
@@ -75,23 +58,13 @@ describe("Home recruitment landing page", () => {
     ]) {
       expect(text).not.toContain(unsourced);
     }
-  });
 
-  it("does not imply LOGOS has entered an external competition", () => {
-    const { container } = render(<Home />);
-    const text = container.textContent ?? "";
-
-    // The club runs in-club contests but has never entered an outside one.
-    expect(text).toContain("In-club competitions");
-
-    // Word-boundary matching: "national" is a substring of "International".
+    // Word boundaries: "national" is a substring of "International".
     for (const pattern of [
       /takes part in competitions/i,
-      /competed in\b/i,
       /\bnational\b/i,
       /\bregional\b/i,
       /\btournaments?\b/i,
-      /\binter-?school\b/i,
     ]) {
       expect(text).not.toMatch(pattern);
     }
