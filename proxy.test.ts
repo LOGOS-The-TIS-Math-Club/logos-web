@@ -63,9 +63,9 @@ describe("Proxy Security Middleware", () => {
   }
 
   describe("Server-Generated Correlation IDs", () => {
-    test("generates fresh correlation ID and attaches to response", () => {
+    test("generates fresh correlation ID and attaches to response", async () => {
       const request = createRequest("GET", "/");
-      const response = proxy(request);
+      const response = await proxy(request);
 
       const correlationHeader = response.headers.get("x-correlation-id");
       expect(correlationHeader).toBeTruthy();
@@ -74,7 +74,7 @@ describe("Proxy Security Middleware", () => {
       );
     });
 
-    test("distrusts client-supplied X-Correlation-ID and generates a fresh server ID", () => {
+    test("distrusts client-supplied X-Correlation-ID and generates a fresh server ID", async () => {
       const spoofedClientUuid = "00000000-0000-0000-0000-000000000000";
       const request = createRequest("GET", "/", {
         headers: {
@@ -83,7 +83,7 @@ describe("Proxy Security Middleware", () => {
         },
       });
 
-      const response = proxy(request);
+      const response = await proxy(request);
       const returnedId = response.headers.get("x-correlation-id");
 
       expect(returnedId).toBeTruthy();
@@ -95,10 +95,10 @@ describe("Proxy Security Middleware", () => {
   });
 
   describe("Safe HTTP Methods Pass-Through & CSRF Issuance", () => {
-    test("allows GET, HEAD, and OPTIONS and sets baseline security headers", () => {
+    test("allows GET, HEAD, and OPTIONS and sets baseline security headers", async () => {
       for (const method of ["GET", "HEAD", "OPTIONS"]) {
         const request = createRequest(method, "/");
-        const response = proxy(request);
+        const response = await proxy(request);
 
         expect(response.status).toBe(200);
         expect(response.headers.get("content-security-policy")).toBeTruthy();
@@ -107,9 +107,9 @@ describe("Proxy Security Middleware", () => {
       }
     });
 
-    test("issues fresh signed __Host-logos_csrf cookie on initial safe GET request when missing", () => {
+    test("issues fresh signed __Host-logos_csrf cookie on initial safe GET request when missing", async () => {
       const request = createRequest("GET", "/");
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
       const setCookie = response.headers.get("set-cookie");
@@ -133,20 +133,20 @@ describe("Proxy Security Middleware", () => {
       expect(verifyResult).toEqual({ success: true });
     });
 
-    test("preserves existing valid unexpired CSRF cookie without redundant Set-Cookie overwrite", () => {
+    test("preserves existing valid unexpired CSRF cookie without redundant Set-Cookie overwrite", async () => {
       const validToken = csrf.generateToken();
       const request = createRequest("GET", "/", {
         cookies: {
           [CSRF_COOKIE_NAME]: validToken,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("set-cookie")).toBeNull();
     });
 
-    test("refreshes and issues new signed cookie on safe request when incoming cookie is expired", () => {
+    test("refreshes and issues new signed cookie on safe request when incoming cookie is expired", async () => {
       const pastTime = Date.now() - 7200000; // 2 hours ago
       const expiredCsrf = new CsrfProtection({
         secret: TEST_SECRET,
@@ -160,7 +160,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: expiredToken,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
       const setCookie = response.headers.get("set-cookie");
@@ -173,13 +173,13 @@ describe("Proxy Security Middleware", () => {
       expect(csrf.verifyTokenString(newToken)).toEqual({ success: true });
     });
 
-    test("refreshes and issues new signed cookie on safe request when incoming cookie is tampered/invalid", () => {
+    test("refreshes and issues new signed cookie on safe request when incoming cookie is tampered/invalid", async () => {
       const request = createRequest("GET", "/", {
         cookies: {
           [CSRF_COOKIE_NAME]: "invalid.malformed.csrf.token.here",
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
       const setCookie = response.headers.get("set-cookie");
@@ -194,7 +194,7 @@ describe("Proxy Security Middleware", () => {
   describe("Mutating Methods Origin Verification", () => {
     test("rejects mutating request without Origin or Referer with 403 envelope", async () => {
       const request = createRequest("POST", "/api/test");
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -215,7 +215,7 @@ describe("Proxy Security Middleware", () => {
       );
     });
 
-    test("accepts mutating request with valid trusted Origin header", () => {
+    test("accepts mutating request with valid trusted Origin header", async () => {
       const token = csrf.generateToken();
       const request = createRequest("POST", "/api/test", {
         headers: {
@@ -226,12 +226,12 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
     });
 
-    test("accepts mutating request when Origin is absent but Referer header contains trusted origin with path/query", () => {
+    test("accepts mutating request when Origin is absent but Referer header contains trusted origin with path/query", async () => {
       const token = csrf.generateToken();
       const request = createRequest("POST", "/api/test", {
         headers: {
@@ -242,7 +242,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("x-correlation-id")).toBeTruthy();
@@ -259,7 +259,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -277,7 +277,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -295,7 +295,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -308,7 +308,7 @@ describe("Proxy Security Middleware", () => {
           origin: "https://attacker.evil.invalid",
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -324,7 +324,7 @@ describe("Proxy Security Middleware", () => {
           "x-forwarded-proto": "https",
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -339,7 +339,7 @@ describe("Proxy Security Middleware", () => {
           origin: oversized,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -356,7 +356,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_HEADER_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -376,7 +376,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -395,7 +395,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: tokenB,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -414,14 +414,14 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: tamperedToken,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
       expect(json.error.code).toBe("FORBIDDEN_ORIGIN");
     });
 
-    test("succeeds for mutating request with trusted origin and matching signed CSRF token", () => {
+    test("succeeds for mutating request with trusted origin and matching signed CSRF token", async () => {
       const token = csrf.generateToken();
       const request = createRequest("POST", "/api/test", {
         headers: {
@@ -432,17 +432,17 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("x-correlation-id")).toBeTruthy();
       expect(response.headers.get("content-security-policy")).toBeTruthy();
     });
 
-    test("completes end-to-end flow: obtain token via safe GET, then echo in mutating POST", () => {
+    test("completes end-to-end flow: obtain token via safe GET, then echo in mutating POST", async () => {
       // Step 1: Initial GET request arrives without CSRF cookie
       const getReq = createRequest("GET", "/");
-      const getRes = proxy(getReq);
+      const getRes = await proxy(getReq);
       expect(getRes.status).toBe(200);
 
       const setCookie = getRes.headers.get("set-cookie");
@@ -461,7 +461,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: issuedToken!,
         },
       });
-      const postRes = proxy(postReq);
+      const postRes = await proxy(postReq);
       expect(postRes.status).toBe(200);
       expect(postRes.headers.get("x-correlation-id")).toBeTruthy();
     });
@@ -473,7 +473,7 @@ describe("Proxy Security Middleware", () => {
             origin: TEST_APP_URL,
           },
         });
-        const response = proxy(request);
+        const response = await proxy(request);
 
         expect(response.status).toBe(403);
         const json = await response.json();
@@ -493,7 +493,7 @@ describe("Proxy Security Middleware", () => {
         "/api/cron",
       ]) {
         const unauthenticatedRequest = createRequest("POST", path);
-        const response = proxy(unauthenticatedRequest);
+        const response = await proxy(unauthenticatedRequest);
 
         expect(response.status).toBe(403);
         const json = await response.json();
@@ -517,7 +517,7 @@ describe("Proxy Security Middleware", () => {
           [CSRF_COOKIE_NAME]: token,
         },
       });
-      const response = proxy(request);
+      const response = await proxy(request);
 
       expect(response.status).toBe(403);
       const json = await response.json();
@@ -533,7 +533,7 @@ describe("Proxy Security Middleware", () => {
           origin: TEST_APP_URL,
         },
       });
-      const mutatingRes = proxy(mutatingReq);
+      const mutatingRes = await proxy(mutatingReq);
       expect(mutatingRes.status).toBe(500);
       const jsonMutating = await mutatingRes.json();
       expect(jsonMutating.error.code).toBe("INTERNAL_SERVER_ERROR");
@@ -542,10 +542,62 @@ describe("Proxy Security Middleware", () => {
 
       // Safe request proceeds with baseline security headers without throwing
       const safeReq = createRequest("GET", "/");
-      const safeRes = proxy(safeReq);
+      const safeRes = await proxy(safeReq);
       expect(safeRes.status).toBe(200);
       expect(safeRes.headers.get("x-correlation-id")).toBeTruthy();
       expect(safeRes.headers.get("set-cookie")).toBeNull();
+    });
+  });
+
+  describe("Neon OAuth Session Verifier Exchange", () => {
+    test("intercepts neon_auth_session_verifier and returns redirect with security headers", async () => {
+      process.env.NEON_AUTH_BASE_URL = "https://auth.example.com";
+      process.env.NEON_AUTH_COOKIE_SECRET =
+        "super_secret_test_key_at_least_32_bytes_long_123456";
+
+      const originalFetch = global.fetch;
+      try {
+        global.fetch = async () => {
+          return new Response(
+            JSON.stringify({
+              user: { id: "u1" },
+              session: { id: "s1" },
+            }),
+            {
+              status: 200,
+              headers: {
+                "content-type": "application/json",
+                "set-cookie":
+                  "__Secure-neon-auth.session_token=token_123; Path=/; HttpOnly; Secure; SameSite=Lax",
+              },
+            },
+          );
+        };
+
+        const request = createRequest(
+          "GET",
+          "/auth/complete?neon_auth_session_verifier=verifier_123",
+          {
+            headers: {
+              cookie: "__Secure-neon-auth.session_challenge=challenge_123",
+            },
+          },
+        );
+
+        const response = await proxy(request);
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(
+          "http://localhost:3000/auth/complete",
+        );
+        expect(response.headers.get("set-cookie")).toContain(
+          "__Secure-neon-auth.session_token=token_123",
+        );
+        expect(response.headers.get("content-security-policy")).toBeTruthy();
+        expect(response.headers.get("x-correlation-id")).toBeTruthy();
+      } finally {
+        global.fetch = originalFetch;
+      }
     });
   });
 });
