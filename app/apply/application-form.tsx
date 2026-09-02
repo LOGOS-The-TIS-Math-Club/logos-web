@@ -218,7 +218,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-10">
       {/* Verified Identity Read-Only Callout */}
-      <div className="border-border bg-surface rounded-component border p-4 sm:p-5">
+      <div className="panel p-4 sm:p-5">
         <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
           Verified Applicant Identity
         </p>
@@ -237,7 +237,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
           tabIndex={-1}
           role="alert"
           aria-labelledby="error-summary-heading"
-          className="border-danger bg-danger-surface rounded-component border p-4 text-sm focus:outline-none"
+          className="alert-danger p-4 text-sm focus:outline-none"
         >
           <h2 id="error-summary-heading" className="text-danger font-semibold">
             Please correct the errors below to submit:
@@ -283,7 +283,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, preferredName: undefined }));
             }
           }}
-          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="e.g. Alex Rivera"
         />
         {errors.preferredName && (
@@ -440,7 +440,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, joinReason: undefined }));
             }
           }}
-          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="Share your thoughts on exploring problems, working with others, or what drew you to LOGOS..."
         />
         {errors.joinReason && (
@@ -496,7 +496,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, goals: undefined }));
             }
           }}
-          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="Topics you're curious about, ideas for workshops, or skills you'd like to develop..."
         />
         {errors.goals && (
@@ -540,7 +540,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, experience: undefined }));
             }
           }}
-          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="Optional: AMC 8/10, math circles, independent study, or puzzle hobbies..."
         />
         {errors.experience && (
@@ -576,7 +576,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
           value={mathCourse}
           onChange={(e) => setMathCourse(e.target.value)}
           aria-describedby={`${mathCourseId}-desc`}
-          className="border-border-input bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
         >
           <option value="">Select a course…</option>
           {MATH_COURSES.map(({ key, label }) => (
@@ -760,7 +760,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
       </fieldset>
 
       {/* 11. Final Acknowledgement */}
-      <div className="border-border bg-surface rounded-component border p-4 sm:p-5">
+      <div className="panel p-4 sm:p-5">
         <label
           htmlFor={accuracyId}
           className="flex cursor-pointer items-start gap-3 text-sm"

@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 
+import { AppPage } from "@/components/layout/app-page";
 import { listAnnouncementsForManagement } from "@/lib/announcements/service.server";
 import type { AnnouncementRecord } from "@/lib/announcements/schema";
 import { AccessDeniedError } from "@/lib/auth/errors";
@@ -40,19 +41,13 @@ export default async function AdminAnnouncementsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 py-4">
-      <header className="space-y-3">
-        <p className="eyebrow">Leadership</p>
-        <h1 className="text-3xl font-extrabold tracking-[-0.03em]">
-          Announcements
-        </h1>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          Published announcements appear on the home page as soon as you save.
-          Drafts stay private until you tick publish.
-        </p>
-      </header>
-
+    <AppPage
+      width="narrow"
+      eyebrow="Leadership"
+      title="Announcements"
+      lede="Published announcements appear on the home page as soon as you save. Drafts stay private until you tick publish."
+    >
       <AnnouncementsAdminView announcements={announcements} />
-    </div>
+    </AppPage>
   );
 }

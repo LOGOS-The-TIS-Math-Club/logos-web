@@ -227,7 +227,7 @@ export function MemberAdminView({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="border-border bg-surface text-foreground rounded-component border px-3 py-1 text-xs font-semibold">
+          <span className="field-input">
             {counts.active} Active {counts.active === 1 ? "Member" : "Members"}
           </span>
         </div>
@@ -250,7 +250,7 @@ export function MemberAdminView({
 
       {/* Pending Deliberate Activation Queue */}
       {pendingApps.length > 0 && (
-        <div className="border-border bg-surface rounded-component space-y-4 border p-5">
+        <div className="panel space-y-4 p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-foreground text-base font-bold">
               Ready for Membership Activation ({pendingApps.length})
@@ -285,7 +285,7 @@ export function MemberAdminView({
                   type="button"
                   onClick={() => handleActivate(app)}
                   disabled={activatingId === app.id}
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-9 items-center justify-center px-4 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+                  className="control control-primary"
                 >
                   {activatingId === app.id
                     ? "Activating..."
@@ -310,7 +310,7 @@ export function MemberAdminView({
             id={filterId}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border-border bg-surface text-foreground rounded-component focus:ring-primary border px-3 py-1.5 text-xs font-medium focus:ring-1 focus:outline-none"
+            className="field-input"
           >
             <option value="all">All Members ({counts.all})</option>
             <option value="active">Active ({counts.active})</option>
@@ -322,13 +322,13 @@ export function MemberAdminView({
 
       {/* Members Table */}
       {filteredMembers.length === 0 ? (
-        <div className="border-border bg-surface rounded-component border py-12 text-center">
+        <div className="panel py-12 text-center">
           <p className="text-muted-foreground text-sm">
             No member records found matching the selected filter.
           </p>
         </div>
       ) : (
-        <div className="border-border bg-surface rounded-component overflow-x-auto border">
+        <div className="panel overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-border bg-surface-raised text-muted-foreground border-b text-xs font-semibold">
               <tr>
@@ -379,7 +379,7 @@ export function MemberAdminView({
                         setEditStatus(member.status);
                         setEditReason(member.statusReason || "");
                       }}
-                      className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component focus-visible:outline-focus inline-flex min-h-8 items-center border px-3 py-1 text-xs font-medium transition-colors"
+                      className="control"
                     >
                       Update Status
                     </button>
@@ -399,7 +399,7 @@ export function MemberAdminView({
           aria-labelledby="edit-status-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
-          <div className="border-border bg-surface rounded-component w-full max-w-md space-y-4 border p-6 shadow-xl">
+          <div className="panel w-full max-w-md space-y-4 p-6 shadow-xl">
             <h2
               id="edit-status-title"
               className="text-foreground text-lg font-bold"
@@ -424,7 +424,7 @@ export function MemberAdminView({
                   onChange={(e) =>
                     setEditStatus(e.target.value as ClubMemberStatus)
                   }
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                  className="field-input"
                 >
                   <option value="active">
                     Active (current participating member)
@@ -448,7 +448,7 @@ export function MemberAdminView({
                   maxLength={256}
                   placeholder="e.g. Schedule conflict for semester, graduation, etc."
                   rows={3}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
+                  className="panel text-foreground focus:ring-primary mt-1 w-full p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
@@ -457,14 +457,14 @@ export function MemberAdminView({
                   type="button"
                   onClick={() => setEditingMember(null)}
                   disabled={isSubmitting}
-                  className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component px-4 py-2 text-xs font-medium"
+                  className="control"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover rounded-component px-4 py-2 text-xs font-semibold disabled:opacity-50"
+                  className="control control-primary"
                 >
                   {isSubmitting ? "Saving..." : "Save Changes"}
                 </button>

@@ -105,10 +105,7 @@ export function AnnouncementsAdminView({
         </h2>
 
         {error ? (
-          <p
-            role="alert"
-            className="border-danger bg-danger-surface text-danger rounded-component border p-3 text-sm"
-          >
+          <p role="alert" className="alert-danger text-danger p-3 text-sm">
             {error}
           </p>
         ) : null}

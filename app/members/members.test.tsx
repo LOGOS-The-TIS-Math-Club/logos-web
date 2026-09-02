@@ -61,7 +61,7 @@ describe("MemberHubView", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("85%")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Submit Absence Notice" }),
+      screen.getByRole("button", { name: "Submit absence notice" }),
     ).toBeInTheDocument();
   });
 });

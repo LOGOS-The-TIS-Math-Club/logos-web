@@ -175,18 +175,14 @@ export function ApplicationAdminView({
         </div>
 
         <div>
-          <a
-            href="/api/admin/applications/export"
-            download
-            className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component focus-visible:outline-focus inline-flex min-h-11 items-center justify-center border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
-          >
+          <a href="/api/admin/applications/export" download className="control">
             Export Applications (CSV)
           </a>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="border-border bg-surface rounded-component flex flex-wrap gap-2 border p-1.5">
+      <div className="panel flex flex-wrap gap-2 p-1.5">
         {(
           ["all", "submitted", "reviewing", "accepted", "declined"] as const
         ).map((statusKey) => {
@@ -235,7 +231,7 @@ export function ApplicationAdminView({
           </h2>
 
           {filtered.length === 0 ? (
-            <div className="border-border bg-surface rounded-component border p-8 text-center">
+            <div className="panel p-8 text-center">
               <p className="text-muted-foreground text-sm">
                 No applications matching filter{" "}
                 <strong>{selectedStatus}</strong>.
@@ -308,7 +304,7 @@ export function ApplicationAdminView({
 
         {/* Selected Application Detail Panel */}
         <section aria-labelledby="app-detail-heading" className="lg:col-span-5">
-          <div className="border-border bg-surface rounded-component sticky top-6 space-y-6 border p-6">
+          <div className="panel sticky top-6 space-y-6 p-6">
             <h2
               id="app-detail-heading"
               className="text-foreground border-border border-b pb-3 text-base font-semibold"
@@ -402,7 +398,7 @@ export function ApplicationAdminView({
                 </div>
 
                 {/* Status Update Control */}
-                <div className="border-border bg-surface-raised rounded-component space-y-3 border p-4">
+                <div className="panel-raised space-y-3 p-4">
                   <h4 className="text-foreground text-xs font-semibold">
                     Update Application Status
                   </h4>
@@ -417,7 +413,7 @@ export function ApplicationAdminView({
                       onChange={(e) =>
                         setUpdateStatusVal(e.target.value as ApplicationStatus)
                       }
-                      className="border-border bg-surface text-foreground focus-visible:border-primary rounded-component w-full border px-3 py-2 text-xs"
+                      className="field-input"
                     >
                       <option value="submitted">Submitted</option>
                       <option value="reviewing">Reviewing</option>
@@ -431,14 +427,14 @@ export function ApplicationAdminView({
                       maxLength={256}
                       value={updateReasonVal}
                       onChange={(e) => setUpdateReasonVal(e.target.value)}
-                      className="border-border bg-surface text-foreground focus-visible:border-primary rounded-component w-full border px-3 py-2 text-xs"
+                      className="field-input"
                     />
 
                     <button
                       type="button"
                       disabled={updatingId === activeApp.id}
                       onClick={() => handleStatusUpdate(activeApp.id)}
-                      className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus min-h-11 w-full cursor-pointer px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
+                      className="control control-primary"
                     >
                       {updatingId === activeApp.id
                         ? "Saving…"

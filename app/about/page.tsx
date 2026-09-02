@@ -76,10 +76,7 @@ export default function AboutPage() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Purpose</p>
-            <h2
-              id="purpose-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="purpose-heading" className="heading-1">
               Why the club exists.
             </h2>
           </div>
@@ -106,10 +103,7 @@ export default function AboutPage() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Governance</p>
-            <h2
-              id="run-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="run-heading" className="heading-1">
               Run by its members.
             </h2>
           </div>
@@ -149,10 +143,7 @@ export default function AboutPage() {
         <div className="space-y-10">
           <div className="max-w-2xl space-y-3">
             <p className="eyebrow">Core values</p>
-            <h2
-              id="values-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance sm:text-4xl"
-            >
+            <h2 id="values-heading" className="heading-1">
               Six commitments, written down.
             </h2>
           </div>
@@ -169,9 +160,7 @@ export default function AboutPage() {
                 >
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3 className="text-lg font-bold tracking-[-0.01em]">
-                  {value.name}
-                </h3>
+                <h3 className="heading-3">{value.name}</h3>
                 <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
                   {value.body}
                 </p>
@@ -186,10 +175,7 @@ export default function AboutPage() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Leadership</p>
-            <h2
-              id="leadership-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="leadership-heading" className="heading-1">
               Who runs it.
             </h2>
           </div>

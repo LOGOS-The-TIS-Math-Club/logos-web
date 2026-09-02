@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AppPage } from "@/components/layout/app-page";
 import { hasCapability, type Capability } from "@/lib/auth/capabilities";
 import { resolveCurrentIdentity } from "@/lib/auth/identity-access.server";
 
@@ -91,9 +92,7 @@ export default async function AdminIndexPage() {
     return (
       <div className="mx-auto max-w-lg space-y-5 py-16">
         <p className="eyebrow">Leadership</p>
-        <h1 className="text-3xl font-extrabold tracking-[-0.03em] text-balance">
-          You don&rsquo;t have leadership access.
-        </h1>
+        <h1 className="heading-1">You don&rsquo;t have leadership access.</h1>
         <p className="text-muted-foreground leading-relaxed">
           {signedIn
             ? "Your account is signed in but has not been granted a leadership role. An access administrator has to grant it before these tools appear."
@@ -120,18 +119,11 @@ export default async function AdminIndexPage() {
   }
 
   return (
-    <div className="space-y-10 py-4">
-      <header className="max-w-2xl space-y-3">
-        <p className="eyebrow">Leadership</p>
-        <h1 className="text-4xl font-extrabold tracking-[-0.03em] text-balance">
-          Club tools.
-        </h1>
-        <p className="text-muted-foreground leading-relaxed">
-          Everything here is restricted to leadership accounts and every change
-          is recorded in the audit log.
-        </p>
-      </header>
-
+    <AppPage
+      eyebrow="Leadership"
+      title="Club tools"
+      lede="Everything here is restricted to leadership accounts, and every change is recorded in the audit log."
+    >
       <ul className="border-border grid gap-px border sm:grid-cols-2">
         {available.map((section) => (
           <li key={section.href} className="bg-surface">
@@ -139,7 +131,7 @@ export default async function AdminIndexPage() {
               href={section.href}
               className="hover:bg-surface-raised focus-visible:outline-focus group block h-full p-7 transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 motion-reduce:transition-none"
             >
-              <span className="group-hover:text-primary flex items-center gap-2 text-lg font-bold tracking-[-0.015em] transition-colors duration-200 motion-reduce:transition-none">
+              <span className="heading-3 group-hover:text-primary flex items-center gap-2 transition-colors duration-200 motion-reduce:transition-none">
                 {section.label}
                 <span
                   aria-hidden="true"
@@ -155,6 +147,6 @@ export default async function AdminIndexPage() {
           </li>
         ))}
       </ul>
-    </div>
+    </AppPage>
   );
 }

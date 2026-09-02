@@ -77,10 +77,7 @@ export default async function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Latest session</p>
-            <h2
-              id="week-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="week-heading" className="heading-1">
               What we did.
             </h2>
           </div>
@@ -103,7 +100,7 @@ export default async function Home() {
             </div>
           ) : (
             <div className="panel ruled-left space-y-3 border-l-2 p-8">
-              <p className="text-xl font-bold">The term has not started yet.</p>
+              <p className="heading-3">The term has not started yet.</p>
               <p className="text-muted-foreground">
                 Our first session is{" "}
                 <span className="datum text-foreground">
@@ -121,10 +118,7 @@ export default async function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">This term</p>
-            <h2
-              id="plan-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="plan-heading" className="heading-1">
               Where we’re going.
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -158,10 +152,7 @@ export default async function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Notices</p>
-            <h2
-              id="news-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="news-heading" className="heading-1">
               Announcements.
             </h2>
           </div>
@@ -197,10 +188,7 @@ export default async function Home() {
         <div className="plated">
           <div className="panel-lifted hatched flex flex-col items-start gap-6 p-10 sm:flex-row sm:items-center sm:justify-between sm:p-12">
             <div className="space-y-2">
-              <h2
-                id="cta-heading"
-                className="text-2xl font-extrabold tracking-[-0.025em] sm:text-3xl"
-              >
+              <h2 id="cta-heading" className="heading-2">
                 Want to join?
               </h2>
               <p className="text-muted-foreground text-sm">
