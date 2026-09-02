@@ -15,6 +15,10 @@ import {
   isSafeHttpMethod,
   OriginVerifier,
 } from "./lib/security/origin-csrf";
+import {
+  processAuthMiddleware,
+  DEFAULT_AUTH_SKIP_ROUTES,
+} from "@neondatabase/auth/server";
 
 function createContentSecurityPolicy(nonce: string): string {
   const development = process.env.NODE_ENV === "development";
@@ -102,7 +106,49 @@ function applySecurityHeaders(
   headers.set(CORRELATION_HEADER_NAME_CANONICAL, correlationId);
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const baseUrl = process.env.NEON_AUTH_BASE_URL;
+  const cookieSecret = process.env.NEON_AUTH_COOKIE_SECRET;
+
+  // If returning from OAuth with a session verifier, exchange it via Neon Auth
+  if (
+    request.nextUrl.searchParams.has("neon_auth_session_verifier") &&
+    baseUrl &&
+    cookieSecret &&
+    cookieSecret.length >= 32
+  ) {
+    const result = await processAuthMiddleware({
+      request,
+      pathname: request.nextUrl.pathname,
+      skipRoutes: DEFAULT_AUTH_SKIP_ROUTES,
+      loginUrl: "/auth/sign-in",
+      baseUrl,
+      cookieSecret,
+      sessionDataTtl: 60,
+      sameSite: "lax",
+    });
+
+    if (result.action === "redirect_oauth") {
+      const correlationId = generateCorrelationId();
+      const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+      const contentSecurityPolicy = createContentSecurityPolicy(nonce);
+
+      const oauthHeaders = new Headers();
+      for (const cookie of result.cookies) {
+        oauthHeaders.append("Set-Cookie", cookie);
+      }
+      const response = NextResponse.redirect(result.redirectUrl, {
+        headers: oauthHeaders,
+      });
+      applySecurityHeaders(
+        response.headers,
+        contentSecurityPolicy,
+        correlationId,
+      );
+      return response;
+    }
+  }
+
   // Always generate a fresh, untrusted server correlation ID (ignores client header)
   const correlationId = generateCorrelationId();
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
