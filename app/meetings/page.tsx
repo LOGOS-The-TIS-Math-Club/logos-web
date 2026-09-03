@@ -66,10 +66,7 @@ export default function MeetingsPage() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">What happens</p>
-            <h2
-              id="shape-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="shape-heading" className="heading-1">
               The shape of a session.
             </h2>
           </div>
@@ -93,10 +90,7 @@ export default function MeetingsPage() {
         <div className="space-y-8">
           <div className="max-w-2xl space-y-3">
             <p className="eyebrow">2026 programme</p>
-            <h2
-              id="programme-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance sm:text-4xl"
-            >
+            <h2 id="programme-heading" className="heading-1">
               Algebra, in depth.
             </h2>
             <p className="text-muted-foreground leading-relaxed">

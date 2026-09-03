@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -15,6 +15,19 @@ import {
 
 const execFileAsync = promisify(execFile);
 requireNonProductionEnvironment();
+
+/*
+ * Derived from the committed journal rather than written as a literal.
+ * This assertion previously hard-coded the migration count, so every new
+ * migration broke the restore check for reasons unrelated to the restore.
+ */
+const journal = JSON.parse(
+  await readFile(
+    new URL("../../drizzle/meta/_journal.json", import.meta.url),
+    "utf8",
+  ),
+);
+const expectedMigrationCount = journal.entries.length;
 
 const testDatabaseUrl = requireEnvironmentVariable("TEST_DATABASE_URL");
 const backupDatabaseUrl = requireEnvironmentVariable("BACKUP_DATABASE_URL");
@@ -166,38 +179,60 @@ try {
         has_table_privilege('logos_runtime', 'logos.member_warnings', 'INSERT') as runtime_warnings_insert,
         has_table_privilege('logos_backup', 'logos.member_warnings', 'SELECT') as backup_warnings_select,
         has_table_privilege('logos_backup', 'logos.student_applications', 'INSERT') as backup_application_insert,
+        has_table_privilege('logos_runtime', 'logos.announcements', 'INSERT') as runtime_announcements_insert,
+        has_table_privilege('logos_backup', 'logos.announcements', 'SELECT') as backup_announcements_select,
+        has_table_privilege('logos_backup', 'logos.announcements', 'INSERT') as backup_announcements_insert,
         has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'INSERT') as backup_insert
     `;
-    if (
-      restoredFixture?.marker !== "logos-phase-02-synthetic" ||
-      restoredMigration?.count !== 6 ||
-      !restoredPrivileges?.runtime_usage ||
-      !restoredPrivileges.runtime_insert ||
-      !restoredPrivileges.runtime_audit_insert ||
-      restoredPrivileges.runtime_audit_select ||
-      !restoredPrivileges.backup_select ||
-      !restoredPrivileges.backup_audit_select ||
-      restoredPrivileges.runtime_identity_select ||
-      !restoredPrivileges.runtime_identity_resolve ||
-      restoredPrivileges.runtime_bootstrap ||
-      !restoredPrivileges.backup_identity_select ||
-      !restoredPrivileges.runtime_application_insert ||
-      !restoredPrivileges.backup_application_select ||
-      !restoredPrivileges.runtime_members_insert ||
-      !restoredPrivileges.backup_members_select ||
-      !restoredPrivileges.runtime_sessions_insert ||
-      !restoredPrivileges.backup_sessions_select ||
-      !restoredPrivileges.runtime_attendance_insert ||
-      !restoredPrivileges.backup_attendance_select ||
-      !restoredPrivileges.runtime_absences_insert ||
-      !restoredPrivileges.backup_absences_select ||
-      !restoredPrivileges.runtime_warnings_insert ||
-      !restoredPrivileges.backup_warnings_select ||
-      restoredPrivileges.backup_application_insert ||
-      restoredPrivileges.backup_insert
-    ) {
+    /*
+     * Named rather than folded into one boolean so a failure says which
+     * guarantee broke. The previous single condition reported only that
+     * something did not match, which is a poor thing to read in CI.
+     */
+    const p = restoredPrivileges ?? {};
+    const failures = [
+      [
+        "synthetic fixture marker survived the restore",
+        restoredFixture?.marker === "logos-phase-02-synthetic",
+      ],
+      [
+        `migration count is ${expectedMigrationCount} (found ${restoredMigration?.count})`,
+        restoredMigration?.count === expectedMigrationCount,
+      ],
+      ["runtime keeps schema usage", p.runtime_usage],
+      ["runtime may write the probe", p.runtime_insert],
+      ["runtime may append to the business journal", p.runtime_audit_insert],
+      ["runtime may NOT read the business journal", !p.runtime_audit_select],
+      ["backup may read the probe", p.backup_select],
+      ["backup may read the business journal", p.backup_audit_select],
+      ["runtime may NOT read identities directly", !p.runtime_identity_select],
+      ["runtime may resolve identity access", p.runtime_identity_resolve],
+      ["runtime may NOT bootstrap an access admin", !p.runtime_bootstrap],
+      ["backup may read identities", p.backup_identity_select],
+      ["runtime may write applications", p.runtime_application_insert],
+      ["backup may read applications", p.backup_application_select],
+      ["backup may NOT write applications", !p.backup_application_insert],
+      ["runtime may write members", p.runtime_members_insert],
+      ["backup may read members", p.backup_members_select],
+      ["runtime may write sessions", p.runtime_sessions_insert],
+      ["backup may read sessions", p.backup_sessions_select],
+      ["runtime may write attendance", p.runtime_attendance_insert],
+      ["backup may read attendance", p.backup_attendance_select],
+      ["runtime may write absences", p.runtime_absences_insert],
+      ["backup may read absences", p.backup_absences_select],
+      ["runtime may write warnings", p.runtime_warnings_insert],
+      ["backup may read warnings", p.backup_warnings_select],
+      ["runtime may write announcements", p.runtime_announcements_insert],
+      ["backup may read announcements", p.backup_announcements_select],
+      ["backup may NOT write announcements", !p.backup_announcements_insert],
+      ["backup may NOT write the probe", !p.backup_insert],
+    ]
+      .filter((entry) => !entry[1])
+      .map((entry) => entry[0]);
+
+    if (failures.length > 0) {
       throw new Error(
-        "Restored schema, grants, or synthetic fixture did not match",
+        `Restored schema, grants, or synthetic fixture did not match:\n  - ${failures.join("\n  - ")}`,
       );
     }
   } finally {

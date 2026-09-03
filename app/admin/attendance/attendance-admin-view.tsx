@@ -236,7 +236,7 @@ export function AttendanceAdminView({
               id="session-select"
               value={selectedSessionId}
               onChange={(e) => handleSessionChange(e.target.value)}
-              className="border-border bg-surface text-foreground rounded-component focus:ring-primary border px-3 py-2 text-xs font-medium focus:ring-1 focus:outline-none"
+              className="field-input"
             >
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -266,7 +266,7 @@ export function AttendanceAdminView({
       {selectedSession && (
         <>
           {/* Summary Stat Counters */}
-          <div className="border-border bg-surface rounded-component grid grid-cols-2 gap-4 border p-4 sm:grid-cols-5">
+          <div className="panel grid grid-cols-2 gap-4 p-4 sm:grid-cols-5">
             <div className="space-y-1 text-center">
               <span className="text-muted-foreground text-xs">Present</span>
               <p className="text-success text-xl font-bold">{presentCount}</p>
@@ -293,7 +293,7 @@ export function AttendanceAdminView({
 
           {/* Roster Table */}
           {roster.length === 0 ? (
-            <div className="border-border bg-surface rounded-component border py-12 text-center">
+            <div className="panel py-12 text-center">
               <p className="text-muted-foreground text-sm">
                 No active club members found to take attendance for.
               </p>
@@ -308,13 +308,13 @@ export function AttendanceAdminView({
                 <button
                   type="button"
                   onClick={() => setShowAbsenceModal(true)}
-                  className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component px-3 py-1.5 text-xs font-medium transition-colors"
+                  className="control"
                 >
                   + Record Absence on Member&apos;s Behalf
                 </button>
               </div>
 
-              <div className="border-border bg-surface rounded-component overflow-x-auto border">
+              <div className="panel overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-border bg-surface-raised text-muted-foreground border-b text-xs font-semibold">
                     <tr>
@@ -398,7 +398,7 @@ export function AttendanceAdminView({
                             }
                             placeholder="Optional note"
                             maxLength={256}
-                            className="border-border bg-surface text-foreground rounded-component focus:ring-primary w-full border px-2 py-1 text-xs focus:ring-1 focus:outline-none"
+                            className="panel text-foreground focus:ring-primary w-full px-2 py-1 text-xs focus:ring-1 focus:outline-none"
                           />
                         </td>
                       </tr>
@@ -413,7 +413,7 @@ export function AttendanceAdminView({
                   type="button"
                   onClick={handleSaveAttendance}
                   disabled={isSaving}
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-10 items-center justify-center px-6 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+                  className="control control-primary"
                 >
                   {isSaving ? "Saving Ledger..." : "Save Attendance Ledger"}
                 </button>
@@ -431,7 +431,7 @@ export function AttendanceAdminView({
           aria-labelledby="record-absence-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
-          <div className="border-border bg-surface rounded-component w-full max-w-md space-y-4 border p-6 shadow-xl">
+          <div className="panel w-full max-w-md space-y-4 p-6 shadow-xl">
             <h2
               id="record-absence-title"
               className="text-foreground text-lg font-bold"
@@ -455,7 +455,7 @@ export function AttendanceAdminView({
                 <select
                   value={absenceMemberId}
                   onChange={(e) => setAbsenceMemberId(e.target.value)}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                  className="field-input"
                 >
                   {roster.map((m) => (
                     <option key={m.memberId} value={m.memberId}>
@@ -476,7 +476,7 @@ export function AttendanceAdminView({
                   maxLength={500}
                   placeholder="e.g. Informs leadership of debate tournament trip."
                   rows={3}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
+                  className="panel text-foreground focus:ring-primary mt-1 w-full p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
@@ -485,14 +485,14 @@ export function AttendanceAdminView({
                   type="button"
                   onClick={() => setShowAbsenceModal(false)}
                   disabled={isSubmittingAbsence}
-                  className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component px-4 py-2 text-xs font-medium"
+                  className="control"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingAbsence}
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover rounded-component px-4 py-2 text-xs font-semibold disabled:opacity-50"
+                  className="control control-primary"
                 >
                   {isSubmittingAbsence ? "Recording..." : "Record Absence"}
                 </button>

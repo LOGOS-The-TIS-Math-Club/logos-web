@@ -11,11 +11,47 @@ export const MATHEMATICAL_INTERESTS = [
   { key: "combinatorics", label: "Combinatorics & discrete math" },
   { key: "logic_puzzles", label: "Logic, games & puzzles" },
   { key: "applied_math", label: "Applied mathematics & modeling" },
-  { key: "other", label: "Other / exploring" },
+  { key: "other", label: "Not sure yet — exploring" },
 ] as const;
 
 export const INTEREST_KEYS = MATHEMATICAL_INTERESTS.map((item) => item.key);
 export type InterestKey = (typeof INTEREST_KEYS)[number];
+
+/*
+ * Course level. Optional on purpose: it helps pitch a session at the right
+ * level, but a student may not want to share it, so "Prefer not to say" is a
+ * first-class answer rather than a blank.
+ *
+ * Options follow the IB pathway the school runs — MYP in Grades 9–10, DP in
+ * Grades 11–12.
+ */
+export const MATH_COURSES = [
+  { key: "myp_standard", label: "MYP Mathematics (Standard)" },
+  { key: "myp_extended", label: "MYP Mathematics (Extended)" },
+  { key: "dp_aa_sl", label: "DP Analysis & Approaches SL" },
+  { key: "dp_aa_hl", label: "DP Analysis & Approaches HL" },
+  { key: "dp_ai_sl", label: "DP Applications & Interpretation SL" },
+  { key: "dp_ai_hl", label: "DP Applications & Interpretation HL" },
+  { key: "other", label: "Something else" },
+  { key: "prefer_not_to_say", label: "Prefer not to say" },
+] as const;
+
+export const MATH_COURSE_KEYS = MATH_COURSES.map((item) => item.key);
+
+/** Shared yes / maybe / no scale. "Not sure" is always an honest answer. */
+export const INTEREST_SCALE_KEYS = ["yes", "maybe", "no"] as const;
+
+export const CONTEST_INTEREST_OPTIONS = [
+  { key: "yes", label: "Yes, I'd like to take part." },
+  { key: "maybe", label: "Maybe — I'd like to see one first." },
+  { key: "no", label: "No, I'd rather just do the sessions." },
+] as const;
+
+export const PRESENT_INTEREST_OPTIONS = [
+  { key: "yes", label: "Yes, I'd like to present something." },
+  { key: "maybe", label: "Maybe, with some help preparing." },
+  { key: "no", label: "No, I'd prefer not to." },
+] as const;
 
 export const ATTENDANCE_KEYS = [
   "regular",
@@ -84,6 +120,18 @@ export const StudentApplicationInputSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val && val.length > 0 ? val : null)),
+  /*
+   * Optional, and stored as null when skipped or when the student chooses
+   * "Prefer not to say" — we keep the fact they declined out of the record
+   * rather than storing a refusal as data about them.
+   */
+  mathCourse: z
+    .enum(MATH_COURSE_KEYS as [string, ...string[]])
+    .optional()
+    .nullable()
+    .transform((val) => (val && val !== "prefer_not_to_say" ? val : null)),
+  contestInterest: z.enum(INTEREST_SCALE_KEYS),
+  presentInterest: z.enum(INTEREST_SCALE_KEYS),
   attendanceConfirmation: z.enum(ATTENDANCE_KEYS),
   accuracyAcknowledged: z.literal(true),
 });

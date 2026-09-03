@@ -45,9 +45,14 @@ export function SignInButton() {
             setBusy(false);
           }
         }}
-        className="bg-primary text-primary-foreground hover:bg-primary-hover rounded-component px-4 py-2 text-sm font-semibold disabled:opacity-60"
+        className="action action-primary"
       >
-        {busy ? "Connecting…" : "Continue with Google"}
+        <span className="action-label">
+          {busy ? "Connecting…" : "Continue with Google"}
+        </span>
+        <span className="action-label-hover" aria-hidden="true">
+          {busy ? "Connecting…" : "Continue with Google"}
+        </span>
       </button>
       {failed ? (
         <p role="alert" className="text-danger mt-3 text-sm">
@@ -69,9 +74,12 @@ export function SignOutButton() {
         router.push("/auth/sign-in");
         router.refresh();
       }}
-      className="border-border hover:bg-secondary rounded-component border px-4 py-2 text-sm font-semibold"
+      className="action action-sm"
     >
-      Sign out
+      <span className="action-label">Sign out</span>
+      <span className="action-label-hover" aria-hidden="true">
+        Sign out
+      </span>
     </button>
   );
 }

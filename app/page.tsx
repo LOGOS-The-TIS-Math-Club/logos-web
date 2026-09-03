@@ -2,7 +2,11 @@ import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
 import {
-  ANNOUNCEMENTS,
+  listPublishedAnnouncements,
+  type PublicAnnouncement,
+} from "@/lib/announcements/service.server";
+import {
+  formatAnnouncementDate,
   formatSessionDate,
   SEMESTER_FOCUS,
   SESSIONS,
@@ -21,7 +25,20 @@ import {
  * room and grade range are user-confirmed.
  */
 
-export default function Home() {
+export default async function Home() {
+  /*
+   * Announcements come from the database so leadership can post without a
+   * deploy. A failure here must not take down the public page — the section
+   * has a real empty state, so falling back to none is a graceful degradation
+   * rather than a blank hole.
+   */
+  let announcements: PublicAnnouncement[] = [];
+  try {
+    announcements = await listPublishedAnnouncements();
+  } catch {
+    announcements = [];
+  }
+
   // Rendered per request (the root layout opts into dynamic rendering), so
   // "this week" is genuinely current rather than frozen at build time.
   const { past, next } = splitSessions(SESSIONS, new Date());
@@ -60,10 +77,7 @@ export default function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Latest session</p>
-            <h2
-              id="week-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="week-heading" className="heading-1">
               What we did.
             </h2>
           </div>
@@ -86,7 +100,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="panel ruled-left space-y-3 border-l-2 p-8">
-              <p className="text-xl font-bold">The term has not started yet.</p>
+              <p className="heading-3">The term has not started yet.</p>
               <p className="text-muted-foreground">
                 Our first session is{" "}
                 <span className="datum text-foreground">
@@ -104,10 +118,7 @@ export default function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">This term</p>
-            <h2
-              id="plan-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="plan-heading" className="heading-1">
               Where we’re going.
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -141,23 +152,20 @@ export default function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Notices</p>
-            <h2
-              id="news-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="news-heading" className="heading-1">
               Announcements.
             </h2>
           </div>
 
-          {ANNOUNCEMENTS.length > 0 ? (
+          {announcements.length > 0 ? (
             <ul className="space-y-4">
-              {ANNOUNCEMENTS.map((item) => (
+              {announcements.map((item) => (
                 <li
-                  key={item.title}
+                  key={item.id}
                   className="panel panel-interactive ruled-left border-l-2 p-6"
                 >
                   <p className="datum text-subtle-foreground text-xs">
-                    {formatSessionDate(item.date)}
+                    {formatAnnouncementDate(item.publishedAt)}
                   </p>
                   <p className="mt-2 font-semibold">{item.title}</p>
                   <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
@@ -180,10 +188,7 @@ export default function Home() {
         <div className="plated">
           <div className="panel-lifted hatched flex flex-col items-start gap-6 p-10 sm:flex-row sm:items-center sm:justify-between sm:p-12">
             <div className="space-y-2">
-              <h2
-                id="cta-heading"
-                className="text-2xl font-extrabold tracking-[-0.025em] sm:text-3xl"
-              >
+              <h2 id="cta-heading" className="heading-2">
                 Want to join?
               </h2>
               <p className="text-muted-foreground text-sm">

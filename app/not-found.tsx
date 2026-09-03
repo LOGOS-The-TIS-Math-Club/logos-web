@@ -1,30 +1,34 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AppPage } from "@/components/layout/app-page";
+
 export const metadata: Metadata = {
-  title: "Page Not Found | LOGOS Web",
+  title: "Page not found",
 };
 
 export default function NotFound() {
   return (
-    <section aria-labelledby="not-found-heading" className="max-w-md">
-      <h1
-        id="not-found-heading"
-        className="text-foreground text-xl font-semibold tracking-tight sm:text-2xl"
-      >
-        Page not found
-      </h1>
-      <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-        The requested page does not exist or has been moved.
-      </p>
-      <div className="mt-6">
-        <Link
-          href="/"
-          className="rounded-component bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active focus-visible:outline-focus inline-flex min-h-11 items-center justify-center px-4 py-2.5 text-sm font-medium transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
-        >
-          Return home
+    <AppPage
+      width="narrow"
+      eyebrow="404"
+      title="Page not found"
+      lede="That page does not exist, or it has moved."
+    >
+      <div className="flex flex-wrap gap-3">
+        <Link href="/" className="action action-primary">
+          <span className="action-label">Return home</span>
+          <span className="action-label-hover" aria-hidden="true">
+            Return home
+          </span>
+        </Link>
+        <Link href="/join" className="action">
+          <span className="action-label">How to join</span>
+          <span className="action-label-hover" aria-hidden="true">
+            How to join
+          </span>
         </Link>
       </div>
-    </section>
+    </AppPage>
   );
 }

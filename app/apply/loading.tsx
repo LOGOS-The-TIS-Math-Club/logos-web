@@ -20,9 +20,7 @@ export default function ApplyLoading() {
 
       <header className="space-y-3">
         <p className="eyebrow">Opening the application</p>
-        <h1 className="text-3xl font-extrabold tracking-[-0.03em] text-balance">
-          One moment.
-        </h1>
+        <h1 className="heading-1">One moment.</h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           The application service sleeps when nobody has used it recently. It is
           waking up — this usually takes a few seconds.

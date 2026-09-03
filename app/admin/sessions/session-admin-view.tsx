@@ -140,7 +140,7 @@ export function SessionAdminView({
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-10 items-center justify-center px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="control control-primary"
           >
             + Create New Session
           </button>
@@ -164,7 +164,7 @@ export function SessionAdminView({
 
       {/* Sessions Grid / Table */}
       {sessions.length === 0 ? (
-        <div className="border-border bg-surface rounded-component border py-12 text-center">
+        <div className="panel py-12 text-center">
           <p className="text-muted-foreground text-sm">
             No club sessions recorded yet. Click &quot;Create New Session&quot;
             to add your first meeting.
@@ -175,7 +175,7 @@ export function SessionAdminView({
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="border-border bg-surface rounded-component hover:border-border/80 flex flex-col justify-between border p-5 transition-colors"
+              className="panel hover:border-border/80 flex flex-col justify-between p-5 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -230,7 +230,7 @@ export function SessionAdminView({
           aria-labelledby="create-session-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
-          <div className="border-border bg-surface rounded-component w-full max-w-lg space-y-4 border p-6 shadow-xl">
+          <div className="panel w-full max-w-lg space-y-4 p-6 shadow-xl">
             <h2
               id="create-session-title"
               className="text-foreground text-lg font-bold"
@@ -256,7 +256,7 @@ export function SessionAdminView({
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                  className="field-input"
                 />
               </div>
 
@@ -274,7 +274,7 @@ export function SessionAdminView({
                     required
                     value={sessionDate}
                     onChange={(e) => setSessionDate(e.target.value)}
-                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                    className="field-input"
                   />
                 </div>
                 <div>
@@ -290,7 +290,7 @@ export function SessionAdminView({
                     required
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                    className="field-input"
                   />
                 </div>
               </div>
@@ -310,7 +310,7 @@ export function SessionAdminView({
                     placeholder="15:30"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                    className="field-input"
                   />
                 </div>
                 <div>
@@ -327,7 +327,7 @@ export function SessionAdminView({
                     placeholder="16:30"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                    className="field-input"
                   />
                 </div>
               </div>
@@ -346,7 +346,7 @@ export function SessionAdminView({
                   maxLength={500}
                   placeholder="e.g. Focus on AMC 12 Geometry and Combinatorics problem set."
                   rows={3}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
+                  className="panel text-foreground focus:ring-primary mt-1 w-full p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
@@ -355,14 +355,14 @@ export function SessionAdminView({
                   type="button"
                   onClick={() => setShowCreateModal(false)}
                   disabled={isSubmitting}
-                  className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component px-4 py-2 text-xs font-medium"
+                  className="control"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover rounded-component px-4 py-2 text-xs font-semibold disabled:opacity-50"
+                  className="control control-primary"
                 >
                   {isSubmitting ? "Creating..." : "Create Session"}
                 </button>

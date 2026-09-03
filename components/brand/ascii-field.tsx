@@ -128,11 +128,17 @@ function sceneCollapse(t: number): Point3[] {
   // as the mark, then un-collapse back apart continuously before repeating.
   const phase = triangleWave(t, CYCLE);
 
-  // 0.00–0.20 the two signs hold apart, on separate planes.
-  // 0.20–0.58 they converge; the dots open into circles.
-  // 0.58–1.00 the finished mark holds and turns.
-  const travel = smoothstep(0.2, 0.58, phase);
-  const open = smoothstep(0.32, 0.68, phase);
+  /*
+   * Weighted so the resolved mark is what you mostly see. The earlier split
+   * left a third of the cycle showing six specks and no recognisable form:
+   * the transition is the punctuation, not the subject.
+   *
+   * 0.00–0.08 the two signs hold apart, on separate planes.
+   * 0.08–0.44 they converge; the dots open into circles.
+   * 0.44–1.00 the finished mark holds and turns.
+   */
+  const travel = smoothstep(0.08, 0.4, phase);
+  const open = smoothstep(0.14, 0.44, phase);
 
   const points: Point3[] = [];
 
@@ -152,10 +158,11 @@ function sceneCollapse(t: number): Point3[] {
     if (bright <= 0.03) continue;
 
     if (open < 0.06) {
-      // Still reading as a logic sign: draw the dot itself.
-      pushCircle(points, x, y, z, 5, bright, 10);
+      // Still reading as a logic sign. The dots are drawn large enough to be
+      // seen as ∴ and ∵ rather than as specks — that reading is the point.
+      pushCircle(points, x, y, z, 17, bright, 40);
     } else {
-      pushCircle(points, x, y, z, CIRCLE_RADIUS * open, bright, 112);
+      pushCircle(points, x, y, z, CIRCLE_RADIUS * open, bright, 190);
     }
   }
 
@@ -173,7 +180,7 @@ function sceneMark(): Point3[] {
     [CORNER, -CORNER, -44],
   ];
   for (const [x, y, z] of layout) {
-    pushCircle(points, x, y, z, CIRCLE_RADIUS, 1, 132);
+    pushCircle(points, x, y, z, CIRCLE_RADIUS, 1, 210);
   }
   return points;
 }
@@ -296,7 +303,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
 
     const CELL_BACK = 17;
     const CELL_MID = 13;
-    const CELL_FRONT = 10;
+    const CELL_FRONT = 8;
 
     let width = 0;
     let height = 0;
@@ -306,7 +313,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
     let lastFrameAt = 0;
 
     /* --- rotation: idles on its own, follows the pointer, keeps momentum --- */
-    const AUTO_YAW = 0.0045;
+    const AUTO_YAW = 0.0026;
     let yaw = 0.6;
     let pitch = -0.18;
     let yawVelocity = AUTO_YAW;
@@ -387,7 +394,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
           WAVE_RAMP.length - 1,
           Math.floor(age * WAVE_RAMP.length),
         );
-        context.fillStyle = colorAt(0.15, alpha * (0.35 + age * 0.65));
+        context.fillStyle = colorAt(0.15, alpha * (0.2 + age * 0.4));
         context.fillText(WAVE_RAMP[level], i * cell + cell / 2, y);
       }
     }
@@ -413,7 +420,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
           CUBIC_RAMP.length - 1,
           Math.floor(age * CUBIC_RAMP.length),
         );
-        midContext!.fillStyle = colorAt(0.55, 0.62 * (0.3 + age * 0.7));
+        midContext!.fillStyle = colorAt(0.55, 0.36 * (0.3 + age * 0.7));
         midContext!.fillText(CUBIC_RAMP[level], i * CELL_MID + CELL_MID / 2, y);
       }
     }
@@ -422,7 +429,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       backContext!.clearRect(0, 0, width, height);
       const columns = Math.ceil(width / CELL_BACK);
       const rows = Math.ceil(height / CELL_BACK);
-      backContext!.fillStyle = colorAt(0.08, 0.32);
+      backContext!.fillStyle = colorAt(0.08, 0.2);
       for (let r = 0; r < rows; r += 1) {
         for (let c = 0; c < columns; c += 1) {
           // A slow diagonal breath, so it is not a static dot field.
@@ -457,7 +464,9 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       const cosPitch = Math.cos(pitch);
       const sinPitch = Math.sin(pitch);
 
-      const markScale = (Math.min(width, height) * 0.66) / 300;
+      // The shapes were too small to read. 0.86 fills the field without
+      // clipping at the pitch extremes.
+      const markScale = (Math.min(width, height) * 0.86) / 300;
       const centreX = width / 2;
       const centreY = height / 2;
       const viewer = 620;

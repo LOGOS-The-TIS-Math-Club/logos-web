@@ -39,17 +39,15 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-3xl space-y-14 py-4">
       <header className="space-y-4">
         <p className="eyebrow">Application data</p>
-        <h1 className="text-4xl font-extrabold tracking-[-0.03em] text-balance sm:text-5xl">
-          What we collect, and what we do not.
-        </h1>
-        <p className="text-muted-foreground text-lg leading-relaxed">
+        <h1 className="display">What we collect, and what we do not.</h1>
+        <p className="lede">
           LOGOS asks for the least it can while still being able to review your
           application fairly.
         </p>
       </header>
 
       <section aria-labelledby="collected-heading" className="space-y-6">
-        <h2 id="collected-heading" className="text-2xl font-bold">
+        <h2 id="collected-heading" className="heading-2">
           What the application collects
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -75,7 +73,7 @@ export default function PrivacyPage() {
       </section>
 
       <section aria-labelledby="identity-heading" className="space-y-4">
-        <h2 id="identity-heading" className="text-2xl font-bold">
+        <h2 id="identity-heading" className="heading-2">
           Why you sign in with Google
         </h2>
         <p className="text-muted-foreground leading-relaxed">
@@ -102,7 +100,7 @@ export default function PrivacyPage() {
       </section>
 
       <section aria-labelledby="access-heading" className="space-y-4">
-        <h2 id="access-heading" className="text-2xl font-bold">
+        <h2 id="access-heading" className="heading-2">
           Who can see your application
         </h2>
         <p className="text-muted-foreground leading-relaxed">
@@ -114,7 +112,7 @@ export default function PrivacyPage() {
       </section>
 
       <section aria-labelledby="rights-heading" className="space-y-4">
-        <h2 id="rights-heading" className="text-2xl font-bold">
+        <h2 id="rights-heading" className="heading-2">
           Correcting or withdrawing your application
         </h2>
         <p className="text-muted-foreground leading-relaxed">

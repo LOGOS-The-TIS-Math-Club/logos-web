@@ -208,13 +208,13 @@ export function WarningsAdminView({
         </h2>
 
         {activeWarnings.length === 0 ? (
-          <div className="border-border bg-surface rounded-component border py-8 text-center">
+          <div className="panel py-8 text-center">
             <p className="text-muted-foreground text-xs">
               No active warnings currently recorded.
             </p>
           </div>
         ) : (
-          <div className="divide-border rounded-component border-border bg-surface divide-y border">
+          <div className="panel divide-border divide-y">
             {activeWarnings.map((w) => (
               <div
                 key={w.id}
@@ -245,7 +245,7 @@ export function WarningsAdminView({
                     type="button"
                     onClick={() => handleResolveWarning(w.id)}
                     disabled={resolvingId === w.id}
-                    className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50"
+                    className="control"
                   >
                     {resolvingId === w.id ? "Resolving..." : "Mark Resolved"}
                   </button>
@@ -290,7 +290,7 @@ export function WarningsAdminView({
           aria-labelledby="issue-warning-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
         >
-          <div className="border-border bg-surface rounded-component w-full max-w-md space-y-4 border p-6 shadow-xl">
+          <div className="panel w-full max-w-md space-y-4 p-6 shadow-xl">
             <h2
               id="issue-warning-title"
               className="text-foreground text-lg font-bold"
@@ -314,7 +314,7 @@ export function WarningsAdminView({
                   id={memberSelectId}
                   value={selectedMemberId}
                   onChange={(e) => setSelectedMemberId(e.target.value)}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                  className="field-input"
                 >
                   {members.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -339,7 +339,7 @@ export function WarningsAdminView({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g. Unexcused absence for 3 consecutive meetings without notice."
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                  className="field-input"
                 />
               </div>
 
@@ -357,7 +357,7 @@ export function WarningsAdminView({
                   maxLength={500}
                   placeholder="Optional context for leadership records."
                   rows={3}
-                  className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border p-2 text-xs focus:ring-1 focus:outline-none"
+                  className="panel text-foreground focus:ring-primary mt-1 w-full p-2 text-xs focus:ring-1 focus:outline-none"
                 />
               </div>
 
@@ -366,7 +366,7 @@ export function WarningsAdminView({
                   type="button"
                   onClick={() => setShowIssueModal(false)}
                   disabled={isSubmitting}
-                  className="border-border bg-surface text-foreground hover:bg-surface-raised rounded-component px-4 py-2 text-xs font-medium"
+                  className="control"
                 >
                   Cancel
                 </button>

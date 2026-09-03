@@ -78,9 +78,7 @@ export default function JoinPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="plated">
             <div className="panel-lifted space-y-3 p-8">
-              <h3 className="text-xl font-bold tracking-[-0.015em]">
-                No prior experience required
-              </h3>
+              <h3 className="heading-3">No prior experience required</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Whether you have competed before or have simply never been given
                 a problem that took more than a minute, you are welcome. We
@@ -89,9 +87,7 @@ export default function JoinPage() {
             </div>
           </div>
           <div className="panel ruled-left space-y-3 border-l-2 p-8">
-            <h3 className="text-xl font-bold tracking-[-0.015em]">
-              Grades 9 through 12
-            </h3>
+            <h3 className="heading-3">Grades 9 through 12</h3>
             <p className="text-muted-foreground leading-relaxed">
               One hour a week, taken seriously. We ask members to arrive
               prepared and attend regularly.
@@ -104,10 +100,7 @@ export default function JoinPage() {
         <div className="space-y-10">
           <div className="max-w-2xl space-y-3">
             <p className="eyebrow">How to apply</p>
-            <h2
-              id="how-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance sm:text-4xl"
-            >
+            <h2 id="how-heading" className="heading-1">
               Three steps, about five minutes.
             </h2>
           </div>
@@ -138,10 +131,7 @@ export default function JoinPage() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">
             <p className="eyebrow">Questions</p>
-            <h2
-              id="faq-heading"
-              className="text-3xl font-extrabold tracking-[-0.03em] text-balance"
-            >
+            <h2 id="faq-heading" className="heading-1">
               Before you apply.
             </h2>
           </div>
@@ -175,9 +165,7 @@ export default function JoinPage() {
         <div className="plated">
           <div className="panel-lifted hatched flex flex-col items-start gap-6 p-10 sm:flex-row sm:items-center sm:justify-between sm:p-12">
             <div className="space-y-2">
-              <h2 className="text-2xl font-extrabold tracking-[-0.025em] sm:text-3xl">
-                Ready?
-              </h2>
+              <h2 className="heading-2">Ready?</h2>
               <p className="text-muted-foreground text-sm">
                 Sign in with your school account and answer eight short
                 questions.

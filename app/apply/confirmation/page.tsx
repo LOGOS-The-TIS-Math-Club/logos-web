@@ -4,7 +4,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 export default function ConfirmationPage() {
   return (
     <div className="mx-auto max-w-xl space-y-8 py-4 sm:py-8">
-      <div className="border-border bg-surface rounded-component space-y-6 border p-6 sm:p-8">
+      <div className="panel space-y-6 p-6 sm:p-8">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <StatusBadge variant="success">SUBMITTED</StatusBadge>
@@ -12,16 +12,14 @@ export default function ConfirmationPage() {
               2026–2027 Year
             </span>
           </div>
-          <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-            Application Received
-          </h1>
+          <h1 className="heading-1">Application Received</h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
             Thank you for applying to LOGOS — The Tokyo International School
             Math Club. Your application has been successfully recorded.
           </p>
         </div>
 
-        <div className="border-border bg-surface-raised rounded-component space-y-3 border p-5">
+        <div className="panel-raised space-y-3 p-5">
           <h2 className="text-foreground text-sm font-semibold">
             What Happens Next
           </h2>

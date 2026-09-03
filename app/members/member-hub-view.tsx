@@ -112,7 +112,7 @@ export function MemberHubView({
   return (
     <div className="space-y-10">
       {/* Header Profile Card */}
-      <div className="border-border bg-surface rounded-component space-y-4 border p-6 sm:p-8">
+      <div className="panel space-y-4 p-6 sm:p-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <div className="border-border bg-surface-raised text-primary inline-flex items-center gap-2 rounded-full border px-3 py-0.5 text-xs font-semibold">
@@ -120,9 +120,7 @@ export function MemberHubView({
               <span aria-hidden="true">•</span>
               <span>{member.grade || "High School"}</span>
             </div>
-            <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
-              Welcome back, {member.preferredName}
-            </h1>
+            <h1 className="heading-1">Welcome back, {member.preferredName}</h1>
             <p className="text-muted-foreground text-xs">{member.email}</p>
           </div>
 
@@ -137,14 +135,14 @@ export function MemberHubView({
       {/* Grid: Next Session & Attendance Stats */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Next Meeting */}
-        <div className="border-border bg-surface rounded-component space-y-4 border p-6">
+        <div className="panel space-y-4 p-6">
           <h2 className="text-foreground text-base font-bold">
             Next Club Meeting
           </h2>
 
           {upcomingSession ? (
             <div className="space-y-3">
-              <div className="border-border bg-surface-raised rounded-component border p-4">
+              <div className="panel-raised p-4">
                 <p className="text-primary text-xs font-bold tracking-wider uppercase">
                   {upcomingSession.sessionDate}
                 </p>
@@ -163,7 +161,7 @@ export function MemberHubView({
               </div>
             </div>
           ) : (
-            <div className="border-border bg-surface-raised rounded-component text-muted-foreground border p-4 text-xs">
+            <div className="panel-raised text-muted-foreground p-4 text-xs">
               <p className="text-foreground font-semibold">
                 Regular Meeting Time:
               </p>
@@ -175,25 +173,25 @@ export function MemberHubView({
         </div>
 
         {/* My Attendance Summary */}
-        <div className="border-border bg-surface rounded-component space-y-4 border p-6">
+        <div className="panel space-y-4 p-6">
           <h2 className="text-foreground text-base font-bold">
             My Attendance Record
           </h2>
 
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="border-border bg-surface-raised rounded-component border p-3">
+            <div className="panel-raised p-3">
               <span className="text-muted-foreground text-[11px]">Present</span>
               <p className="text-success text-lg font-bold">
                 {attendanceTotals.presentCount}
               </p>
             </div>
-            <div className="border-border bg-surface-raised rounded-component border p-3">
+            <div className="panel-raised p-3">
               <span className="text-muted-foreground text-[11px]">Late</span>
               <p className="text-warning text-lg font-bold">
                 {attendanceTotals.lateCount}
               </p>
             </div>
-            <div className="border-border bg-surface-raised rounded-component border p-3">
+            <div className="panel-raised p-3">
               <span className="text-muted-foreground text-[11px]">Excused</span>
               <p className="text-info text-lg font-bold">
                 {attendanceTotals.excusedCount}
@@ -211,7 +209,7 @@ export function MemberHubView({
       </div>
 
       {/* Submit Expected Absence Form */}
-      <div className="border-border bg-surface rounded-component space-y-4 border p-6">
+      <div className="panel space-y-4 p-6">
         <div>
           <h2 className="text-foreground text-base font-bold">
             Notify Upcoming Absence
@@ -251,7 +249,7 @@ export function MemberHubView({
                 required
                 value={absenceDate}
                 onChange={(e) => setAbsenceDate(e.target.value)}
-                className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                className="field-input mt-1"
               />
             </div>
             <div>
@@ -269,7 +267,7 @@ export function MemberHubView({
                 placeholder="e.g. Doctor appointment, debate tournament, etc."
                 value={absenceReason}
                 onChange={(e) => setAbsenceReason(e.target.value)}
-                className="border-border bg-surface text-foreground rounded-component focus:ring-primary mt-1 w-full border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
+                className="field-input mt-1"
               />
             </div>
           </div>
@@ -278,16 +276,21 @@ export function MemberHubView({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active rounded-component focus-visible:outline-focus inline-flex min-h-10 items-center justify-center px-5 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+              className="action action-primary"
             >
-              {isSubmitting ? "Submitting..." : "Submit Absence Notice"}
+              <span className="action-label">
+                {isSubmitting ? "Submitting…" : "Submit absence notice"}
+              </span>
+              <span className="action-label-hover" aria-hidden="true">
+                {isSubmitting ? "Submitting…" : "Submit absence notice"}
+              </span>
             </button>
           </div>
         </form>
       </div>
 
       {/* Approved Club Resources */}
-      <div className="border-border bg-surface rounded-component space-y-4 border p-6">
+      <div className="panel space-y-4 p-6">
         <h2 className="text-foreground text-base font-bold">
           Approved Club Resources
         </h2>
@@ -297,7 +300,7 @@ export function MemberHubView({
         </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="border-border bg-surface-raised rounded-component border p-4">
+          <div className="panel-raised p-4">
             <h3 className="text-foreground text-sm font-semibold">
               Google Classroom
             </h3>
@@ -309,7 +312,7 @@ export function MemberHubView({
             </span>
           </div>
 
-          <div className="border-border bg-surface-raised rounded-component border p-4">
+          <div className="panel-raised p-4">
             <h3 className="text-foreground text-sm font-semibold">
               Shared Resource Drive
             </h3>
