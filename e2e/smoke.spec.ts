@@ -124,7 +124,7 @@ test("handles 404 with meaningful not-found content and returns home", async ({
     page.getByRole("heading", { level: 1, name: "Page not found" }),
   ).toBeVisible();
   await expect(
-    page.getByText("The requested page does not exist or has been moved."),
+    page.getByText("That page does not exist, or it has moved."),
   ).toBeVisible();
 
   const returnHomeLink = page.getByRole("link", { name: "Return home" });
@@ -227,7 +227,7 @@ test("renders safe auth states when the live provider is not configured", async 
     page.getByRole("heading", { level: 1, name: "Sign in to LOGOS" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Non-production sign-in is not configured yet."),
+    page.getByText("Sign-in is not configured for this environment yet."),
   ).toBeVisible();
 
   const signInResults = await new AxeBuilder({ page })
@@ -237,7 +237,10 @@ test("renders safe auth states when the live provider is not configured", async 
 
   await page.goto("/auth/status?state=failed");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Identity status" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Session could not be verified",
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("alert").getByText("could not be verified"),
@@ -268,10 +271,10 @@ test("renders unauthenticated member hub with informational fallback and zero WC
 }) => {
   await page.goto("/members");
   await expect(
-    page.getByRole("heading", { level: 1, name: "LOGOS Member Portal" }),
+    page.getByRole("heading", { level: 1, name: "Member hub" }),
   ).toBeVisible();
   await expect(
-    page.getByText("The member hub provides meeting schedules"),
+    page.getByText("Meeting schedules, absence notices and club materials"),
   ).toBeVisible();
 
   const memberResults = await new AxeBuilder({ page })

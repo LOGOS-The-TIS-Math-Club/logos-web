@@ -42,7 +42,11 @@ export default async function AuthStatusPage() {
         title="Session could not be verified"
         lede="Your sign-in could not be confirmed. This usually means the session expired."
       >
-        <div role="alert" className="panel ruled-left border-l-2 p-6">
+        <div role="alert" className="panel ruled-left space-y-3 border-l-2 p-6">
+          <p>
+            Your identity could not be verified, so no account details can be
+            shown.
+          </p>
           <Link href="/auth/sign-in" className="link-underline font-medium">
             Return to sign in
           </Link>
