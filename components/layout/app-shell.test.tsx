@@ -102,6 +102,81 @@ describe("AppShell", () => {
     expect(footer).toHaveTextContent("MIT License");
   });
 
+  it("offers the application action to a signed-out visitor", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("link", { name: /apply/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Your account" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("replaces the application action with a profile control for a member", () => {
+    render(
+      <AppShell
+        viewer={{
+          email: "student@tokyois.com",
+          avatarUrl: null,
+          isMember: true,
+          isLeadership: false,
+        }}
+      >
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    // A member has already joined; inviting them to apply again is noise.
+    expect(
+      screen.queryByRole("link", { name: /apply/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Your account" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the application action for a signed-in visitor who is not a member", () => {
+    render(
+      <AppShell
+        viewer={{
+          email: "applicant@tokyois.com",
+          avatarUrl: null,
+          isMember: false,
+          isLeadership: false,
+        }}
+      >
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("link", { name: /apply/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Your account" }),
+    ).toBeInTheDocument();
+  });
+
+  it("never shows the address in the collapsed header", () => {
+    render(
+      <AppShell
+        viewer={{
+          email: "student@tokyois.com",
+          avatarUrl: null,
+          isMember: true,
+          isLeadership: false,
+        }}
+      >
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("banner")).not.toHaveTextContent(
+      "student@tokyois.com",
+    );
+  });
+
   it("applies custom className to the main landmark", () => {
     render(
       <AppShell className="custom-shell-main">

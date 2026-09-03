@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { connection } from "next/server";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { getViewer } from "@/lib/auth/viewer.server";
 
 import "./globals.css";
 
@@ -70,6 +71,10 @@ export default async function RootLayout({
 }>) {
   await connection();
 
+  // Never throws: resolves to null when auth is unconfigured or the session is
+  // absent, which renders the shell exactly as it does for a public visitor.
+  const viewer = await getViewer();
+
   return (
     <html
       lang="en"
@@ -77,7 +82,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        <AppShell>{children}</AppShell>
+        <AppShell viewer={viewer}>{children}</AppShell>
       </body>
     </html>
   );

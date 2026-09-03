@@ -209,7 +209,8 @@ export function MemberHubView({
       </div>
 
       {/* Submit Expected Absence Form */}
-      <div className="panel space-y-4 p-6">
+      {/* id is the target of "Excuse an absence" in the header profile menu. */}
+      <div id="absence" className="panel scroll-mt-24 space-y-4 p-6">
         <div>
           <h2 className="text-foreground text-base font-bold">
             Notify Upcoming Absence
