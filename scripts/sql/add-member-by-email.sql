@@ -57,18 +57,19 @@ BEGIN
     RAISE EXCEPTION '% is already an active member.', v_member_email;
   END IF;
 
-  -- Attribute the grant to a real leadership account. access_admin is preferred
-  -- so the record names the person who actually holds the keys.
+  -- Attribute the activation to a real leadership account. Membership is an
+  -- operator capability, so prefer an operator; access_admin is only a fallback
+  -- for a club that has not appointed one yet.
   SELECT a.identity_id INTO v_actor_id
   FROM logos.technical_access_assignments a
   WHERE a.revoked_at IS NULL
-    AND a.access_level IN ('access_admin', 'operator')
-  ORDER BY (a.access_level = 'access_admin') DESC, a.granted_at
+    AND a.access_level IN ('operator', 'access_admin')
+  ORDER BY (a.access_level = 'operator') DESC, a.granted_at
   LIMIT 1;
 
   IF v_actor_id IS NULL THEN
     RAISE EXCEPTION
-      'No active leadership account to attribute this to. Bootstrap an access_admin first.';
+      'No leadership account to attribute this to. Run grant-access-by-email.sql to make someone an operator first.';
   END IF;
 
   -- Membership is only ever activated from an accepted application, so bring the
