@@ -4,13 +4,20 @@ import Link from "next/link";
 import { LogosLockup, LogosLogomark } from "@/components/brand/marks";
 import { CONTACT_EMAIL } from "@/content/club";
 import { ActionLink } from "@/components/ui/action";
+import type { Viewer } from "@/lib/auth/viewer.server";
 
 import { Container } from "./container";
+import { ProfileMenu } from "./profile-menu";
 import { SkipLink } from "./skip-link";
 
 export interface AppShellProps {
   children: ReactNode;
   className?: string;
+  /*
+   * Resolved in the root layout rather than here, so this stays a synchronous
+   * component that renders identically for an anonymous visitor when omitted.
+   */
+  viewer?: Viewer | null;
 }
 
 const NAV_ITEMS = [
@@ -27,7 +34,7 @@ const FOOTER_LINKS = [
   { href: "/members", label: "Members" },
 ] as const;
 
-export function AppShell({ children, className }: AppShellProps) {
+export function AppShell({ children, className, viewer }: AppShellProps) {
   const mainClasses = ["flex-1 focus:outline-none", className]
     .filter(Boolean)
     .join(" ");
@@ -69,9 +76,12 @@ export function AppShell({ children, className }: AppShellProps) {
                 </li>
               ))}
             </ul>
-            <ActionLink href="/apply" variant="primary" className="action-sm">
-              Apply
-            </ActionLink>
+            {viewer?.isMember ? null : (
+              <ActionLink href="/apply" variant="primary" className="action-sm">
+                Apply
+              </ActionLink>
+            )}
+            {viewer ? <ProfileMenu viewer={viewer} /> : null}
           </nav>
         </Container>
       </header>
