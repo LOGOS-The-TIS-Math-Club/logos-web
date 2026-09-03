@@ -52,17 +52,21 @@ export const SESSIONS: readonly SessionEntry[] = [
   },
 ];
 
-export interface Announcement {
-  readonly date: string;
-  readonly title: string;
-  readonly body: string;
-}
-
-/**
- * Public announcements, newest first. Safe to leave empty — the page renders a
- * proper empty state rather than a gap.
+/*
+ * Announcements moved to the database (logos.announcements) so leadership can
+ * publish from /admin/announcements without a code change and a deploy.
+ * See lib/announcements/service.server.ts.
  */
-export const ANNOUNCEMENTS: readonly Announcement[] = [];
+
+/** Formats an announcement's publication time for display. */
+export function formatAnnouncementDate(date: Date): string {
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Tokyo",
+  });
+}
 
 /** One line describing what the club is working through this term. */
 export const SEMESTER_FOCUS =

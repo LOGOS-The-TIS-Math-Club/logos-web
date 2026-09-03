@@ -22,13 +22,20 @@
  */
 
 @theme inline {
-  /* ---- ground and surfaces (mauve-biased neutral ramp) ---- */
-  --color-background: #100d12;
-  --color-foreground: #f3eff5;
-  --color-surface: #17131a;
-  --color-surface-raised: #1f1a23;
-  --color-surface-lifted: #272030;
-  --color-surface-sunken: #0b090d;
+  /*
+   * Ground and surfaces.
+   *
+   * The ramp is warm taupe rather than the previous mauve: same luminance
+   * steps, hue rotated toward 35deg, so the dark theme reads like unbleached
+   * paper in low light instead of cold purple-grey. Warmth is what was missing
+   * — flatness was as much a temperature problem as a layering one.
+   */
+  --color-background: #14110d;
+  --color-foreground: #f4f0e7;
+  --color-surface: #1b1712;
+  --color-surface-raised: #241f18;
+  --color-surface-lifted: #2e2820;
+  --color-surface-sunken: #0e0b08;
 
   /* ---- brand ---- */
   --color-brand-ink: #2a212c;
@@ -36,23 +43,41 @@
   --color-primary: #c4b5fd;
   --color-primary-hover: #d8ccff;
   --color-primary-active: #a78bfa;
-  --color-primary-foreground: #17131a;
-  --color-primary-muted: #4c3f74;
+  --color-primary-foreground: #1b1712;
+  --color-primary-muted: #52466f;
 
-  --color-secondary: #1f1a23;
-  --color-secondary-hover: #2a2431;
-  --color-secondary-active: #352d3e;
-  --color-secondary-foreground: #f3eff5;
+  /*
+   * Sand: the second accent. Violet stays the action colour so buttons keep
+   * their meaning; sand carries data, eyebrows and mathematical marks, which
+   * is most of the type on the page. Aubergine and camel, not purple on grey.
+   */
+  --color-sand: #e3cfa4;
+  --color-sand-muted: #9a8a68;
+  --color-sand-deep: #6d5c3c;
 
-  --color-muted: #1f1a23;
-  --color-muted-foreground: #a79fae;
-  --color-subtle-foreground: #7d7484;
+  --color-secondary: #241f18;
+  --color-secondary-hover: #302920;
+  --color-secondary-active: #3b3228;
+  --color-secondary-foreground: #f4f0e7;
+
+  --color-muted: #241f18;
+  --color-muted-foreground: #b0a693;
+  --color-subtle-foreground: #877d6b;
 
   /* ---- lines: a ramp, so panels recede while inputs stay legible ---- */
-  --color-border: #2c2532;
-  --color-border-strong: #443b4c;
-  --color-border-accent: #5b4b86;
-  --color-focus: #c4b5fd;
+  --color-border: #2f2920;
+  --color-border-strong: #4a4234;
+  --color-border-accent: #6d5c3c;
+
+  /*
+   * Form controls need a visible boundary to satisfy WCAG 1.4.11 (3:1 for
+   * non-text UI). The decorative border tokens above sit deliberately below
+   * that so panels can recede — inputs must not use them.
+   * Measured >= 3.4:1 against every surface token.
+   */
+  --color-border-input: #847a66;
+
+  --color-focus: #e3cfa4;
 
   /* ---- semantic ---- */
   --color-success: #86efac;
@@ -158,6 +183,14 @@ body {
  */
 .plated {
   position: relative;
+  /*
+   * Establishes a stacking context. Without it, the z-index:-1 plate below
+   * escapes to the nearest ancestor that has one and paints behind that
+   * ancestor's opaque background — so the plate silently vanished everywhere
+   * except the page banner, whose wrapper happens to be `relative z-10`.
+   * `isolation` does this without changing layout or the element's own paint.
+   */
+  isolation: isolate;
   width: auto;
   max-width: calc(100% - 14px);
   margin-right: 14px;
@@ -344,6 +377,100 @@ body {
   }
 }
 
+/*
+ * Plain-button variant.
+ *
+ * `.action` needs two label spans to run its wipe. Administrative screens have
+ * many small buttons where that structure is not worth the markup, so this
+ * matches .action's metrics, colour, focus ring and press nudge without the
+ * wipe layer. Same visual family, simpler element.
+ */
+.control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-component);
+  background-color: var(--color-surface-raised);
+  color: var(--color-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    background-color 0.18s var(--ease-out-quint),
+    color 0.18s var(--ease-out-quint);
+}
+
+.control:hover {
+  border-color: var(--color-border-accent);
+  background-color: var(--color-surface-lifted);
+}
+
+.control:active {
+  transform: translateY(1px);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.control-primary {
+  border-color: transparent;
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+}
+
+.control-primary:hover {
+  border-color: transparent;
+  background-color: var(--color-primary-hover);
+}
+
+.control-danger {
+  border-color: var(--color-danger);
+  background-color: transparent;
+  color: var(--color-danger);
+}
+
+.control-danger:hover {
+  border-color: var(--color-danger);
+  background-color: var(--color-danger-surface);
+}
+
+/*
+ * Status surfaces. Semantic colour plus a border, so meaning never rests on
+ * hue alone — the accompanying copy and role="alert" carry it for anyone who
+ * cannot distinguish the colour.
+ */
+.alert-danger {
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-component);
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.alert-warning {
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-component);
+  background-color: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+
 /* ------------------------------------------------------------------ *
  * Links and navigation
  * ------------------------------------------------------------------ */
@@ -489,24 +616,29 @@ body {
  * they sit in the same low-light atmosphere as the mauve ground. The dim value
  * is the far/dark end of the ramp, the bright value the near/lit end.
  */
+/*
+ * Each dim value is a darkened, desaturated cousin of its bright value rather
+ * than a neutral grey, so the far side of a rotating shape stays in the same
+ * hue family as the near side and the form reads as one solid object.
+ */
 .ascii-theme-violet {
-  --ascii-dim: #463e4e; /* mauve shadow */
-  --ascii-bright: #c4b5fd; /* violet-300 */
+  --ascii-dim: #4a4152; /* violet shadow */
+  --ascii-bright: #c9bcf7; /* violet, warmed slightly toward the ground */
 }
 
 .ascii-theme-sky {
-  --ascii-dim: #2b3b46; /* slate-tinted shadow */
-  --ascii-bright: #7dd3fc; /* sky-300 */
+  --ascii-dim: #33424b; /* slate shadow */
+  --ascii-bright: #93cfe4; /* muted sky */
 }
 
 .ascii-theme-emerald {
-  --ascii-dim: #2a3d38; /* deep green shadow */
-  --ascii-bright: #6ee7b7; /* emerald-300 */
+  --ascii-dim: #33443c; /* deep green shadow */
+  --ascii-bright: #8fceb0; /* muted emerald */
 }
 
-.ascii-theme-amber {
-  --ascii-dim: #43382a; /* warm shadow */
-  --ascii-bright: #fcd34d; /* amber-300 */
+.ascii-theme-sand {
+  --ascii-dim: #4a4130; /* warm shadow */
+  --ascii-bright: #e3cfa4; /* sand, matching --color-sand */
 }
 
 .ascii-canvas {
@@ -559,7 +691,14 @@ body {
 .reveal {
   opacity: 0;
   transform: translateY(10px);
+  /*
+   * Clips the horizontal overshoot of the entry transform so it cannot widen
+   * the page on small screens. The clip margin lets the offset plate on a
+   * .plated child still bleed past the edge — without it the plate is cut off
+   * on the last section of a page.
+   */
   overflow-x: clip;
+  overflow-clip-margin: 24px;
   transition:
     opacity 0.55s var(--ease-out-expo),
     transform 0.55s var(--ease-out-expo);
@@ -702,6 +841,185 @@ body {
     opacity: 0.9;
     translate: 0 5px;
   }
+}
+
+/* ------------------------------------------------------------------ *
+ * Typographic scale
+ *
+ * The same heading string was repeated in fourteen places, which is how a
+ * design drifts: each copy gets tweaked independently until nothing lines up.
+ * These are the named steps. Use them instead of ad-hoc size/weight/tracking
+ * combinations, and the whole site stays in one voice.
+ *
+ * Tracking tightens as size grows, which is what keeps large text from looking
+ * loose and small text from looking cramped.
+ * ------------------------------------------------------------------ */
+
+.display {
+  font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.heading-1 {
+  font-size: clamp(1.875rem, 1.5rem + 1.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.heading-2 {
+  font-size: clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.heading-3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/* Introductory paragraph under a heading. Wider measure, lighter colour. */
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-muted-foreground);
+  max-width: 60ch;
+}
+
+/* Running text. Capped measure so long paragraphs stay readable. */
+.prose-measure {
+  max-width: 68ch;
+}
+
+/* ------------------------------------------------------------------ *
+ * Form controls
+ *
+ * Every input previously carried the same eight-class string inline. Naming it
+ * means the focus ring, the border contrast and the disabled state can only be
+ * changed in one place — which matters because the border here is the token
+ * that satisfies WCAG 1.4.11, and it must not drift back to a decorative one.
+ * ------------------------------------------------------------------ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.field-optional {
+  font-weight: 400;
+  color: var(--color-subtle-foreground);
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-muted-foreground);
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: var(--color-danger);
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-component);
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    background-color 0.18s var(--ease-out-quint);
+}
+
+.field-input::placeholder {
+  color: var(--color-subtle-foreground);
+}
+
+.field-input:hover {
+  border-color: var(--color-border-accent);
+}
+
+.field-input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-focus);
+}
+
+.field-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/*
+ * A selectable option rendered as a card. The real radio or checkbox stays in
+ * the DOM and keeps its semantics; this only styles the label around it.
+ */
+.field-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-component);
+  background-color: var(--color-surface);
+  color: var(--color-muted-foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    background-color 0.18s var(--ease-out-quint),
+    color 0.18s var(--ease-out-quint);
+}
+
+.field-option:hover {
+  background-color: var(--color-surface-raised);
+}
+
+.field-option[data-selected="true"] {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-raised);
+  color: var(--color-foreground);
+}
+
+/* Focus follows the visually hidden input inside the label. */
+.field-option:has(:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.field-marker {
+  flex: none;
+  inline-size: 1rem;
+  block-size: 1rem;
+  border: 1px solid var(--color-border-input);
+  border-radius: 999px;
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    background-color 0.18s var(--ease-out-quint);
+}
+
+.field-option[data-selected="true"] .field-marker {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
 }
 
 /* ------------------------------------------------------------------ *

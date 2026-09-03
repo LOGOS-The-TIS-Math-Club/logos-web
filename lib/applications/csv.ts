@@ -33,6 +33,9 @@ export interface ApplicationCsvRow {
   joinReason: string;
   goals: string;
   experience: string | null;
+  mathCourse: string | null;
+  contestInterest: string | null;
+  presentInterest: string | null;
   attendanceConfirmation: string;
   status: string;
   statusReason: string | null;
@@ -51,6 +54,9 @@ export function generateApplicationsCsv(
     "Why Join LOGOS",
     "Goals & Contributions",
     "Background & Experience",
+    "Math Course",
+    "Contest Interest",
+    "Presenting Interest",
     "Meeting Attendance",
     "Status",
     "Status Reason",
@@ -78,6 +84,9 @@ export function generateApplicationsCsv(
       app.joinReason,
       app.goals,
       app.experience ?? "",
+      app.mathCourse ?? "",
+      app.contestInterest ?? "",
+      app.presentInterest ?? "",
       app.attendanceConfirmation,
       app.status,
       app.statusReason ?? "",

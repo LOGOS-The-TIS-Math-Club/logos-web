@@ -42,7 +42,7 @@ describe("ApplicationForm Accessibility and Interaction", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/7\. Regular Meeting Availability/i),
+      screen.getByText(/10\. Regular Meeting Availability/i),
     ).toBeInTheDocument();
 
     expect(
@@ -115,6 +115,10 @@ describe("ApplicationForm Accessibility and Interaction", () => {
     );
 
     // 6. Attendance
+    // New required questions: in-club contests and presenting.
+    fireEvent.click(screen.getByLabelText(/I'd like to take part/i));
+    fireEvent.click(screen.getByLabelText(/I'd like to present something/i));
+
     fireEvent.click(screen.getByLabelText(/Yes, I can attend regularly/i));
 
     // 7. Acknowledgement

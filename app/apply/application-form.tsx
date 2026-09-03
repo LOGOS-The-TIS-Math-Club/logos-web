@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 
 import {
   ATTENDANCE_OPTIONS,
+  CONTEST_INTEREST_OPTIONS,
+  MATH_COURSES,
+  PRESENT_INTEREST_OPTIONS,
   GRADES,
   MATHEMATICAL_INTERESTS,
 } from "@/lib/applications/schema";
@@ -30,6 +33,8 @@ interface FormErrors {
   joinReason?: string;
   goals?: string;
   experience?: string;
+  contestInterest?: string;
+  presentInterest?: string;
   attendanceConfirmation?: string;
   accuracyAcknowledged?: string;
   generic?: string;
@@ -45,6 +50,9 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
   const [joinReason, setJoinReason] = useState("");
   const [goals, setGoals] = useState("");
   const [experience, setExperience] = useState("");
+  const [mathCourse, setMathCourse] = useState("");
+  const [contestInterest, setContestInterest] = useState("");
+  const [presentInterest, setPresentInterest] = useState("");
   const [attendanceConfirmation, setAttendanceConfirmation] = useState("");
   const [accuracyAcknowledged, setAccuracyAcknowledged] = useState(false);
 
@@ -55,6 +63,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
   const joinReasonId = useId();
   const goalsId = useId();
   const experienceId = useId();
+  const mathCourseId = useId();
   const accuracyId = useId();
 
   const handleInterestToggle = (key: string) => {
@@ -99,6 +108,14 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
     if (experience.trim().length > 500) {
       newErrors.experience =
         "Background experience must not exceed 500 characters";
+    }
+
+    if (!contestInterest) {
+      newErrors.contestInterest = "Please choose one option";
+    }
+
+    if (!presentInterest) {
+      newErrors.presentInterest = "Please choose one option";
     }
 
     if (!attendanceConfirmation) {
@@ -148,6 +165,9 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
           joinReason: joinReason.trim(),
           goals: goals.trim(),
           experience: experience.trim() || null,
+          mathCourse: mathCourse || null,
+          contestInterest,
+          presentInterest,
           attendanceConfirmation,
           accuracyAcknowledged,
         }),
@@ -198,7 +218,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-10">
       {/* Verified Identity Read-Only Callout */}
-      <div className="border-border bg-surface rounded-component border p-4 sm:p-5">
+      <div className="panel p-4 sm:p-5">
         <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
           Verified Applicant Identity
         </p>
@@ -217,7 +237,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
           tabIndex={-1}
           role="alert"
           aria-labelledby="error-summary-heading"
-          className="border-danger bg-danger-surface rounded-component border p-4 text-sm focus:outline-none"
+          className="alert-danger p-4 text-sm focus:outline-none"
         >
           <h2 id="error-summary-heading" className="text-danger font-semibold">
             Please correct the errors below to submit:
@@ -263,7 +283,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, preferredName: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="e.g. Alex Rivera"
         />
         {errors.preferredName && (
@@ -298,7 +318,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
             return (
               <label
                 key={g}
-                className={`border-border rounded-component flex cursor-pointer items-center justify-center border p-3 text-sm font-medium transition-colors ${
+                className={`border-border-input rounded-component flex cursor-pointer items-center justify-center border p-3 text-sm font-medium transition-colors ${
                   isSelected
                     ? "bg-primary text-primary-foreground border-transparent font-semibold"
                     : "bg-surface text-foreground hover:bg-surface-raised"
@@ -350,7 +370,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
             return (
               <label
                 key={key}
-                className={`border-border rounded-component flex cursor-pointer items-start gap-3 border p-3 text-sm transition-colors ${
+                className={`border-border-input rounded-component flex cursor-pointer items-start gap-3 border p-3 text-sm transition-colors ${
                   checked
                     ? "border-primary bg-surface-raised text-foreground"
                     : "bg-surface text-muted-foreground hover:text-foreground"
@@ -420,7 +440,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, joinReason: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="Share your thoughts on exploring problems, working with others, or what drew you to LOGOS..."
         />
         {errors.joinReason && (
@@ -476,7 +496,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, goals: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="Topics you're curious about, ideas for workshops, or skills you'd like to develop..."
         />
         {errors.goals && (
@@ -520,7 +540,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
               setErrors((prev) => ({ ...prev, experience: undefined }));
             }
           }}
-          className="border-border bg-surface text-foreground focus-visible:border-primary focus-visible:outline-focus rounded-component w-full border px-3.5 py-2.5 text-sm transition-colors"
+          className="field-input"
           placeholder="Optional: AMC 8/10, math circles, independent study, or puzzle hobbies..."
         />
         {errors.experience && (
@@ -534,10 +554,159 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
         )}
       </div>
 
-      {/* 7. Meeting Attendance */}
+      {/* 7. Course level — optional */}
+      <div className="space-y-2">
+        <label
+          htmlFor={mathCourseId}
+          className="text-foreground block text-sm font-semibold"
+        >
+          7. Which maths course are you taking?{" "}
+          <span className="text-subtle-foreground font-normal">(optional)</span>
+        </label>
+        <p
+          id={`${mathCourseId}-desc`}
+          className="text-muted-foreground text-xs"
+        >
+          This only helps us pitch sessions at a useful level. Leave it blank or
+          choose &ldquo;Prefer not to say&rdquo; — it has no effect on your
+          application.
+        </p>
+        <select
+          id={mathCourseId}
+          value={mathCourse}
+          onChange={(e) => setMathCourse(e.target.value)}
+          aria-describedby={`${mathCourseId}-desc`}
+          className="field-input"
+        >
+          <option value="">Select a course…</option>
+          {MATH_COURSES.map(({ key, label }) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* 8. In-club contests */}
       <fieldset className="space-y-3">
         <legend className="text-foreground text-sm font-semibold">
-          7. Regular Meeting Availability{" "}
+          8. Would you like to take part in in-club contests?{" "}
+          <span aria-hidden="true" className="text-primary">
+            *
+          </span>
+        </legend>
+        <p id="contest-desc" className="text-muted-foreground text-xs">
+          We run our own problem rounds inside the club. There is no wrong
+          answer here.
+        </p>
+        <div
+          role="radiogroup"
+          aria-describedby={`contest-desc ${errors.contestInterest ? "contest-err" : ""}`}
+          className="space-y-2"
+        >
+          {CONTEST_INTEREST_OPTIONS.map(({ key, label }) => {
+            const isSelected = contestInterest === key;
+            return (
+              <label
+                key={key}
+                className={`border-border-input rounded-component flex cursor-pointer items-center gap-3 border p-3.5 text-sm transition-colors ${
+                  isSelected
+                    ? "border-primary bg-surface-raised text-foreground"
+                    : "bg-surface text-muted-foreground hover:bg-surface-raised"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="contestInterest"
+                  value={key}
+                  checked={isSelected}
+                  onChange={() => {
+                    setContestInterest(key);
+                    setErrors((prev) => ({
+                      ...prev,
+                      contestInterest: undefined,
+                    }));
+                  }}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className={`size-4 shrink-0 rounded-full border ${isSelected ? "border-primary bg-primary" : "border-border-input"}`}
+                />
+                {label}
+              </label>
+            );
+          })}
+        </div>
+        {errors.contestInterest && (
+          <p id="contest-err" role="alert" className="text-danger text-xs">
+            {errors.contestInterest}
+          </p>
+        )}
+      </fieldset>
+
+      {/* 9. Presenting */}
+      <fieldset className="space-y-3">
+        <legend className="text-foreground text-sm font-semibold">
+          9. Would you be interested in presenting a topic?{" "}
+          <span aria-hidden="true" className="text-primary">
+            *
+          </span>
+        </legend>
+        <p id="present-desc" className="text-muted-foreground text-xs">
+          Members sometimes lead a session on something they find interesting.
+          Saying no does not count against you.
+        </p>
+        <div
+          role="radiogroup"
+          aria-describedby={`present-desc ${errors.presentInterest ? "present-err" : ""}`}
+          className="space-y-2"
+        >
+          {PRESENT_INTEREST_OPTIONS.map(({ key, label }) => {
+            const isSelected = presentInterest === key;
+            return (
+              <label
+                key={key}
+                className={`border-border-input rounded-component flex cursor-pointer items-center gap-3 border p-3.5 text-sm transition-colors ${
+                  isSelected
+                    ? "border-primary bg-surface-raised text-foreground"
+                    : "bg-surface text-muted-foreground hover:bg-surface-raised"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="presentInterest"
+                  value={key}
+                  checked={isSelected}
+                  onChange={() => {
+                    setPresentInterest(key);
+                    setErrors((prev) => ({
+                      ...prev,
+                      presentInterest: undefined,
+                    }));
+                  }}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className={`size-4 shrink-0 rounded-full border ${isSelected ? "border-primary bg-primary" : "border-border-input"}`}
+                />
+                {label}
+              </label>
+            );
+          })}
+        </div>
+        {errors.presentInterest && (
+          <p id="present-err" role="alert" className="text-danger text-xs">
+            {errors.presentInterest}
+          </p>
+        )}
+      </fieldset>
+
+      {/* 10. Meeting Attendance */}
+      <fieldset className="space-y-3">
+        <legend className="text-foreground text-sm font-semibold">
+          10. Regular Meeting Availability{" "}
           <span aria-hidden="true" className="text-primary">
             *
           </span>
@@ -556,7 +725,7 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
             return (
               <label
                 key={key}
-                className={`border-border rounded-component flex cursor-pointer items-center gap-3 border p-3.5 text-sm transition-colors ${
+                className={`border-border-input rounded-component flex cursor-pointer items-center gap-3 border p-3.5 text-sm transition-colors ${
                   isSelected
                     ? "border-primary bg-surface-raised text-foreground font-medium"
                     : "bg-surface text-muted-foreground hover:text-foreground"
@@ -590,8 +759,8 @@ export function ApplicationForm({ verifiedEmail }: ApplicationFormProps) {
         )}
       </fieldset>
 
-      {/* 8. Final Acknowledgement */}
-      <div className="border-border bg-surface rounded-component border p-4 sm:p-5">
+      {/* 11. Final Acknowledgement */}
+      <div className="panel p-4 sm:p-5">
         <label
           htmlFor={accuracyId}
           className="flex cursor-pointer items-start gap-3 text-sm"
