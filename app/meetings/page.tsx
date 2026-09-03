@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
 import { Reveal } from "@/components/ui/reveal";
-import { formatSessionDate, SEMESTER_FOCUS, SESSIONS } from "@/content/club";
+import { formatSessionDate, SEMESTER_FOCUS } from "@/content/club";
+import { getProgramme } from "@/lib/sessions/programme.server";
 
 export const metadata: Metadata = {
   title: "Meetings",
@@ -17,7 +18,9 @@ const FACTS = [
   { label: "Location", value: "Room 101", note: "In person" },
 ] as const;
 
-export default function MeetingsPage() {
+export default async function MeetingsPage() {
+  const programme = await getProgramme();
+
   return (
     <div className="space-y-24 sm:space-y-32">
       <PageBanner
@@ -99,7 +102,7 @@ export default function MeetingsPage() {
           </div>
 
           <ol className="border-border divide-border divide-y border-t border-b">
-            {SESSIONS.map((session, index) => (
+            {programme.map((session, index) => (
               <li
                 key={session.date}
                 className="hover:bg-surface group flex items-baseline gap-6 px-2 py-4 transition-colors duration-200 motion-reduce:transition-none"

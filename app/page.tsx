@@ -9,9 +9,9 @@ import {
   formatAnnouncementDate,
   formatSessionDate,
   SEMESTER_FOCUS,
-  SESSIONS,
   splitSessions,
 } from "@/content/club";
+import { getProgramme } from "@/lib/sessions/programme.server";
 
 /*
  * Home — what the club is doing now.
@@ -41,9 +41,10 @@ export default async function Home() {
 
   // Rendered per request (the root layout opts into dynamic rendering), so
   // "this week" is genuinely current rather than frozen at build time.
-  const { past, next } = splitSessions(SESSIONS, new Date());
+  const programme = await getProgramme();
+  const { past, next } = splitSessions(programme, new Date());
   const latest = past.length > 0 ? past[past.length - 1] : null;
-  const upcoming = SESSIONS.filter(
+  const upcoming = programme.filter(
     (s) => s !== latest && past.indexOf(s) === -1,
   );
 
@@ -104,7 +105,7 @@ export default async function Home() {
               <p className="text-muted-foreground">
                 Our first session is{" "}
                 <span className="datum text-foreground">
-                  {formatSessionDate(SESSIONS[0].date)}
+                  {formatSessionDate(programme[0].date)}
                 </span>
                 . Applications are open now.
               </p>

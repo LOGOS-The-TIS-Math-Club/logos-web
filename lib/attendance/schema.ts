@@ -32,6 +32,43 @@ export const CreateSessionSchema = z.object({
 });
 export type CreateSessionInput = z.infer<typeof CreateSessionSchema>;
 
+/*
+ * Editing an existing session. Deliberately not CreateSessionSchema.partial():
+ * that schema carries .default() on most fields, so an omitted key would be
+ * silently rewritten to the default rather than left alone — a partial edit of
+ * the title would reset the room and the times.
+ */
+export const UpdateSessionSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, "Title is required")
+      .max(120, "Title must not exceed 120 characters"),
+    sessionDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD format"),
+    startTime: z.string().min(1).max(10),
+    endTime: z.string().min(1).max(10),
+    location: z.string().min(1).max(100),
+    notes: z
+      .string()
+      .max(500, "Notes must not exceed 500 characters")
+      .nullable(),
+  })
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "Provide at least one field to update",
+  });
+export type UpdateSessionInput = z.infer<typeof UpdateSessionSchema>;
+
+/** What the public pages show. No attendance counts, no identifiers beyond the id. */
+export interface PublicSession {
+  id: string;
+  title: string;
+  sessionDate: string;
+  notes: string | null;
+}
+
 export const RecordAttendanceItemSchema = z.object({
   memberId: z.string().uuid("Invalid member ID"),
   status: z.enum(ATTENDANCE_STATUSES),

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { SessionAdminView } from "./session-admin-view";
@@ -31,6 +31,50 @@ describe("SessionAdminView", () => {
     expect(screen.getByText("Room 101")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "+ Create New Session" }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers an edit action per session", () => {
+    render(<SessionAdminView initialSessions={mockSessions} />);
+
+    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+  });
+
+  it("prefills the form from the session being edited", () => {
+    render(<SessionAdminView initialSessions={mockSessions} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Edit Club Session" }),
+    ).toBeInTheDocument();
+    // The date and the topic are what leadership edits; both must arrive
+    // populated rather than reset to the create-form defaults.
+    expect(screen.getByLabelText("Topic")).toHaveValue("LOGOS Weekly Meeting");
+    expect(screen.getByLabelText("Date")).toHaveValue("2026-09-04");
+    expect(screen.getByLabelText("Location")).toHaveValue("Room 101");
+    expect(
+      screen.getByRole("button", { name: "Save Changes" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens a blank form for a new session after an edit was opened", () => {
+    render(<SessionAdminView initialSessions={mockSessions} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "+ Create New Session" }),
+    );
+
+    // Otherwise the create form would still carry the edited session's values
+    // and quietly duplicate it.
+    expect(
+      screen.getByRole("heading", { name: "Create Club Session" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).not.toHaveValue("2026-09-04");
+    expect(
+      screen.getByRole("button", { name: "Create Session" }),
     ).toBeInTheDocument();
   });
 });

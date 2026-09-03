@@ -30,7 +30,8 @@ export function SessionAdminView({
   initialSessions: SessionListItem[];
 }) {
   const [sessions, setSessions] = useState<SessionListItem[]>(initialSessions);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
@@ -45,6 +46,28 @@ export function SessionAdminView({
   const [location, setLocation] = useState("Room 101");
   const [notes, setNotes] = useState("");
 
+  function openCreate() {
+    setEditingId(null);
+    setTitle("LOGOS Weekly Meeting");
+    setSessionDate(getNextFriday());
+    setStartTime("15:30");
+    setEndTime("16:30");
+    setLocation("Room 101");
+    setNotes("");
+    setShowModal(true);
+  }
+
+  function openEdit(session: SessionListItem) {
+    setEditingId(session.id);
+    setTitle(session.title);
+    setSessionDate(session.sessionDate);
+    setStartTime(session.startTime);
+    setEndTime(session.endTime);
+    setLocation(session.location);
+    setNotes(session.notes ?? "");
+    setShowModal(true);
+  }
+
   const titleId = useId();
   const dateId = useId();
   const startId = useId();
@@ -52,7 +75,7 @@ export function SessionAdminView({
   const locId = useId();
   const notesId = useId();
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setFeedback(null);
@@ -69,55 +92,86 @@ export function SessionAdminView({
       if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
       if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
 
-      const response = await fetch("/api/admin/sessions", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          title,
-          sessionDate,
-          startTime,
-          endTime,
-          location,
-          notes: notes || undefined,
-        }),
-      });
+      const response = await fetch(
+        editingId ? `/api/admin/sessions/${editingId}` : "/api/admin/sessions",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            title,
+            sessionDate,
+            startTime,
+            endTime,
+            location,
+            // null clears an existing note on edit; undefined leaves the field
+            // untouched on create.
+            notes: notes || (editingId ? null : undefined),
+          }),
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData?.error?.message || "Failed to create club session",
+          errorData?.error?.message ||
+            `Failed to ${editingId ? "update" : "create"} club session`,
         );
       }
 
       const { session } = await response.json();
 
-      const newSessionItem: SessionListItem = {
-        id: session.id,
-        title: session.title,
-        sessionDate: session.sessionDate,
-        startTime: session.startTime,
-        endTime: session.endTime,
-        location: session.location,
-        notes: session.notes,
-        createdAt: new Date().toISOString(),
-        presentCount: 0,
-        totalMarked: 0,
-      };
+      if (editingId) {
+        // Attendance counts are not returned by the update, so carry the
+        // existing ones forward rather than resetting them to zero on screen.
+        setSessions((prev) =>
+          prev.map((item) =>
+            item.id === editingId
+              ? {
+                  ...item,
+                  title: session.title,
+                  sessionDate: session.sessionDate,
+                  startTime: session.startTime,
+                  endTime: session.endTime,
+                  location: session.location,
+                  notes: session.notes,
+                }
+              : item,
+          ),
+        );
+        setFeedback({
+          type: "success",
+          text: `Updated "${session.title}" (${session.sessionDate}).`,
+        });
+      } else {
+        setSessions((prev) => [
+          {
+            id: session.id,
+            title: session.title,
+            sessionDate: session.sessionDate,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            location: session.location,
+            notes: session.notes,
+            createdAt: new Date().toISOString(),
+            presentCount: 0,
+            totalMarked: 0,
+          },
+          ...prev,
+        ]);
+        setFeedback({
+          type: "success",
+          text: `Created session "${session.title}" for ${session.sessionDate}.`,
+        });
+      }
 
-      setSessions((prev) => [newSessionItem, ...prev]);
-      setFeedback({
-        type: "success",
-        text: `Created session "${session.title}" for ${session.sessionDate}.`,
-      });
-      setShowCreateModal(false);
+      setShowModal(false);
+      setEditingId(null);
       setNotes("");
     } catch (err: unknown) {
       setFeedback({
         type: "error",
         text:
-          err instanceof Error
-            ? err.message
-            : "Creation failed. Please try again.",
+          err instanceof Error ? err.message : "Save failed. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -139,7 +193,7 @@ export function SessionAdminView({
         <div>
           <button
             type="button"
-            onClick={() => setShowCreateModal(true)}
+            onClick={openCreate}
             className="control control-primary"
           >
             + Create New Session
@@ -210,20 +264,29 @@ export function SessionAdminView({
                   </strong>{" "}
                   ({session.totalMarked} marked)
                 </span>
-                <Link
-                  href={`/admin/attendance?sessionId=${session.id}`}
-                  className="text-primary hover:text-primary-hover focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
-                >
-                  Mark Ledger →
-                </Link>
+                <span className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(session)}
+                    className="text-muted-foreground hover:text-foreground focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
+                  >
+                    Edit
+                  </button>
+                  <Link
+                    href={`/admin/attendance?sessionId=${session.id}`}
+                    className="text-primary hover:text-primary-hover focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
+                  >
+                    Mark Ledger →
+                  </Link>
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Create Session Modal */}
-      {showCreateModal && (
+      {/* Create / edit session */}
+      {showModal && (
         <div
           role="dialog"
           aria-modal="true"
@@ -235,20 +298,20 @@ export function SessionAdminView({
               id="create-session-title"
               className="text-foreground text-lg font-bold"
             >
-              Create Club Session
+              {editingId ? "Edit Club Session" : "Create Club Session"}
             </h2>
             <p className="text-muted-foreground text-xs">
-              Configure session date, time, and meeting room. Default Friday
-              15:30–16:30, Room 101.
+              The topic and date appear in the public programme on the home and
+              meetings pages. Default Friday 15:30–16:30, Room 101.
             </p>
 
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label
                   htmlFor={titleId}
                   className="text-foreground block text-xs font-medium"
                 >
-                  Title
+                  Topic
                 </label>
                 <input
                   id={titleId}
@@ -353,7 +416,10 @@ export function SessionAdminView({
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingId(null);
+                  }}
                   disabled={isSubmitting}
                   className="control"
                 >
@@ -364,7 +430,11 @@ export function SessionAdminView({
                   disabled={isSubmitting}
                   className="control control-primary"
                 >
-                  {isSubmitting ? "Creating..." : "Create Session"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : editingId
+                      ? "Save Changes"
+                      : "Create Session"}
                 </button>
               </div>
             </form>

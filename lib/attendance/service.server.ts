@@ -20,13 +20,16 @@ import { recordBusinessAuditEvent } from "@/lib/security/audit";
 import {
   type CreateSessionInput,
   type IssueWarningInput,
+  type PublicSession,
   type MemberSessionAttendance,
   type RecordAttendanceItem,
   type SessionListItem,
   type SubmitExpectedAbsenceInput,
+  type UpdateSessionInput,
   type WarningListItem,
   type AttendanceTotals,
   CreateSessionSchema,
+  UpdateSessionSchema,
   IssueWarningSchema,
   RecordAttendanceBatchSchema,
   SubmitExpectedAbsenceSchema,
@@ -100,6 +103,86 @@ export async function createClubSession(
       return session;
     }),
   );
+}
+
+/**
+ * Updates a club session. Requires 'session:manage'.
+ *
+ * Only the keys present in the input are written, so editing a topic cannot
+ * quietly reset the room or the meeting time.
+ */
+export async function updateClubSession(
+  sessionId: string,
+  rawInput: UpdateSessionInput,
+  correlationId: string,
+) {
+  const actor = await requireCapability("session:manage", correlationId);
+  const parsedInput = UpdateSessionSchema.parse(rawInput);
+
+  return withDatabase((database) =>
+    database.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select()
+        .from(clubSessions)
+        .where(eq(clubSessions.id, sessionId))
+        .limit(1);
+
+      if (!existing) throw new SessionNotFoundError(sessionId);
+
+      const [updated] = await transaction
+        .update(clubSessions)
+        .set({ ...parsedInput, updatedAt: new Date() })
+        .where(eq(clubSessions.id, sessionId))
+        .returning();
+
+      await recordBusinessAuditEvent(transaction, {
+        actorId: actor.identityId,
+        actorType: "user",
+        actorRoleSnapshot: "leadership",
+        source: "web",
+        correlationId,
+        category: "session",
+        action: "update",
+        targetType: "club_session",
+        targetId: sessionId,
+        result: "success",
+        beforeSummary: {
+          title: existing.title,
+          sessionDate: existing.sessionDate,
+        },
+        afterSummary: {
+          title: updated.title,
+          sessionDate: updated.sessionDate,
+        },
+      });
+
+      return updated;
+    }),
+  );
+}
+
+/**
+ * The programme as shown to the public, oldest first.
+ *
+ * Capability-free by design, like listPublishedAnnouncements: the home and
+ * meetings pages are public. It therefore returns only what those pages render
+ * — no attendance counts, no room or times — so widening this query can never
+ * quietly widen what an anonymous visitor can read.
+ */
+export async function listPublicSessions(): Promise<PublicSession[]> {
+  return withDatabase(async (database) => {
+    const rows = await database
+      .select({
+        id: clubSessions.id,
+        title: clubSessions.title,
+        sessionDate: clubSessions.sessionDate,
+        notes: clubSessions.notes,
+      })
+      .from(clubSessions)
+      .orderBy(clubSessions.sessionDate);
+
+    return rows;
+  });
 }
 
 /**
