@@ -40,12 +40,8 @@
           "tableFrom": "access_bootstrap_state",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -54,12 +50,8 @@
           "tableFrom": "access_bootstrap_state",
           "tableTo": "business_audit_journal",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "audit_event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["audit_event_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -69,9 +61,7 @@
         "access_bootstrap_state_identity_key": {
           "name": "access_bootstrap_state_identity_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "identity_id"
-          ]
+          "columns": ["identity_id"]
         }
       },
       "policies": {},
@@ -169,12 +159,8 @@
           "tableFrom": "affiliation_evidence",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -183,12 +169,8 @@
           "tableFrom": "affiliation_evidence",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "verified_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["verified_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -298,12 +280,8 @@
           "tableFrom": "announcements",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "created_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -433,16 +411,12 @@
         "application_identities_neon_auth_user_id_key": {
           "name": "application_identities_neon_auth_user_id_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "neon_auth_user_id"
-          ]
+          "columns": ["neon_auth_user_id"]
         },
         "application_identities_google_subject_key": {
           "name": "application_identities_google_subject_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "google_subject"
-          ]
+          "columns": ["google_subject"]
         }
       },
       "policies": {},
@@ -817,12 +791,8 @@
           "tableFrom": "club_members",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -831,12 +801,8 @@
           "tableFrom": "club_members",
           "tableTo": "student_applications",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "application_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["application_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -845,12 +811,8 @@
           "tableFrom": "club_members",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "created_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -965,12 +927,8 @@
           "tableFrom": "club_sessions",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "created_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1210,12 +1168,8 @@
           "tableFrom": "durable_operations",
           "tableTo": "business_audit_journal",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "audit_event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["audit_event_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1225,10 +1179,7 @@
         "durable_operations_type_idempotency_key": {
           "name": "durable_operations_type_idempotency_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "type",
-            "idempotency_key"
-          ]
+          "columns": ["type", "idempotency_key"]
         }
       },
       "policies": {},
@@ -1380,12 +1331,8 @@
           "tableFrom": "expected_absences",
           "tableTo": "club_members",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1394,12 +1341,8 @@
           "tableFrom": "expected_absences",
           "tableTo": "club_sessions",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1408,12 +1351,8 @@
           "tableFrom": "expected_absences",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "submitted_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["submitted_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1552,12 +1491,8 @@
           "tableFrom": "member_warnings",
           "tableTo": "club_members",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1566,12 +1501,8 @@
           "tableFrom": "member_warnings",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "issued_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["issued_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1580,12 +1511,8 @@
           "tableFrom": "member_warnings",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "resolved_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["resolved_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1667,11 +1594,7 @@
       "compositePrimaryKeys": {
         "rate_limits_pk": {
           "name": "rate_limits_pk",
-          "columns": [
-            "subject_hash",
-            "policy",
-            "window_start"
-          ]
+          "columns": ["subject_hash", "policy", "window_start"]
         }
       },
       "uniqueConstraints": {},
@@ -1995,12 +1918,8 @@
           "tableFrom": "session_attendance",
           "tableTo": "club_sessions",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2009,12 +1928,8 @@
           "tableFrom": "session_attendance",
           "tableTo": "club_members",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2023,12 +1938,8 @@
           "tableFrom": "session_attendance",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "recorded_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recorded_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2207,12 +2118,8 @@
           "tableFrom": "student_applications",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2221,12 +2128,8 @@
           "tableFrom": "student_applications",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "reviewed_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reviewed_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2394,12 +2297,8 @@
           "tableFrom": "technical_access_assignments",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2408,12 +2307,8 @@
           "tableFrom": "technical_access_assignments",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "granted_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["granted_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2422,12 +2317,8 @@
           "tableFrom": "technical_access_assignments",
           "tableTo": "application_identities",
           "schemaTo": "logos",
-          "columnsFrom": [
-            "revoked_by_identity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["revoked_by_identity_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2456,20 +2347,12 @@
     "logos.affiliation_evidence_type": {
       "name": "affiliation_evidence_type",
       "schema": "logos",
-      "values": [
-        "google_hd",
-        "manual_review",
-        "revocation"
-      ]
+      "values": ["google_hd", "manual_review", "revocation"]
     },
     "logos.affiliation_status": {
       "name": "affiliation_status",
       "schema": "logos",
-      "values": [
-        "pending_verification",
-        "verified",
-        "revoked"
-      ]
+      "values": ["pending_verification", "verified", "revoked"]
     },
     "logos.attendance_status": {
       "name": "attendance_status",
@@ -2485,50 +2368,27 @@
     "logos.club_member_status": {
       "name": "club_member_status",
       "schema": "logos",
-      "values": [
-        "active",
-        "inactive",
-        "former"
-      ]
+      "values": ["active", "inactive", "former"]
     },
     "logos.expected_absence_status": {
       "name": "expected_absence_status",
       "schema": "logos",
-      "values": [
-        "submitted",
-        "acknowledged",
-        "cancelled"
-      ]
+      "values": ["submitted", "acknowledged", "cancelled"]
     },
     "logos.operation_status": {
       "name": "operation_status",
       "schema": "logos",
-      "values": [
-        "pending",
-        "processing",
-        "succeeded",
-        "failed",
-        "ambiguous"
-      ]
+      "values": ["pending", "processing", "succeeded", "failed", "ambiguous"]
     },
     "logos.student_application_status": {
       "name": "student_application_status",
       "schema": "logos",
-      "values": [
-        "submitted",
-        "reviewing",
-        "accepted",
-        "declined"
-      ]
+      "values": ["submitted", "reviewing", "accepted", "declined"]
     },
     "logos.technical_access_level": {
       "name": "technical_access_level",
       "schema": "logos",
-      "values": [
-        "basic",
-        "operator",
-        "access_admin"
-      ]
+      "values": ["basic", "operator", "access_admin"]
     }
   },
   "schemas": {
