@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ImagePicker } from "@/components/admin/image-picker";
+
 import type { AnnouncementRecord } from "@/lib/announcements/schema";
 
 /*
@@ -37,7 +39,13 @@ async function send(method: string, body: unknown) {
   });
 }
 
-const EMPTY = { id: "", title: "", body: "", published: false };
+const EMPTY = {
+  id: "",
+  title: "",
+  body: "",
+  published: false,
+  imageId: null as string | null,
+};
 
 export function AnnouncementsAdminView({
   announcements,
@@ -61,6 +69,7 @@ export function AnnouncementsAdminView({
         title: draft.title.trim(),
         body: draft.body.trim(),
         published: draft.published,
+        imageId: draft.imageId,
         ...(editing ? { id: draft.id } : {}),
       };
       const response = await send(editing ? "PATCH" : "POST", payload);
@@ -141,6 +150,11 @@ export function AnnouncementsAdminView({
             {draft.body.length}/2000 characters
           </p>
         </div>
+
+        <ImagePicker
+          value={draft.imageId}
+          onChange={(imageId) => setDraft({ ...draft, imageId })}
+        />
 
         <label className="flex items-center gap-3 text-sm">
           <input
@@ -223,6 +237,7 @@ export function AnnouncementsAdminView({
                         title: item.title,
                         body: item.body,
                         published: item.published,
+                        imageId: item.imageId,
                       })
                     }
                     className="action action-sm"

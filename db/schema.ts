@@ -4,6 +4,7 @@ import {
   check,
   date,
   index,
+  customType,
   integer,
   jsonb,
   pgSchema,
@@ -581,6 +582,13 @@ export const announcements = logosSchema.table(
     body: text("body").notNull(),
     published: boolean("published").notNull().default(false),
     publishedAt: timestamp("published_at", { withTimezone: true }),
+    /*
+     * set null rather than cascade: deleting an image should not silently take
+     * the announcement with it. The notice survives, without its picture.
+     */
+    imageId: uuid("image_id").references(() => images.id, {
+      onDelete: "set null",
+    }),
     createdByIdentityId: uuid("created_by_identity_id")
       .notNull()
       .references(() => applicationIdentities.id, { onDelete: "restrict" }),
@@ -631,6 +639,37 @@ export const clubMembers = logosSchema.table(
       { onDelete: "restrict" },
     ),
     status: clubMemberStatusEnum("status").notNull().default("active"),
+    /*
+     * Two names, deliberately separate.
+     *
+     * displayName is the member's own, editable by them, and is what member
+     * facing surfaces show. rosterName is set by leadership and is what
+     * leadership surfaces show. Keeping them apart means a member renaming
+     * themselves cannot change how they appear on the roster leadership works
+     * from, and a leadership correction does not overwrite what the member
+     * chose to be called.
+     *
+     * Both are nullable: null means "no override", and the name falls back to
+     * the preferred name from the application.
+     */
+    displayName: text("display_name"),
+    rosterName: text("roster_name"),
+    /*
+     * Grade is normally derived, not stored: the applied grade advanced by the
+     * school years elapsed since cohortYear, rolling over on 1 August. See
+     * lib/membership/grade.ts for why that is computed rather than written by
+     * a yearly job.
+     *
+     * cohortYear is the school year in which the member held the grade they
+     * applied as, labelled by the calendar year it began in. Null means "work
+     * it out from the application date", which is every member who joined
+     * before this column existed.
+     *
+     * gradeOverride wins outright when set. Students repeat years, skip years
+     * and transfer in mid-year, and none of that is derivable.
+     */
+    cohortYear: integer("cohort_year"),
+    gradeOverride: text("grade_override"),
     joinedAt: timestamp("joined_at", { withTimezone: true })
       .notNull()
       .default(sql`clock_timestamp()`),
@@ -650,6 +689,22 @@ export const clubMembers = logosSchema.table(
     index("club_members_status_joined_idx").on(t.status, t.joinedAt),
     index("club_members_application_idx").on(t.applicationId),
     check(
+      "club_members_cohort_year_check",
+      sql`"cohort_year" IS NULL OR "cohort_year" BETWEEN 2000 AND 2100`,
+    ),
+    check(
+      "club_members_grade_override_len_check",
+      sql`"grade_override" IS NULL OR char_length("grade_override") BETWEEN 1 AND 40`,
+    ),
+    check(
+      "club_members_display_name_len_check",
+      sql`"display_name" IS NULL OR char_length("display_name") BETWEEN 1 AND 80`,
+    ),
+    check(
+      "club_members_roster_name_len_check",
+      sql`"roster_name" IS NULL OR char_length("roster_name") BETWEEN 1 AND 80`,
+    ),
+    check(
       "club_members_status_reason_len_check",
       sql`"status_reason" IS NULL OR char_length("status_reason") <= 256`,
     ),
@@ -663,6 +718,167 @@ export const clubMembers = logosSchema.table(
 /**
  * Club sessions created by leadership.
  */
+/*
+ * The resource cards on the member dashboard.
+ *
+ * Classroom and Drive links were hard-coded in the view, so changing one meant
+ * a deploy and only a developer could do it. They are rows now, and leadership
+ * can add more.
+ */
+/*
+ * Uploaded images, stored as bytes in the database.
+ *
+ * Not an external URL, because the CSP is `img-src 'self' data:` — a link to
+ * an image hosted anywhere else is blocked by the browser and renders as a
+ * broken image with nothing in the logs to explain it. Serving from our own
+ * origin keeps that policy intact, which is worth more than the convenience of
+ * hotlinking.
+ *
+ * Not object storage either, for now: bytes in Postgres need no new account,
+ * no new credentials and no new failure mode, and a club posting a photo a
+ * week will not trouble it. The 2MB cap in lib/images/format.ts is what keeps
+ * that true — revisit this if the club ever wants a real gallery.
+ */
+/*
+ * Postgres bytea. Drizzle has no built-in binary column, so it is declared
+ * here; the driver hands back a Buffer, which is what the image route streams.
+ */
+const customBytea = customType<{ data: Buffer; notNull: true }>({
+  dataType() {
+    return "bytea";
+  },
+});
+
+export const images = logosSchema.table(
+  "images",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    /*
+     * Required, not optional. These images appear on public pages that are
+     * covered by the accessibility tests, and an image with no text
+     * alternative is invisible to anyone using a screen reader. Making it a
+     * NOT NULL column means the decision is taken at upload, by the person who
+     * knows what the picture shows.
+     */
+    altText: text("alt_text").notNull(),
+    /*
+     * Intrinsic size, when it could be read from the header. Nullable because
+     * an unusual but valid file should still be storable — the picture just
+     * renders without the layout hint.
+     */
+    width: integer("width"),
+    height: integer("height"),
+    data: customBytea("data").notNull(),
+    uploadedByIdentityId: uuid("uploaded_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  () => [
+    check(
+      "images_mime_type_check",
+      sql`"mime_type" IN ('image/jpeg', 'image/png', 'image/webp', 'image/gif')`,
+    ),
+    check(
+      "images_byte_size_check",
+      sql`"byte_size" > 0 AND "byte_size" <= 2097152`,
+    ),
+    check(
+      "images_alt_text_len_check",
+      sql`char_length("alt_text") BETWEEN 1 AND 300`,
+    ),
+  ],
+);
+
+/*
+ * The club's own history, as a sequence of dated entries with pictures.
+ *
+ * Separate from announcements deliberately. An announcement is news that goes
+ * stale; a story entry is a record meant to be read years later, and the two
+ * want different ordering, different lifetimes and different editing habits.
+ */
+export const storyEntries = logosSchema.table(
+  "story_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    imageId: uuid("image_id").references(() => images.id, {
+      onDelete: "set null",
+    }),
+    /** When the thing happened, not when it was written up. */
+    occurredOn: date("occurred_on").notNull(),
+    published: boolean("published").notNull().default(false),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("story_entries_published_idx").on(t.published, t.occurredOn),
+    check(
+      "story_entries_title_len_check",
+      sql`char_length("title") BETWEEN 1 AND 120`,
+    ),
+    check(
+      "story_entries_body_len_check",
+      sql`char_length("body") BETWEEN 1 AND 4000`,
+    ),
+  ],
+);
+
+export const clubResources = logosSchema.table(
+  "club_resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    url: text("url").notNull(),
+    /** Ascending. Ties break on title so the order is never arbitrary. */
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("club_resources_order_idx").on(t.sortOrder, t.title),
+    check(
+      "club_resources_title_len_check",
+      sql`char_length("title") BETWEEN 1 AND 80`,
+    ),
+    check(
+      "club_resources_description_len_check",
+      sql`char_length("description") BETWEEN 1 AND 280`,
+    ),
+    /*
+     * https only, enforced in the database as well as in the form. These links
+     * are rendered as anchors on a members-only page, so a javascript: or
+     * data: URL saved here would be a stored cross-site scripting vector. The
+     * constraint means that cannot be reached by any path, including SQL run
+     * by hand.
+     */
+    check(
+      "club_resources_url_check",
+      sql`"url" LIKE 'https://%' AND char_length("url") BETWEEN 12 AND 2048`,
+    ),
+  ],
+);
+
 export const clubSessions = logosSchema.table(
   "club_sessions",
   {
@@ -673,6 +889,15 @@ export const clubSessions = logosSchema.table(
     endTime: text("end_time").notNull().default("16:30"),
     location: text("location").notNull().default("Room 101"),
     notes: text("notes"),
+    /*
+     * The Drive folder holding this session's materials, if it has one.
+     *
+     * Only the folder id is stored. File names and links are read from Drive
+     * at request time rather than copied here, so the club never keeps a stale
+     * second copy of a listing, and Drive's own permissions stay the only
+     * thing deciding who can open a file.
+     */
+    driveFolderId: text("drive_folder_id"),
     createdByIdentityId: uuid("created_by_identity_id")
       .notNull()
       .references(() => applicationIdentities.id, { onDelete: "restrict" }),
@@ -685,6 +910,10 @@ export const clubSessions = logosSchema.table(
   },
   (t) => [
     index("club_sessions_date_idx").on(t.sessionDate),
+    check(
+      "club_sessions_drive_folder_len_check",
+      sql`"drive_folder_id" IS NULL OR char_length("drive_folder_id") BETWEEN 1 AND 128`,
+    ),
     check(
       "club_sessions_title_len_check",
       sql`char_length("title") BETWEEN 1 AND 120`,

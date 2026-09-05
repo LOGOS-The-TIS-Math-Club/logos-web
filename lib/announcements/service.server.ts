@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, desc, eq } from "drizzle-orm";
 
-import { announcements } from "@/db/schema";
+import { announcements, images } from "@/db/schema";
 import { requireCapability } from "@/lib/auth/identity-access.server";
 import { withDatabase } from "@/lib/db/client.server";
 import { recordBusinessAuditEvent } from "@/lib/security/audit";
@@ -28,6 +28,10 @@ export interface PublicAnnouncement {
   readonly title: string;
   readonly body: string;
   readonly publishedAt: Date;
+  readonly imageId: string | null;
+  readonly imageAlt: string | null;
+  readonly imageWidth: number | null;
+  readonly imageHeight: number | null;
 }
 
 /** Unauthenticated read for the public site. Published rows only. */
@@ -41,8 +45,13 @@ export async function listPublishedAnnouncements(
         title: announcements.title,
         body: announcements.body,
         publishedAt: announcements.publishedAt,
+        imageId: announcements.imageId,
+        imageAlt: images.altText,
+        imageWidth: images.width,
+        imageHeight: images.height,
       })
       .from(announcements)
+      .leftJoin(images, eq(announcements.imageId, images.id))
       .where(eq(announcements.published, true))
       .orderBy(desc(announcements.publishedAt))
       .limit(limit);
@@ -69,6 +78,10 @@ export async function listAnnouncementsForManagement(
         body: announcements.body,
         published: announcements.published,
         publishedAt: announcements.publishedAt,
+        imageId: announcements.imageId,
+        imageAlt: images.altText,
+        imageWidth: images.width,
+        imageHeight: images.height,
         updatedAt: announcements.updatedAt,
       })
       .from(announcements)
@@ -94,6 +107,7 @@ export async function createAnnouncement(
           title: parsed.title,
           body: parsed.body,
           published: parsed.published,
+          imageId: parsed.imageId ?? null,
           publishedAt: parsed.published ? new Date() : null,
           createdByIdentityId: identity.identityId,
         })
@@ -156,6 +170,9 @@ export async function updateAnnouncement(
           title: parsed.title,
           body: parsed.body,
           published: parsed.published,
+          // The form always sends this field, so an absent value is a
+          // deliberate "remove the picture" rather than an omission.
+          imageId: parsed.imageId ?? null,
           publishedAt,
           updatedAt: new Date(),
         })

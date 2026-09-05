@@ -23,6 +23,7 @@ describe("AttendanceAdminView", () => {
       endTime: "16:30",
       location: "Room 101",
       notes: null,
+      driveFolderId: null,
       createdAt: "2026-09-01T00:00:00.000Z",
       presentCount: 1,
       totalMarked: 1,
