@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { GRADE_OPTIONS } from "@/lib/membership/grade";
+
 import { useId, useState } from "react";
 
 import {
@@ -118,6 +120,9 @@ export function MemberAdminView({
         // A newly activated member has neither override yet.
         rosterName: app.preferredName,
         displayName: null,
+        appliedGrade: null,
+        cohortYear: null,
+        gradeOverride: null,
         email: app.email,
         grade: app.grade,
         status: "active",
@@ -147,19 +152,34 @@ export function MemberAdminView({
   };
 
   /*
-   * The roster name is leadership's own label for a member. It is separate
-   * from the name the member sets for themselves, so renaming here never
-   * changes what the member sees on their dashboard.
+   * Leadership's own view of a member: the name they work from, and the two
+   * fields behind grade progression. displayName is deliberately absent — that
+   * belongs to the member, and correcting a roster should not rewrite what
+   * somebody calls themselves.
    */
-  const openRosterName = async (member: MemberListItem) => {
-    const next = window.prompt(
-      `Roster name for ${member.email}.\n\nThis is what leadership sees. Leave empty to fall back to the name on their application.`,
-      member.rosterName,
-    );
-    // null is cancel; an empty string is a deliberate clear.
-    if (next === null) return;
+  const [detailsMember, setDetailsMember] = useState<MemberListItem | null>(
+    null,
+  );
+  const [detailsRosterName, setDetailsRosterName] = useState("");
+  const [detailsGradeOverride, setDetailsGradeOverride] = useState("");
+  const [detailsCohortYear, setDetailsCohortYear] = useState("");
+  const [savingDetails, setSavingDetails] = useState(false);
 
-    const trimmed = next.trim();
+  function openDetails(member: MemberListItem) {
+    setDetailsMember(member);
+    setDetailsRosterName(member.rosterName);
+    setDetailsGradeOverride(member.gradeOverride ?? "");
+    setDetailsCohortYear(
+      member.cohortYear === null ? "" : String(member.cohortYear),
+    );
+    setFeedback(null);
+  }
+
+  const handleDetailsSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!detailsMember) return;
+
+    setSavingDetails(true);
     setFeedback(null);
 
     try {
@@ -173,36 +193,59 @@ export function MemberAdminView({
       if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
       if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
 
-      const response = await fetch(`/api/admin/members/${member.id}/name`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ rosterName: trimmed === "" ? null : trimmed }),
-      });
+      const response = await fetch(
+        `/api/admin/members/${detailsMember.id}/metadata`,
+        {
+          method: "POST",
+          headers,
+          // Empty means "clear the override", which is a real intent and not
+          // the same as leaving the field alone.
+          body: JSON.stringify({
+            rosterName: detailsRosterName.trim() || null,
+            gradeOverride: detailsGradeOverride.trim() || null,
+            cohortYear: detailsCohortYear.trim()
+              ? Number(detailsCohortYear)
+              : null,
+          }),
+        },
+      );
 
-      if (!response.ok) throw new Error("Failed to set the roster name");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.message || "Failed to save member details");
+      }
 
       const { member: updated } = await response.json();
 
       setMembers((prev) =>
         prev.map((item) =>
-          item.id === member.id
+          item.id === detailsMember.id
             ? {
                 ...item,
                 rosterName:
                   updated.rosterName || item.preferredName || "Member",
+                gradeOverride: updated.gradeOverride,
+                cohortYear: updated.cohortYear,
+                // The grade shown is derived server-side, so an override is
+                // reflected immediately and a cleared one falls back on the
+                // next load rather than showing a stale value now.
+                grade: updated.gradeOverride ?? item.grade,
               }
             : item,
         ),
       );
-      setFeedback({ type: "success", text: "Roster name updated." });
+      setFeedback({ type: "success", text: "Member details updated." });
+      setDetailsMember(null);
     } catch (error: unknown) {
       setFeedback({
         type: "error",
         text:
           error instanceof Error
             ? error.message
-            : "Could not set the roster name.",
+            : "Could not save member details.",
       });
+    } finally {
+      setSavingDetails(false);
     }
   };
 
@@ -419,10 +462,10 @@ export function MemberAdminView({
                       </Link>
                       <button
                         type="button"
-                        onClick={() => openRosterName(member)}
+                        onClick={() => openDetails(member)}
                         className="text-muted-foreground hover:text-foreground focus-visible:outline-focus rounded text-[11px] font-medium focus-visible:outline-1"
                       >
-                        Rename
+                        Edit
                       </button>
                     </div>
                     <div className="text-muted-foreground">{member.email}</div>
@@ -554,6 +597,118 @@ export function MemberAdminView({
                   className="control control-primary"
                 >
                   {isSubmitting ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {detailsMember && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="member-details-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+        >
+          <div className="panel w-full max-w-lg space-y-4 p-6 shadow-xl">
+            <h2 id="member-details-title" className="heading-3">
+              Edit member details
+            </h2>
+            <p className="text-muted-foreground text-xs">
+              {detailsMember.email}
+            </p>
+
+            <form onSubmit={handleDetailsSave} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="details-roster-name"
+                  className="text-foreground block text-xs font-medium"
+                >
+                  Roster name
+                </label>
+                <input
+                  id="details-roster-name"
+                  type="text"
+                  maxLength={80}
+                  value={detailsRosterName}
+                  onChange={(e) => setDetailsRosterName(e.target.value)}
+                  className="field-input"
+                />
+                <p className="text-subtle-foreground mt-1 text-xs">
+                  What leadership sees. Leave empty to use the name on their
+                  application. This does not change the name the member chose
+                  for themselves.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="details-cohort-year"
+                  className="text-foreground block text-xs font-medium"
+                >
+                  Cohort year
+                </label>
+                <input
+                  id="details-cohort-year"
+                  type="number"
+                  min={2000}
+                  max={2100}
+                  placeholder="2026"
+                  value={detailsCohortYear}
+                  onChange={(e) => setDetailsCohortYear(e.target.value)}
+                  className="field-input"
+                />
+                <p className="text-subtle-foreground mt-1 text-xs">
+                  The school year they were in{" "}
+                  {detailsMember.appliedGrade ?? "the grade they applied as"}.
+                  Grades move up automatically each 1 August from this year.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="details-grade-override"
+                  className="text-foreground block text-xs font-medium"
+                >
+                  Grade override
+                </label>
+                <select
+                  id="details-grade-override"
+                  value={detailsGradeOverride}
+                  onChange={(e) => setDetailsGradeOverride(e.target.value)}
+                  className="field-input"
+                >
+                  <option value="">
+                    Automatic ({detailsMember.grade ?? "unknown"})
+                  </option>
+                  {GRADE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-subtle-foreground mt-1 text-xs">
+                  Only needed when the automatic progression is wrong — a
+                  repeated year, a skipped year, or a mid-year transfer.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDetailsMember(null)}
+                  disabled={savingDetails}
+                  className="control"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingDetails}
+                  className="control control-primary"
+                >
+                  {savingDetails ? "Saving…" : "Save details"}
                 </button>
               </div>
             </form>

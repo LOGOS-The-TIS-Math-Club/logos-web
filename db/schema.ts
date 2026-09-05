@@ -646,6 +646,22 @@ export const clubMembers = logosSchema.table(
      */
     displayName: text("display_name"),
     rosterName: text("roster_name"),
+    /*
+     * Grade is normally derived, not stored: the applied grade advanced by the
+     * school years elapsed since cohortYear, rolling over on 1 August. See
+     * lib/membership/grade.ts for why that is computed rather than written by
+     * a yearly job.
+     *
+     * cohortYear is the school year in which the member held the grade they
+     * applied as, labelled by the calendar year it began in. Null means "work
+     * it out from the application date", which is every member who joined
+     * before this column existed.
+     *
+     * gradeOverride wins outright when set. Students repeat years, skip years
+     * and transfer in mid-year, and none of that is derivable.
+     */
+    cohortYear: integer("cohort_year"),
+    gradeOverride: text("grade_override"),
     joinedAt: timestamp("joined_at", { withTimezone: true })
       .notNull()
       .default(sql`clock_timestamp()`),
@@ -664,6 +680,14 @@ export const clubMembers = logosSchema.table(
       .where(sql`"status" = 'active'`),
     index("club_members_status_joined_idx").on(t.status, t.joinedAt),
     index("club_members_application_idx").on(t.applicationId),
+    check(
+      "club_members_cohort_year_check",
+      sql`"cohort_year" IS NULL OR "cohort_year" BETWEEN 2000 AND 2100`,
+    ),
+    check(
+      "club_members_grade_override_len_check",
+      sql`"grade_override" IS NULL OR char_length("grade_override") BETWEEN 1 AND 40`,
+    ),
     check(
       "club_members_display_name_len_check",
       sql`"display_name" IS NULL OR char_length("display_name") BETWEEN 1 AND 80`,

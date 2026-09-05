@@ -13,17 +13,18 @@ import {
   resolveCurrentIdentity,
 } from "@/lib/auth/identity-access.server";
 import { withDatabase } from "@/lib/db/client.server";
+import { academicYear, resolveMemberGrade } from "./grade";
 import { recordBusinessAuditEvent } from "@/lib/security/audit";
 import {
   type ActivateMemberInput,
   type MemberListItem,
   type UpdateDisplayNameInput,
   type UpdateMemberStatusInput,
-  type UpdateRosterNameInput,
+  type UpdateMemberMetadataInput,
   ActivateMemberInputSchema,
   UpdateDisplayNameSchema,
   UpdateMemberStatusSchema,
-  UpdateRosterNameSchema,
+  UpdateMemberMetadataSchema,
 } from "./schema";
 
 export class ApplicationNotAcceptedError extends Error {
@@ -79,6 +80,7 @@ export async function activateMemberFromApplication(
           identityId: studentApplications.identityId,
           status: studentApplications.status,
           preferredName: studentApplications.preferredName,
+          submittedAt: studentApplications.submittedAt,
         })
         .from(studentApplications)
         .where(eq(studentApplications.id, parsedInput.applicationId))
@@ -117,6 +119,9 @@ export async function activateMemberFromApplication(
         .values({
           identityId: application.identityId,
           applicationId: application.id,
+          // Pinned at activation so grade progression has a fixed origin, and
+          // stays correct even if the application row is later amended.
+          cohortYear: academicYear(application.submittedAt),
           status: "active",
           statusReason:
             parsedInput.reason ||
@@ -177,9 +182,12 @@ export async function listMembers(
         statusReason: clubMembers.statusReason,
         displayName: clubMembers.displayName,
         rosterName: clubMembers.rosterName,
+        cohortYear: clubMembers.cohortYear,
+        gradeOverride: clubMembers.gradeOverride,
         email: applicationIdentities.email,
         preferredName: studentApplications.preferredName,
         grade: studentApplications.grade,
+        submittedAt: studentApplications.submittedAt,
       })
       .from(clubMembers)
       .innerJoin(
@@ -213,8 +221,17 @@ export async function listMembers(
       // shown alongside it rather than replacing it.
       rosterName: row.rosterName || row.preferredName || "Member",
       displayName: row.displayName,
+      // Derived, so it is correct on 1 August without anything having to run.
+      grade: resolveMemberGrade({
+        gradeOverride: row.gradeOverride,
+        appliedGrade: row.grade,
+        cohortYear: row.cohortYear,
+        appliedAt: row.submittedAt,
+      }),
+      appliedGrade: row.grade,
+      cohortYear: row.cohortYear,
+      gradeOverride: row.gradeOverride,
       email: row.email,
-      grade: row.grade,
       status: row.status,
       joinedAt: row.joinedAt.toISOString(),
       leftAt: row.leftAt ? row.leftAt.toISOString() : null,
@@ -342,19 +359,24 @@ export async function updateOwnDisplayName(
 }
 
 /**
- * Leadership setting the name they work from. Requires 'membership:manage'.
+ * Leadership editing a member's metadata. Requires 'membership:manage'.
  *
- * Writes rosterName only, so correcting the roster never overwrites the name a
- * member chose for themselves. Passing null clears the override and falls the
- * roster back to the name on the application.
+ * Covers the fields an operator can legitimately correct: the roster name they
+ * work from, the grade override, and the cohort year that drives grade
+ * progression. It deliberately does not touch displayName — that belongs to the
+ * member, and an operator correcting a roster should not silently rewrite what
+ * someone calls themselves.
+ *
+ * Only keys present in the input are written, so editing one field cannot
+ * clear another.
  */
-export async function updateMemberRosterName(
+export async function updateMemberMetadata(
   memberId: string,
-  rawInput: UpdateRosterNameInput,
+  rawInput: UpdateMemberMetadataInput,
   correlationId: string,
 ) {
   const actor = await requireCapability("membership:manage", correlationId);
-  const { rosterName } = UpdateRosterNameSchema.parse(rawInput);
+  const parsedInput = UpdateMemberMetadataSchema.parse(rawInput);
 
   return withDatabase((database) =>
     database.transaction(async (transaction) => {
@@ -368,7 +390,7 @@ export async function updateMemberRosterName(
 
       const [updated] = await transaction
         .update(clubMembers)
-        .set({ rosterName, updatedAt: new Date() })
+        .set({ ...parsedInput, updatedAt: new Date() })
         .where(eq(clubMembers.id, memberId))
         .returning();
 
@@ -379,12 +401,20 @@ export async function updateMemberRosterName(
         source: "web",
         correlationId,
         category: "membership",
-        action: "update_roster_name",
+        action: "update_metadata",
         targetType: "club_member",
         targetId: memberId,
         result: "success",
-        beforeSummary: { rosterName: existing.rosterName },
-        afterSummary: { rosterName: updated.rosterName },
+        beforeSummary: {
+          rosterName: existing.rosterName,
+          gradeOverride: existing.gradeOverride,
+          cohortYear: existing.cohortYear,
+        },
+        afterSummary: {
+          rosterName: updated.rosterName,
+          gradeOverride: updated.gradeOverride,
+          cohortYear: updated.cohortYear,
+        },
       });
 
       return updated;
@@ -408,8 +438,11 @@ export async function getCurrentMember() {
           status: clubMembers.status,
           joinedAt: clubMembers.joinedAt,
           displayName: clubMembers.displayName,
+          cohortYear: clubMembers.cohortYear,
+          gradeOverride: clubMembers.gradeOverride,
           preferredName: studentApplications.preferredName,
           grade: studentApplications.grade,
+          submittedAt: studentApplications.submittedAt,
           email: applicationIdentities.email,
         })
         .from(clubMembers)
@@ -440,7 +473,12 @@ export async function getCurrentMember() {
         preferredName: member.preferredName || "Member",
         // Member-facing surfaces use the name the member chose.
         displayName: member.displayName || member.preferredName || "Member",
-        grade: member.grade,
+        grade: resolveMemberGrade({
+          gradeOverride: member.gradeOverride,
+          appliedGrade: member.grade,
+          cohortYear: member.cohortYear,
+          appliedAt: member.submittedAt,
+        }),
         email: member.email,
       };
     });

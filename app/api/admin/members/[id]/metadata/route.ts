@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { AccessDeniedError } from "@/lib/auth/identity-access.server";
 import {
   MemberNotFoundError,
-  updateMemberRosterName,
+  updateMemberMetadata,
 } from "@/lib/membership/service.server";
 import { CORRELATION_HEADER_NAME_CANONICAL } from "@/lib/security/correlation";
 import { createSafeErrorResponse } from "@/lib/security/errors";
@@ -19,14 +19,14 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const member = await updateMemberRosterName(id, body, correlationId);
+    const member = await updateMemberMetadata(id, body, correlationId);
     return NextResponse.json({ success: true, member });
   } catch (error) {
     if (error instanceof AccessDeniedError) {
       return NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "You do not have permission to set roster names.",
+          message: "You do not have permission to edit member details.",
         },
         { status: 403 },
       );
