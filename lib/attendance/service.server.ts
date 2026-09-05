@@ -42,6 +42,23 @@ export class SessionNotFoundError extends Error {
   }
 }
 
+/**
+ * Raised when a session still has attendance or absence records against it.
+ *
+ * Those rows are the club's record of who was there. Cascading the delete
+ * would erase that history silently, so the delete is refused and the caller
+ * is told what is holding it.
+ */
+export class SessionInUseError extends Error {
+  constructor(
+    readonly attendanceCount: number,
+    readonly absenceCount: number,
+  ) {
+    super("Club session still has records against it");
+    this.name = "SessionInUseError";
+  }
+}
+
 export class WarningNotFoundError extends Error {
   constructor(readonly warningId: string) {
     super("Warning record not found");
@@ -157,6 +174,72 @@ export async function updateClubSession(
       });
 
       return updated;
+    }),
+  );
+}
+
+/**
+ * Deletes a club session. Requires 'session:manage'.
+ *
+ * Refuses if attendance or expected absences reference it. Both foreign keys
+ * are ON DELETE restrict, so the database would reject this anyway — checking
+ * first turns an opaque constraint violation into a message that says which
+ * records are in the way.
+ */
+export async function deleteClubSession(
+  sessionId: string,
+  correlationId: string,
+) {
+  const actor = await requireCapability("session:manage", correlationId);
+
+  return withDatabase((database) =>
+    database.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select()
+        .from(clubSessions)
+        .where(eq(clubSessions.id, sessionId))
+        .limit(1);
+
+      if (!existing) throw new SessionNotFoundError(sessionId);
+
+      const [attendance] = await transaction
+        .select({ count: sql<number>`count(*)::int` })
+        .from(sessionAttendance)
+        .where(eq(sessionAttendance.sessionId, sessionId));
+
+      const [absences] = await transaction
+        .select({ count: sql<number>`count(*)::int` })
+        .from(expectedAbsences)
+        .where(eq(expectedAbsences.sessionId, sessionId));
+
+      if (attendance.count > 0 || absences.count > 0) {
+        throw new SessionInUseError(attendance.count, absences.count);
+      }
+
+      await transaction
+        .delete(clubSessions)
+        .where(eq(clubSessions.id, sessionId));
+
+      await recordBusinessAuditEvent(transaction, {
+        actorId: actor.identityId,
+        actorType: "user",
+        actorRoleSnapshot: "leadership",
+        source: "web",
+        correlationId,
+        category: "session",
+        action: "delete",
+        targetType: "club_session",
+        targetId: sessionId,
+        result: "success",
+        // The row is gone, so the journal is the only remaining record of it.
+        beforeSummary: {
+          title: existing.title,
+          sessionDate: existing.sessionDate,
+          location: existing.location,
+        },
+      });
+
+      return { id: sessionId };
     }),
   );
 }

@@ -28,9 +28,11 @@ vi.mock("@/lib/db/client.server", () => ({
 
 import {
   createClubSession,
+  deleteClubSession,
   issueManualWarning,
   MemberNotActiveError,
   recordSessionAttendance,
+  SessionInUseError,
   SessionNotFoundError,
   submitExpectedAbsence,
 } from "./service.server";
@@ -353,5 +355,141 @@ describe("Attendance Service (Manual Warnings)", () => {
         targetId: "123e4567-e89b-42d3-a456-426614174020",
       }),
     );
+  });
+});
+
+describe("Attendance Service (deleteClubSession)", () => {
+  const existingSession = {
+    id: validSessionId,
+    title: "Remainder theorem",
+    sessionDate: "2026-10-02",
+    location: "Room 101",
+  };
+
+  /**
+   * deleteClubSession issues three selects in order — the session, then the
+   * attendance count, then the absence count — so the mock answers them in
+   * that order. Only the first uses .limit().
+   */
+  function mockTransaction(
+    attendanceCount: number,
+    absenceCount: number,
+    session = existingSession,
+  ) {
+    const deleteWhere = vi.fn().mockResolvedValue(undefined);
+    const chain = (result: unknown[], withLimit: boolean) => ({
+      from: vi.fn().mockReturnValue({
+        where: vi
+          .fn()
+          .mockReturnValue(
+            withLimit
+              ? { limit: vi.fn().mockResolvedValue(result) }
+              : Promise.resolve(result),
+          ),
+      }),
+    });
+
+    const mockTx = {
+      select: vi
+        .fn()
+        .mockReturnValueOnce(chain(session ? [session] : [], true))
+        .mockReturnValueOnce(chain([{ count: attendanceCount }], false))
+        .mockReturnValueOnce(chain([{ count: absenceCount }], false)),
+      delete: vi.fn().mockReturnValue({ where: deleteWhere }),
+    };
+
+    mocks.withDatabase.mockImplementation(
+      async (callback: (db: unknown) => unknown) =>
+        callback({
+          transaction: async (txCb: (tx: unknown) => unknown) => txCb(mockTx),
+        }),
+    );
+
+    return { mockTx, deleteWhere };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireCapability.mockResolvedValue({
+      identityId: "123e4567-e89b-42d3-a456-426614174000",
+    });
+  });
+
+  it("requires the session:manage capability", async () => {
+    mockTransaction(0, 0);
+
+    await deleteClubSession(validSessionId, "corr-del-1");
+
+    expect(mocks.requireCapability).toHaveBeenCalledWith(
+      "session:manage",
+      "corr-del-1",
+    );
+  });
+
+  it("deletes a session that nothing references", async () => {
+    const { deleteWhere } = mockTransaction(0, 0);
+
+    const result = await deleteClubSession(validSessionId, "corr-del-2");
+
+    expect(result).toEqual({ id: validSessionId });
+    expect(deleteWhere).toHaveBeenCalledTimes(1);
+  });
+
+  it("records what was deleted, since the row is the only other copy", async () => {
+    mockTransaction(0, 0);
+
+    await deleteClubSession(validSessionId, "corr-del-3");
+
+    expect(mocks.recordBusinessAudit).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        category: "session",
+        action: "delete",
+        targetId: validSessionId,
+        beforeSummary: {
+          title: "Remainder theorem",
+          sessionDate: "2026-10-02",
+          location: "Room 101",
+        },
+      }),
+    );
+  });
+
+  it("refuses to delete a session that has attendance against it", async () => {
+    const { deleteWhere } = mockTransaction(7, 0);
+
+    await expect(
+      deleteClubSession(validSessionId, "corr-del-4"),
+    ).rejects.toBeInstanceOf(SessionInUseError);
+
+    // The history must survive the refusal.
+    expect(deleteWhere).not.toHaveBeenCalled();
+  });
+
+  it("reports the counts so the refusal is actionable", async () => {
+    mockTransaction(3, 2);
+
+    await expect(
+      deleteClubSession(validSessionId, "corr-del-5"),
+    ).rejects.toMatchObject({
+      attendanceCount: 3,
+      absenceCount: 2,
+    });
+  });
+
+  it("refuses on expected absences alone", async () => {
+    mockTransaction(0, 1);
+
+    await expect(
+      deleteClubSession(validSessionId, "corr-del-6"),
+    ).rejects.toBeInstanceOf(SessionInUseError);
+  });
+
+  it("throws SessionNotFoundError for an unknown session", async () => {
+    mockTransaction(0, 0, null as unknown as typeof existingSession);
+
+    await expect(
+      deleteClubSession(validMissingSessionId, "corr-del-7"),
+    ).rejects.toBeInstanceOf(SessionNotFoundError);
   });
 });

@@ -178,6 +178,63 @@ export function SessionAdminView({
     }
   };
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (session: SessionListItem) => {
+    // Deleting a meeting from the public programme is not something to do by
+    // a stray click, so confirm against the session's own name and date.
+    const confirmed = window.confirm(
+      `Delete "${session.title}" on ${session.sessionDate}?\n\nThis removes it from the public programme and cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(session.id);
+    setFeedback(null);
+
+    try {
+      const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
+      const sessionCsrfToken = decodeURIComponent(
+        getCookie("__Host-logos_session_csrf"),
+      );
+
+      const headers: Record<string, string> = {};
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+      if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
+
+      const response = await fetch(`/api/admin/sessions/${session.id}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        // A 409 explains which records are holding the session; surface that
+        // rather than a generic failure.
+        throw new Error(
+          errorData?.message ||
+            errorData?.error?.message ||
+            "Failed to delete club session",
+        );
+      }
+
+      setSessions((prev) => prev.filter((item) => item.id !== session.id));
+      setFeedback({
+        type: "success",
+        text: `Deleted "${session.title}".`,
+      });
+    } catch (err: unknown) {
+      setFeedback({
+        type: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Delete failed. Please try again.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header & Create Button */}
@@ -271,6 +328,14 @@ export function SessionAdminView({
                     className="text-muted-foreground hover:text-foreground focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
                   >
                     Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(session)}
+                    disabled={deletingId === session.id}
+                    className="text-muted-foreground hover:text-danger focus-visible:outline-focus rounded font-semibold focus-visible:outline-1 disabled:opacity-50"
+                  >
+                    {deletingId === session.id ? "Deleting…" : "Delete"}
                   </button>
                   <Link
                     href={`/admin/attendance?sessionId=${session.id}`}
