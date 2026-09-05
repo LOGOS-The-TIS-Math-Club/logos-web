@@ -22,6 +22,7 @@ describe("MemberHubView", () => {
     endTime: "16:30",
     location: "Room 101",
     notes: "Combinatorics and Number Theory",
+    driveFolderId: null,
     createdAt: "2026-09-01T00:00:00.000Z",
     presentCount: 12,
     totalMarked: 15,
@@ -52,6 +53,7 @@ describe("MemberHubView", () => {
       <MemberHubView
         member={mockMember}
         upcomingSession={mockSession}
+        sessions={[mockSession]}
         attendanceTotals={mockTotals}
         resources={mockResources}
       />,
@@ -66,7 +68,14 @@ describe("MemberHubView", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Next Club Meeting" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("LOGOS Weekly Meeting")).toBeInTheDocument();
+    // The session appears twice by design — once as the next meeting and once
+    // in the full list — so this targets the next-meeting heading specifically.
+    expect(
+      screen.getByRole("heading", { name: "LOGOS Weekly Meeting" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /session details and materials/i }),
+    ).toHaveAttribute("href", "/members/sessions/session-1");
     expect(screen.getByText(/15:30 – 16:30 • Room 101/i)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 2, name: "My Attendance Record" }),

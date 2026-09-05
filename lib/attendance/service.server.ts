@@ -103,6 +103,7 @@ export async function createClubSession(
           endTime: parsedInput.endTime,
           location: parsedInput.location,
           notes: parsedInput.notes,
+          driveFolderId: parsedInput.driveFolderId || null,
           createdByIdentityId: actor.identityId,
         })
         .returning();
@@ -290,6 +291,7 @@ export async function listClubSessions(): Promise<SessionListItem[]> {
         endTime: clubSessions.endTime,
         location: clubSessions.location,
         notes: clubSessions.notes,
+        driveFolderId: clubSessions.driveFolderId,
         createdAt: clubSessions.createdAt,
       })
       .from(clubSessions)
@@ -322,6 +324,7 @@ export async function listClubSessions(): Promise<SessionListItem[]> {
       endTime: s.endTime,
       location: s.location,
       notes: s.notes,
+      driveFolderId: s.driveFolderId,
       createdAt: s.createdAt.toISOString(),
       presentCount: statsMap.get(s.id)?.presentCount || 0,
       totalMarked: statsMap.get(s.id)?.totalMarked || 0,

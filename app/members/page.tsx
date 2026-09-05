@@ -72,6 +72,7 @@ export default async function MembersPage() {
     <MemberHubView
       member={member}
       upcomingSession={upcomingSession}
+      sessions={sessions}
       attendanceTotals={totals}
       resources={resources}
     />

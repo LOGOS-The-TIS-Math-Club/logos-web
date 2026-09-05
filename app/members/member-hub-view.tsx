@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 
 import {
@@ -38,6 +39,7 @@ export interface MemberHubProps {
     joinedAt: string;
   };
   upcomingSession: SessionListItem | null;
+  sessions: SessionListItem[];
   attendanceTotals: AttendanceTotals;
   resources: ResourceItem[];
 }
@@ -45,6 +47,7 @@ export interface MemberHubProps {
 export function MemberHubView({
   member,
   upcomingSession,
+  sessions,
   attendanceTotals,
   resources,
 }: MemberHubProps) {
@@ -279,6 +282,12 @@ export function MemberHubView({
                     {upcomingSession.notes}
                   </p>
                 )}
+                <Link
+                  href={`/members/sessions/${upcomingSession.id}`}
+                  className="text-primary hover:text-primary-hover focus-visible:outline-focus mt-3 inline-block rounded text-xs font-semibold focus-visible:outline-1"
+                >
+                  Session details and materials →
+                </Link>
               </div>
             </div>
           ) : (
@@ -409,6 +418,32 @@ export function MemberHubView({
             </button>
           </div>
         </form>
+      </div>
+
+      {/* All sessions */}
+      <div className="panel space-y-4 p-6">
+        <h2 className="text-foreground text-base font-bold">Sessions</h2>
+        {sessions.length === 0 ? (
+          <p className="text-muted-foreground text-xs">
+            No sessions have been scheduled yet.
+          </p>
+        ) : (
+          <ul className="border-border divide-border divide-y border-t border-b">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <Link
+                  href={`/members/sessions/${session.id}`}
+                  className="hover:bg-surface-raised focus-visible:outline-focus flex items-baseline gap-4 px-2 py-3 transition-colors focus-visible:outline-2"
+                >
+                  <span className="datum text-subtle-foreground w-24 shrink-0 text-xs">
+                    {session.sessionDate}
+                  </span>
+                  <span className="text-sm">{session.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Approved Club Resources */}

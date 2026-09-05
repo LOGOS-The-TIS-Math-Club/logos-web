@@ -14,6 +14,7 @@ describe("SessionAdminView", () => {
       endTime: "16:30",
       location: "Room 101",
       notes: "Combinatorics and Number Theory",
+      driveFolderId: null,
       createdAt: "2026-09-01T00:00:00.000Z",
       presentCount: 12,
       totalMarked: 15,

@@ -30,12 +30,13 @@ import { type ExportDataset } from "./datasets";
  * this never widens access to them.
  */
 
-export async function exportDatasetCsv(
-  dataset: ExportDataset,
-  correlationId: string,
-): Promise<string> {
-  await requireCapability("data:export", correlationId);
-
+/**
+ * Builds a dataset's CSV. Performs no authorization of its own.
+ *
+ * Kept private so the only ways in are the two exported wrappers below, each
+ * of which states plainly what authorized the call.
+ */
+async function buildDatasetCsv(dataset: ExportDataset): Promise<string> {
   return withDatabase(async (database) => {
     switch (dataset) {
       case "members": {
@@ -311,4 +312,28 @@ export async function exportDatasetCsv(
       }
     }
   });
+}
+
+/** A leadership account downloading an export. */
+export async function exportDatasetCsv(
+  dataset: ExportDataset,
+  correlationId: string,
+): Promise<string> {
+  await requireCapability("data:export", correlationId);
+  return buildDatasetCsv(dataset);
+}
+
+/**
+ * The scheduled backup, which runs with no signed-in user.
+ *
+ * There is no capability to check, so the caller is the authorization: this is
+ * reachable only from the backup route, after it has verified the cron secret.
+ * It is exported separately from exportDatasetCsv precisely so that this
+ * unauthenticated path is visible at every call site rather than hidden behind
+ * an optional argument.
+ */
+export async function exportDatasetCsvForScheduledBackup(
+  dataset: ExportDataset,
+): Promise<string> {
+  return buildDatasetCsv(dataset);
 }

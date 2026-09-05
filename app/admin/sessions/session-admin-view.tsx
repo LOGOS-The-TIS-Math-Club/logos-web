@@ -45,6 +45,7 @@ export function SessionAdminView({
   const [endTime, setEndTime] = useState("16:30");
   const [location, setLocation] = useState("Room 101");
   const [notes, setNotes] = useState("");
+  const [driveFolderId, setDriveFolderId] = useState("");
 
   function openCreate() {
     setEditingId(null);
@@ -54,6 +55,7 @@ export function SessionAdminView({
     setEndTime("16:30");
     setLocation("Room 101");
     setNotes("");
+    setDriveFolderId("");
     setShowModal(true);
   }
 
@@ -65,6 +67,7 @@ export function SessionAdminView({
     setEndTime(session.endTime);
     setLocation(session.location);
     setNotes(session.notes ?? "");
+    setDriveFolderId(session.driveFolderId ?? "");
     setShowModal(true);
   }
 
@@ -74,6 +77,7 @@ export function SessionAdminView({
   const endId = useId();
   const locId = useId();
   const notesId = useId();
+  const driveId = useId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +110,7 @@ export function SessionAdminView({
             // null clears an existing note on edit; undefined leaves the field
             // untouched on create.
             notes: notes || (editingId ? null : undefined),
+            driveFolderId: driveFolderId || (editingId ? null : undefined),
           }),
         },
       );
@@ -134,6 +139,7 @@ export function SessionAdminView({
                   endTime: session.endTime,
                   location: session.location,
                   notes: session.notes,
+                  driveFolderId: session.driveFolderId,
                 }
               : item,
           ),
@@ -152,6 +158,7 @@ export function SessionAdminView({
             endTime: session.endTime,
             location: session.location,
             notes: session.notes,
+            driveFolderId: session.driveFolderId,
             createdAt: new Date().toISOString(),
             presentCount: 0,
             totalMarked: 0,
@@ -476,6 +483,29 @@ export function SessionAdminView({
                   rows={3}
                   className="panel text-foreground focus:ring-primary mt-1 w-full p-2 text-xs focus:ring-1 focus:outline-none"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor={driveId}
+                  className="text-foreground block text-xs font-medium"
+                >
+                  Drive Folder ID (Optional)
+                </label>
+                <input
+                  id={driveId}
+                  type="text"
+                  maxLength={128}
+                  placeholder="1a2B3c4D5e6F7g8H9i"
+                  value={driveFolderId}
+                  onChange={(e) => setDriveFolderId(e.target.value)}
+                  className="field-input"
+                />
+                <p className="text-subtle-foreground mt-1 text-xs">
+                  Members see this folder&rsquo;s files on the session. Take the
+                  id from the folder&rsquo;s Drive URL, after{" "}
+                  <code>/folders/</code>.
+                </p>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

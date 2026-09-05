@@ -29,6 +29,12 @@ export const CreateSessionSchema = z.object({
   endTime: z.string().min(1).max(10).default("16:30"),
   location: z.string().min(1).max(100).default("Room 101"),
   notes: z.string().max(500, "Notes must not exceed 500 characters").optional(),
+  /** Drive folder holding this session's materials. */
+  driveFolderId: z
+    .string()
+    .trim()
+    .max(128, "Folder ID must not exceed 128 characters")
+    .optional(),
 });
 export type CreateSessionInput = z.infer<typeof CreateSessionSchema>;
 
@@ -53,6 +59,11 @@ export const UpdateSessionSchema = z
     notes: z
       .string()
       .max(500, "Notes must not exceed 500 characters")
+      .nullable(),
+    driveFolderId: z
+      .string()
+      .trim()
+      .max(128, "Folder ID must not exceed 128 characters")
       .nullable(),
   })
   .partial()
@@ -122,6 +133,7 @@ export interface SessionListItem {
   endTime: string;
   location: string;
   notes: string | null;
+  driveFolderId: string | null;
   createdAt: string;
   presentCount: number;
   totalMarked: number;
