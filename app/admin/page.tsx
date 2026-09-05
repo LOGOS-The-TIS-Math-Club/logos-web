@@ -52,6 +52,13 @@ const SECTIONS: readonly {
       "The active roster. Activate an accepted applicant into a member, or change a member's status.",
   },
   {
+    href: "/admin/story",
+    label: "Our story",
+    capability: "content:manage",
+    description:
+      "The club's record with pictures, shown on the public story page. Drafts stay hidden until you publish them.",
+  },
+  {
     href: "/admin/resources",
     label: "Resources",
     capability: "resource:manage",

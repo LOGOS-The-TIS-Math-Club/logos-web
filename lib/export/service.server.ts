@@ -9,8 +9,10 @@ import {
   clubResources,
   clubSessions,
   expectedAbsences,
+  images,
   memberWarnings,
   sessionAttendance,
+  storyEntries,
   studentApplications,
 } from "@/db/schema";
 import { requireCapability } from "@/lib/auth/identity-access.server";
@@ -288,6 +290,46 @@ async function buildDatasetCsv(dataset: ExportDataset): Promise<string> {
             row.body,
             row.published ? "yes" : "no",
             csvDate(row.publishedAt),
+            csvDate(row.createdAt),
+          ]),
+        );
+      }
+
+      case "story": {
+        const rows = await database
+          .select({
+            id: storyEntries.id,
+            occurredOn: storyEntries.occurredOn,
+            title: storyEntries.title,
+            body: storyEntries.body,
+            published: storyEntries.published,
+            imageId: storyEntries.imageId,
+            imageAlt: images.altText,
+            createdAt: storyEntries.createdAt,
+          })
+          .from(storyEntries)
+          .leftJoin(images, eq(storyEntries.imageId, images.id))
+          .orderBy(storyEntries.occurredOn);
+
+        return toCsv(
+          [
+            "Entry ID",
+            "Date",
+            "Title",
+            "Description",
+            "Published",
+            "Image ID",
+            "Image Description",
+            "Created At",
+          ],
+          rows.map((row) => [
+            row.id,
+            row.occurredOn,
+            row.title,
+            row.body,
+            row.published ? "yes" : "no",
+            row.imageId ?? "",
+            row.imageAlt ?? "",
             csvDate(row.createdAt),
           ]),
         );

@@ -1,5 +1,6 @@
 import { PageBanner } from "@/components/layout/page-banner";
 import { ActionLink } from "@/components/ui/action";
+import { ContentImage } from "@/components/ui/content-image";
 import { Reveal } from "@/components/ui/reveal";
 import {
   listPublishedAnnouncements,
@@ -172,6 +173,16 @@ export default async function Home() {
                   <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                     {item.body}
                   </p>
+                  {item.imageId ? (
+                    <div className="mt-4">
+                      <ContentImage
+                        imageId={item.imageId}
+                        alt={item.imageAlt ?? ""}
+                        width={item.imageWidth}
+                        height={item.imageHeight}
+                      />
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>

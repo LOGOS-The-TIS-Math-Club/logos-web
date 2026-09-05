@@ -13,6 +13,7 @@ export const EXPORT_DATASETS = [
   "warnings",
   "announcements",
   "resources",
+  "story",
 ] as const;
 export type ExportDataset = (typeof EXPORT_DATASETS)[number];
 
@@ -34,4 +35,5 @@ export const DATASET_LABELS: Record<ExportDataset, string> = {
   warnings: "warnings",
   announcements: "announcements",
   resources: "resources",
+  story: "story",
 };

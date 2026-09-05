@@ -4,6 +4,7 @@ import {
   check,
   date,
   index,
+  customType,
   integer,
   jsonb,
   pgSchema,
@@ -581,6 +582,13 @@ export const announcements = logosSchema.table(
     body: text("body").notNull(),
     published: boolean("published").notNull().default(false),
     publishedAt: timestamp("published_at", { withTimezone: true }),
+    /*
+     * set null rather than cascade: deleting an image should not silently take
+     * the announcement with it. The notice survives, without its picture.
+     */
+    imageId: uuid("image_id").references(() => images.id, {
+      onDelete: "set null",
+    }),
     createdByIdentityId: uuid("created_by_identity_id")
       .notNull()
       .references(() => applicationIdentities.id, { onDelete: "restrict" }),
@@ -717,6 +725,117 @@ export const clubMembers = logosSchema.table(
  * a deploy and only a developer could do it. They are rows now, and leadership
  * can add more.
  */
+/*
+ * Uploaded images, stored as bytes in the database.
+ *
+ * Not an external URL, because the CSP is `img-src 'self' data:` — a link to
+ * an image hosted anywhere else is blocked by the browser and renders as a
+ * broken image with nothing in the logs to explain it. Serving from our own
+ * origin keeps that policy intact, which is worth more than the convenience of
+ * hotlinking.
+ *
+ * Not object storage either, for now: bytes in Postgres need no new account,
+ * no new credentials and no new failure mode, and a club posting a photo a
+ * week will not trouble it. The 2MB cap in lib/images/format.ts is what keeps
+ * that true — revisit this if the club ever wants a real gallery.
+ */
+/*
+ * Postgres bytea. Drizzle has no built-in binary column, so it is declared
+ * here; the driver hands back a Buffer, which is what the image route streams.
+ */
+const customBytea = customType<{ data: Buffer; notNull: true }>({
+  dataType() {
+    return "bytea";
+  },
+});
+
+export const images = logosSchema.table(
+  "images",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    /*
+     * Required, not optional. These images appear on public pages that are
+     * covered by the accessibility tests, and an image with no text
+     * alternative is invisible to anyone using a screen reader. Making it a
+     * NOT NULL column means the decision is taken at upload, by the person who
+     * knows what the picture shows.
+     */
+    altText: text("alt_text").notNull(),
+    /*
+     * Intrinsic size, when it could be read from the header. Nullable because
+     * an unusual but valid file should still be storable — the picture just
+     * renders without the layout hint.
+     */
+    width: integer("width"),
+    height: integer("height"),
+    data: customBytea("data").notNull(),
+    uploadedByIdentityId: uuid("uploaded_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  () => [
+    check(
+      "images_mime_type_check",
+      sql`"mime_type" IN ('image/jpeg', 'image/png', 'image/webp', 'image/gif')`,
+    ),
+    check(
+      "images_byte_size_check",
+      sql`"byte_size" > 0 AND "byte_size" <= 2097152`,
+    ),
+    check(
+      "images_alt_text_len_check",
+      sql`char_length("alt_text") BETWEEN 1 AND 300`,
+    ),
+  ],
+);
+
+/*
+ * The club's own history, as a sequence of dated entries with pictures.
+ *
+ * Separate from announcements deliberately. An announcement is news that goes
+ * stale; a story entry is a record meant to be read years later, and the two
+ * want different ordering, different lifetimes and different editing habits.
+ */
+export const storyEntries = logosSchema.table(
+  "story_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    imageId: uuid("image_id").references(() => images.id, {
+      onDelete: "set null",
+    }),
+    /** When the thing happened, not when it was written up. */
+    occurredOn: date("occurred_on").notNull(),
+    published: boolean("published").notNull().default(false),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("story_entries_published_idx").on(t.published, t.occurredOn),
+    check(
+      "story_entries_title_len_check",
+      sql`char_length("title") BETWEEN 1 AND 120`,
+    ),
+    check(
+      "story_entries_body_len_check",
+      sql`char_length("body") BETWEEN 1 AND 4000`,
+    ),
+  ],
+);
+
 export const clubResources = logosSchema.table(
   "club_resources",
   {

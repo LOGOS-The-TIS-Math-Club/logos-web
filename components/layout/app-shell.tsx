@@ -22,12 +22,14 @@ export interface AppShellProps {
 
 const NAV_ITEMS = [
   { href: "/about", label: "About" },
+  { href: "/story", label: "Story" },
   { href: "/meetings", label: "Meetings" },
   { href: "/join", label: "Join" },
 ] as const;
 
 const FOOTER_LINKS = [
   { href: "/about", label: "About" },
+  { href: "/story", label: "Story" },
   { href: "/meetings", label: "Meetings" },
   { href: "/join", label: "Join" },
   { href: "/privacy", label: "Privacy" },
