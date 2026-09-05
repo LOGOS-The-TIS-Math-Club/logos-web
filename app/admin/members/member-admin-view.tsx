@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useId, useState } from "react";
 
 import {
@@ -409,6 +411,12 @@ export function MemberAdminView({
                   <td className="px-4 py-3">
                     <div className="text-foreground flex items-center gap-2 font-semibold">
                       {member.rosterName}
+                      <Link
+                        href={`/admin/members/${member.id}`}
+                        className="text-primary hover:text-primary-hover focus-visible:outline-focus rounded text-[11px] font-medium focus-visible:outline-1"
+                      >
+                        Attendance
+                      </Link>
                       <button
                         type="button"
                         onClick={() => openRosterName(member)}

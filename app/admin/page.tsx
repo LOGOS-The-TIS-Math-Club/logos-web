@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AppPage } from "@/components/layout/app-page";
 import { hasCapability, type Capability } from "@/lib/auth/capabilities";
+import { EXPORT_DATASETS } from "@/lib/export/datasets";
 import { resolveCurrentIdentity } from "@/lib/auth/identity-access.server";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +95,7 @@ export default async function AdminIndexPage() {
   const available = SECTIONS.filter((section) =>
     hasCapability(accessLevel, section.capability),
   );
+  const canExport = hasCapability(accessLevel, "data:export");
 
   if (available.length === 0) {
     return (
@@ -154,6 +156,37 @@ export default async function AdminIndexPage() {
           </li>
         ))}
       </ul>
+
+      {canExport ? (
+        <section aria-labelledby="export-heading" className="space-y-4 pt-4">
+          <div className="space-y-2">
+            <h2 id="export-heading" className="heading-3">
+              Export
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Download the club&rsquo;s records as CSV. A club that cannot get
+              its own data out is one bad afternoon away from losing years of
+              it, and leadership changes every year.
+            </p>
+          </div>
+
+          <ul className="flex flex-wrap gap-2">
+            {EXPORT_DATASETS.map((dataset) => (
+              <li key={dataset}>
+                {/* A plain link, not fetch: the browser handles the download
+                    and the Content-Disposition filename directly. */}
+                <a
+                  href={`/api/admin/export/${dataset}`}
+                  className="control text-xs capitalize"
+                  download
+                >
+                  {dataset}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </AppPage>
   );
 }

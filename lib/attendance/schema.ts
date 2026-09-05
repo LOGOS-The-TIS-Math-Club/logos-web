@@ -162,3 +162,24 @@ export interface WarningListItem {
   issuedAt: string;
   resolvedAt: string | null;
 }
+
+/** One session as it appears in a single member's attendance history. */
+export interface MemberAttendanceRow {
+  sessionId: string;
+  title: string;
+  sessionDate: string;
+  status: AttendanceStatus | "unmarked";
+  notes: string | null;
+  /** Set when the member filed an absence notice for this session. */
+  absenceReason: string | null;
+  absenceStatus: ExpectedAbsenceStatus | null;
+}
+
+/** Everything the leadership view of one member's attendance needs. */
+export interface MemberAttendanceDetail {
+  memberId: string;
+  rosterName: string;
+  email: string;
+  totals: AttendanceTotals;
+  rows: MemberAttendanceRow[];
+}

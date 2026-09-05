@@ -21,6 +21,7 @@ import {
   type CreateSessionInput,
   type IssueWarningInput,
   type PublicSession,
+  type MemberAttendanceDetail,
   type MemberSessionAttendance,
   type RecordAttendanceItem,
   type SessionListItem,
@@ -34,6 +35,13 @@ import {
   RecordAttendanceBatchSchema,
   SubmitExpectedAbsenceSchema,
 } from "./schema";
+
+export class MemberAttendanceNotFoundError extends Error {
+  constructor(readonly memberId: string) {
+    super("Member not found");
+    this.name = "MemberAttendanceNotFoundError";
+  }
+}
 
 export class SessionNotFoundError extends Error {
   constructor(readonly sessionId: string) {
@@ -591,6 +599,91 @@ export async function submitExpectedAbsence(
 /**
  * Derives attendance summary totals for a given member.
  */
+/**
+ * One member's attendance across every session. Requires 'membership:read'.
+ *
+ * The leadership counterpart to the per-session ledger: that answers "who was
+ * at this meeting", this answers "how has this student been attending". Driven
+ * from club_sessions with left joins, so a session the member was never marked
+ * for still appears as a gap rather than silently vanishing from the history.
+ */
+export async function getMemberAttendanceDetail(
+  memberId: string,
+  correlationId: string,
+): Promise<MemberAttendanceDetail> {
+  await requireCapability("membership:read", correlationId);
+
+  const totals = await getMemberAttendanceTotals(memberId);
+
+  return withDatabase(async (database) => {
+    const [member] = await database
+      .select({
+        id: clubMembers.id,
+        rosterName: clubMembers.rosterName,
+        preferredName: studentApplications.preferredName,
+        email: applicationIdentities.email,
+      })
+      .from(clubMembers)
+      .innerJoin(
+        applicationIdentities,
+        eq(clubMembers.identityId, applicationIdentities.id),
+      )
+      .leftJoin(
+        studentApplications,
+        eq(clubMembers.applicationId, studentApplications.id),
+      )
+      .where(eq(clubMembers.id, memberId))
+      .limit(1);
+
+    if (!member) throw new MemberAttendanceNotFoundError(memberId);
+
+    const rows = await database
+      .select({
+        sessionId: clubSessions.id,
+        title: clubSessions.title,
+        sessionDate: clubSessions.sessionDate,
+        status: sessionAttendance.status,
+        notes: sessionAttendance.notes,
+        absenceReason: expectedAbsences.reason,
+        absenceStatus: expectedAbsences.status,
+      })
+      .from(clubSessions)
+      .leftJoin(
+        sessionAttendance,
+        and(
+          eq(sessionAttendance.sessionId, clubSessions.id),
+          eq(sessionAttendance.memberId, memberId),
+        ),
+      )
+      .leftJoin(
+        expectedAbsences,
+        and(
+          eq(expectedAbsences.sessionId, clubSessions.id),
+          eq(expectedAbsences.memberId, memberId),
+        ),
+      )
+      .orderBy(desc(clubSessions.sessionDate));
+
+    return {
+      memberId: member.id,
+      rosterName: member.rosterName || member.preferredName || "Member",
+      email: member.email,
+      totals,
+      rows: rows.map((row) => ({
+        sessionId: row.sessionId,
+        title: row.title,
+        sessionDate: row.sessionDate,
+        // No attendance row means nobody has marked this member for the
+        // session yet, which is exactly what "unmarked" records.
+        status: row.status ?? "unmarked",
+        notes: row.notes,
+        absenceReason: row.absenceReason,
+        absenceStatus: row.absenceStatus,
+      })),
+    };
+  });
+}
+
 export async function getMemberAttendanceTotals(
   memberId: string,
 ): Promise<AttendanceTotals> {
