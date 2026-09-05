@@ -17,9 +17,13 @@ import { recordBusinessAuditEvent } from "@/lib/security/audit";
 import {
   type ActivateMemberInput,
   type MemberListItem,
+  type UpdateDisplayNameInput,
   type UpdateMemberStatusInput,
+  type UpdateRosterNameInput,
   ActivateMemberInputSchema,
+  UpdateDisplayNameSchema,
   UpdateMemberStatusSchema,
+  UpdateRosterNameSchema,
 } from "./schema";
 
 export class ApplicationNotAcceptedError extends Error {
@@ -171,6 +175,8 @@ export async function listMembers(
         joinedAt: clubMembers.joinedAt,
         leftAt: clubMembers.leftAt,
         statusReason: clubMembers.statusReason,
+        displayName: clubMembers.displayName,
+        rosterName: clubMembers.rosterName,
         email: applicationIdentities.email,
         preferredName: studentApplications.preferredName,
         grade: studentApplications.grade,
@@ -203,6 +209,10 @@ export async function listMembers(
       identityId: row.identityId,
       applicationId: row.applicationId,
       preferredName: row.preferredName || "Member",
+      // Leadership works from the roster name; the member's own choice is
+      // shown alongside it rather than replacing it.
+      rosterName: row.rosterName || row.preferredName || "Member",
+      displayName: row.displayName,
       email: row.email,
       grade: row.grade,
       status: row.status,
@@ -279,6 +289,109 @@ export async function updateMemberStatus(
  * Resolves active club membership for the currently signed-in user.
  * Returns member info or null if user is not an active member.
  */
+/**
+ * A member renaming themselves.
+ *
+ * No capability check: this writes the caller's own row and nothing else. The
+ * WHERE clause is scoped to the resolved identity and to an active membership,
+ * so a member cannot rename anyone but themselves even if they send another
+ * member's id — there is no id to send.
+ */
+export async function updateOwnDisplayName(
+  rawInput: UpdateDisplayNameInput,
+  correlationId: string,
+) {
+  const identity = await resolveCurrentIdentity();
+  if (!identity.active || identity.affiliationStatus !== "verified") {
+    throw new MemberNotFoundError("self");
+  }
+
+  const { displayName } = UpdateDisplayNameSchema.parse(rawInput);
+
+  return withDatabase((database) =>
+    database.transaction(async (transaction) => {
+      const [updated] = await transaction
+        .update(clubMembers)
+        .set({ displayName, updatedAt: new Date() })
+        .where(
+          and(
+            eq(clubMembers.identityId, identity.identityId),
+            eq(clubMembers.status, "active"),
+          ),
+        )
+        .returning();
+
+      if (!updated) throw new MemberNotFoundError("self");
+
+      await recordBusinessAuditEvent(transaction, {
+        actorId: identity.identityId,
+        actorType: "user",
+        actorRoleSnapshot: "member",
+        source: "web",
+        correlationId,
+        category: "membership",
+        action: "update_display_name",
+        targetType: "club_member",
+        targetId: updated.id,
+        result: "success",
+      });
+
+      return updated;
+    }),
+  );
+}
+
+/**
+ * Leadership setting the name they work from. Requires 'membership:manage'.
+ *
+ * Writes rosterName only, so correcting the roster never overwrites the name a
+ * member chose for themselves. Passing null clears the override and falls the
+ * roster back to the name on the application.
+ */
+export async function updateMemberRosterName(
+  memberId: string,
+  rawInput: UpdateRosterNameInput,
+  correlationId: string,
+) {
+  const actor = await requireCapability("membership:manage", correlationId);
+  const { rosterName } = UpdateRosterNameSchema.parse(rawInput);
+
+  return withDatabase((database) =>
+    database.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select()
+        .from(clubMembers)
+        .where(eq(clubMembers.id, memberId))
+        .limit(1);
+
+      if (!existing) throw new MemberNotFoundError(memberId);
+
+      const [updated] = await transaction
+        .update(clubMembers)
+        .set({ rosterName, updatedAt: new Date() })
+        .where(eq(clubMembers.id, memberId))
+        .returning();
+
+      await recordBusinessAuditEvent(transaction, {
+        actorId: actor.identityId,
+        actorType: "user",
+        actorRoleSnapshot: "leadership",
+        source: "web",
+        correlationId,
+        category: "membership",
+        action: "update_roster_name",
+        targetType: "club_member",
+        targetId: memberId,
+        result: "success",
+        beforeSummary: { rosterName: existing.rosterName },
+        afterSummary: { rosterName: updated.rosterName },
+      });
+
+      return updated;
+    }),
+  );
+}
+
 export async function getCurrentMember() {
   try {
     const identity = await resolveCurrentIdentity();
@@ -294,6 +407,7 @@ export async function getCurrentMember() {
           applicationId: clubMembers.applicationId,
           status: clubMembers.status,
           joinedAt: clubMembers.joinedAt,
+          displayName: clubMembers.displayName,
           preferredName: studentApplications.preferredName,
           grade: studentApplications.grade,
           email: applicationIdentities.email,
@@ -324,6 +438,8 @@ export async function getCurrentMember() {
         status: member.status,
         joinedAt: member.joinedAt.toISOString(),
         preferredName: member.preferredName || "Member",
+        // Member-facing surfaces use the name the member chose.
+        displayName: member.displayName || member.preferredName || "Member",
         grade: member.grade,
         email: member.email,
       };

@@ -113,6 +113,9 @@ export function MemberAdminView({
         identityId: app.identityId,
         applicationId: app.id,
         preferredName: app.preferredName,
+        // A newly activated member has neither override yet.
+        rosterName: app.preferredName,
+        displayName: null,
         email: app.email,
         grade: app.grade,
         status: "active",
@@ -138,6 +141,66 @@ export function MemberAdminView({
       });
     } finally {
       setActivatingId(null);
+    }
+  };
+
+  /*
+   * The roster name is leadership's own label for a member. It is separate
+   * from the name the member sets for themselves, so renaming here never
+   * changes what the member sees on their dashboard.
+   */
+  const openRosterName = async (member: MemberListItem) => {
+    const next = window.prompt(
+      `Roster name for ${member.email}.\n\nThis is what leadership sees. Leave empty to fall back to the name on their application.`,
+      member.rosterName,
+    );
+    // null is cancel; an empty string is a deliberate clear.
+    if (next === null) return;
+
+    const trimmed = next.trim();
+    setFeedback(null);
+
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
+      const sessionCsrfToken = decodeURIComponent(
+        getCookie("__Host-logos_session_csrf"),
+      );
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+      if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
+
+      const response = await fetch(`/api/admin/members/${member.id}/name`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ rosterName: trimmed === "" ? null : trimmed }),
+      });
+
+      if (!response.ok) throw new Error("Failed to set the roster name");
+
+      const { member: updated } = await response.json();
+
+      setMembers((prev) =>
+        prev.map((item) =>
+          item.id === member.id
+            ? {
+                ...item,
+                rosterName:
+                  updated.rosterName || item.preferredName || "Member",
+              }
+            : item,
+        ),
+      );
+      setFeedback({ type: "success", text: "Roster name updated." });
+    } catch (error: unknown) {
+      setFeedback({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Could not set the roster name.",
+      });
     }
   };
 
@@ -344,10 +407,26 @@ export function MemberAdminView({
               {filteredMembers.map((member) => (
                 <tr key={member.id} className="hover:bg-surface-raised/50">
                   <td className="px-4 py-3">
-                    <div className="text-foreground font-semibold">
-                      {member.preferredName}
+                    <div className="text-foreground flex items-center gap-2 font-semibold">
+                      {member.rosterName}
+                      <button
+                        type="button"
+                        onClick={() => openRosterName(member)}
+                        className="text-muted-foreground hover:text-foreground focus-visible:outline-focus rounded text-[11px] font-medium focus-visible:outline-1"
+                      >
+                        Rename
+                      </button>
                     </div>
                     <div className="text-muted-foreground">{member.email}</div>
+                    {/* Shown only when it differs, so leadership can connect
+                        the roster name to whoever the member calls themselves
+                        without the column filling up with duplicates. */}
+                    {member.displayName &&
+                    member.displayName !== member.rosterName ? (
+                      <div className="text-subtle-foreground mt-0.5 text-[11px]">
+                        goes by “{member.displayName}”
+                      </div>
+                    ) : null}
                   </td>
                   <td className="text-foreground px-4 py-3">
                     {member.grade || "—"}

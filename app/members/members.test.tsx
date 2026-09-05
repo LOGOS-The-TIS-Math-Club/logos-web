@@ -7,6 +7,7 @@ describe("MemberHubView", () => {
   const mockMember = {
     id: "member-1",
     preferredName: "Alice Chen",
+    displayName: "Alice Chen",
     email: "alice@tokyois.com",
     grade: "Grade 11",
     status: "active",
@@ -36,12 +37,23 @@ describe("MemberHubView", () => {
     attendanceRate: 85,
   };
 
+  const mockResources = [
+    {
+      id: "res-1",
+      title: "Google Classroom",
+      description: "Weekly problem sets and handouts.",
+      url: "https://classroom.google.com/c/example",
+      sortOrder: 0,
+    },
+  ];
+
   it("renders member profile, upcoming meeting, and attendance statistics", () => {
     render(
       <MemberHubView
         member={mockMember}
         upcomingSession={mockSession}
         attendanceTotals={mockTotals}
+        resources={mockResources}
       />,
     );
 

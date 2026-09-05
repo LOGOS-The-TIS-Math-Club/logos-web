@@ -51,6 +51,13 @@ const SECTIONS: readonly {
       "The active roster. Activate an accepted applicant into a member, or change a member's status.",
   },
   {
+    href: "/admin/resources",
+    label: "Resources",
+    capability: "resource:manage",
+    description:
+      "The link cards on the member dashboard — Classroom, the shared Drive, and anything else you add.",
+  },
+  {
     href: "/admin/sessions",
     label: "Sessions",
     capability: "session:manage",

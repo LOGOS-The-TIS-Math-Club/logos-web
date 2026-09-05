@@ -26,6 +26,8 @@ describe("WarningsAdminView", () => {
       identityId: "identity-1",
       applicationId: "app-1",
       preferredName: "Alice Chen",
+      rosterName: "Alice Chen",
+      displayName: null,
       email: "alice@tokyois.com",
       grade: "Grade 11",
       status: "active",

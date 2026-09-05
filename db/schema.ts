@@ -631,6 +631,21 @@ export const clubMembers = logosSchema.table(
       { onDelete: "restrict" },
     ),
     status: clubMemberStatusEnum("status").notNull().default("active"),
+    /*
+     * Two names, deliberately separate.
+     *
+     * displayName is the member's own, editable by them, and is what member
+     * facing surfaces show. rosterName is set by leadership and is what
+     * leadership surfaces show. Keeping them apart means a member renaming
+     * themselves cannot change how they appear on the roster leadership works
+     * from, and a leadership correction does not overwrite what the member
+     * chose to be called.
+     *
+     * Both are nullable: null means "no override", and the name falls back to
+     * the preferred name from the application.
+     */
+    displayName: text("display_name"),
+    rosterName: text("roster_name"),
     joinedAt: timestamp("joined_at", { withTimezone: true })
       .notNull()
       .default(sql`clock_timestamp()`),
@@ -650,6 +665,14 @@ export const clubMembers = logosSchema.table(
     index("club_members_status_joined_idx").on(t.status, t.joinedAt),
     index("club_members_application_idx").on(t.applicationId),
     check(
+      "club_members_display_name_len_check",
+      sql`"display_name" IS NULL OR char_length("display_name") BETWEEN 1 AND 80`,
+    ),
+    check(
+      "club_members_roster_name_len_check",
+      sql`"roster_name" IS NULL OR char_length("roster_name") BETWEEN 1 AND 80`,
+    ),
+    check(
       "club_members_status_reason_len_check",
       sql`"status_reason" IS NULL OR char_length("status_reason") <= 256`,
     ),
@@ -663,6 +686,56 @@ export const clubMembers = logosSchema.table(
 /**
  * Club sessions created by leadership.
  */
+/*
+ * The resource cards on the member dashboard.
+ *
+ * Classroom and Drive links were hard-coded in the view, so changing one meant
+ * a deploy and only a developer could do it. They are rows now, and leadership
+ * can add more.
+ */
+export const clubResources = logosSchema.table(
+  "club_resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    url: text("url").notNull(),
+    /** Ascending. Ties break on title so the order is never arbitrary. */
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdByIdentityId: uuid("created_by_identity_id")
+      .notNull()
+      .references(() => applicationIdentities.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    index("club_resources_order_idx").on(t.sortOrder, t.title),
+    check(
+      "club_resources_title_len_check",
+      sql`char_length("title") BETWEEN 1 AND 80`,
+    ),
+    check(
+      "club_resources_description_len_check",
+      sql`char_length("description") BETWEEN 1 AND 280`,
+    ),
+    /*
+     * https only, enforced in the database as well as in the form. These links
+     * are rendered as anchors on a members-only page, so a javascript: or
+     * data: URL saved here would be a stored cross-site scripting vector. The
+     * constraint means that cannot be reached by any path, including SQL run
+     * by hand.
+     */
+    check(
+      "club_resources_url_check",
+      sql`"url" LIKE 'https://%' AND char_length("url") BETWEEN 12 AND 2048`,
+    ),
+  ],
+);
+
 export const clubSessions = logosSchema.table(
   "club_sessions",
   {
@@ -673,6 +746,15 @@ export const clubSessions = logosSchema.table(
     endTime: text("end_time").notNull().default("16:30"),
     location: text("location").notNull().default("Room 101"),
     notes: text("notes"),
+    /*
+     * The Drive folder holding this session's materials, if it has one.
+     *
+     * Only the folder id is stored. File names and links are read from Drive
+     * at request time rather than copied here, so the club never keeps a stale
+     * second copy of a listing, and Drive's own permissions stay the only
+     * thing deciding who can open a file.
+     */
+    driveFolderId: text("drive_folder_id"),
     createdByIdentityId: uuid("created_by_identity_id")
       .notNull()
       .references(() => applicationIdentities.id, { onDelete: "restrict" }),
@@ -685,6 +767,10 @@ export const clubSessions = logosSchema.table(
   },
   (t) => [
     index("club_sessions_date_idx").on(t.sessionDate),
+    check(
+      "club_sessions_drive_folder_len_check",
+      sql`"drive_folder_id" IS NULL OR char_length("drive_folder_id") BETWEEN 1 AND 128`,
+    ),
     check(
       "club_sessions_title_len_check",
       sql`char_length("title") BETWEEN 1 AND 120`,
