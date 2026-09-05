@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { AccessDeniedError } from "@/lib/auth/identity-access.server";
 import {
   MemberNotFoundError,
   updateOwnDisplayName,
@@ -27,6 +28,18 @@ export async function POST(request: NextRequest) {
       displayName: member.displayName,
     });
   } catch (error) {
+    /*
+     * resolveCurrentIdentity throws this for a caller with no valid session.
+     * Without the branch it fell through to a 500, which is both wrong for the
+     * client and a fake server error in the logs.
+     */
+    if (error instanceof AccessDeniedError) {
+      return NextResponse.json(
+        { code: "UNAUTHORIZED", message: "Sign in to change your name." },
+        { status: 401 },
+      );
+    }
+
     if (error instanceof MemberNotFoundError) {
       return NextResponse.json(
         {

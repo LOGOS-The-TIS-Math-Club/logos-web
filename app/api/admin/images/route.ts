@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { AccessDeniedError } from "@/lib/auth/identity-access.server";
+import {
+  AccessDeniedError,
+  requireCapability,
+} from "@/lib/auth/identity-access.server";
 import { MAX_IMAGE_BYTES } from "@/lib/images/format";
 import {
   ImageRejectedError,
@@ -36,12 +39,53 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/*
+ * Multipart framing adds a boundary and a few headers around the file, so the
+ * body is legitimately a little larger than the image itself.
+ */
+const MAX_UPLOAD_BODY_BYTES = MAX_IMAGE_BYTES + 64 * 1024;
+
+function tooLarge() {
+  return NextResponse.json(
+    {
+      code: "PAYLOAD_TOO_LARGE",
+      message: `Images must be ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB or smaller.`,
+    },
+    { status: 413 },
+  );
+}
+
 export async function POST(request: NextRequest) {
   const correlationId =
     request.headers.get(CORRELATION_HEADER_NAME_CANONICAL) ||
     crypto.randomUUID();
 
   try {
+    /*
+     * Authorization first, before the body is touched.
+     *
+     * request.formData() buffers the entire request into memory, and the
+     * capability check used to sit after it inside storeImage — so any signed
+     * in member, who holds valid CSRF tokens, could make the server buffer an
+     * upload of any size before being told they were not allowed to upload at
+     * all. The check is cheap and belongs ahead of the expensive part.
+     */
+    await requireCapability("content:manage", correlationId);
+
+    /*
+     * Then the declared length, still before parsing. Content-Length is absent
+     * on a chunked request and can be a lie on any request, so this is an
+     * early exit for the honest case rather than the real limit — the real one
+     * is the byte-length check in the service, which sees the actual file.
+     */
+    const declaredLength = Number(request.headers.get("content-length"));
+    if (
+      Number.isFinite(declaredLength) &&
+      declaredLength > MAX_UPLOAD_BODY_BYTES
+    ) {
+      return tooLarge();
+    }
+
     const form = await request.formData();
     const file = form.get("file");
     const altText = form.get("altText");
@@ -53,20 +97,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * Checked before the body is read into memory. The full validation runs in
-     * the service against the actual bytes, but there is no reason to buffer
-     * an oversized upload first just to reject it.
-     */
-    if (file.size > MAX_IMAGE_BYTES) {
-      return NextResponse.json(
-        {
-          code: "PAYLOAD_TOO_LARGE",
-          message: `Images must be ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB or smaller.`,
-        },
-        { status: 413 },
-      );
-    }
+    if (file.size > MAX_IMAGE_BYTES) return tooLarge();
 
     const image = await storeImage(
       {
