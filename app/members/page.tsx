@@ -7,6 +7,7 @@ import {
   listClubSessions,
 } from "@/lib/attendance/service.server";
 import { getCurrentMember } from "@/lib/membership/service.server";
+import { listResources } from "@/lib/resources/service.server";
 import { MemberHubView } from "./member-hub-view";
 
 export const dynamic = "force-dynamic";
@@ -63,12 +64,17 @@ export default async function MembersPage() {
   const sessions = await listClubSessions();
   const upcomingSession = sessions[0] || null;
   const totals = await getMemberAttendanceTotals(member.id);
+  // A resource read failure should not take down the dashboard; the section
+  // has a real empty state.
+  const resources = await listResources().catch(() => []);
 
   return (
     <MemberHubView
       member={member}
       upcomingSession={upcomingSession}
+      sessions={sessions}
       attendanceTotals={totals}
+      resources={resources}
     />
   );
 }

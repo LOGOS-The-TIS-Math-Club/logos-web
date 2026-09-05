@@ -29,8 +29,56 @@ export const CreateSessionSchema = z.object({
   endTime: z.string().min(1).max(10).default("16:30"),
   location: z.string().min(1).max(100).default("Room 101"),
   notes: z.string().max(500, "Notes must not exceed 500 characters").optional(),
+  /** Drive folder holding this session's materials. */
+  driveFolderId: z
+    .string()
+    .trim()
+    .max(128, "Folder ID must not exceed 128 characters")
+    .optional(),
 });
 export type CreateSessionInput = z.infer<typeof CreateSessionSchema>;
+
+/*
+ * Editing an existing session. Deliberately not CreateSessionSchema.partial():
+ * that schema carries .default() on most fields, so an omitted key would be
+ * silently rewritten to the default rather than left alone — a partial edit of
+ * the title would reset the room and the times.
+ */
+export const UpdateSessionSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, "Title is required")
+      .max(120, "Title must not exceed 120 characters"),
+    sessionDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD format"),
+    startTime: z.string().min(1).max(10),
+    endTime: z.string().min(1).max(10),
+    location: z.string().min(1).max(100),
+    notes: z
+      .string()
+      .max(500, "Notes must not exceed 500 characters")
+      .nullable(),
+    driveFolderId: z
+      .string()
+      .trim()
+      .max(128, "Folder ID must not exceed 128 characters")
+      .nullable(),
+  })
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "Provide at least one field to update",
+  });
+export type UpdateSessionInput = z.infer<typeof UpdateSessionSchema>;
+
+/** What the public pages show. No attendance counts, no identifiers beyond the id. */
+export interface PublicSession {
+  id: string;
+  title: string;
+  sessionDate: string;
+  notes: string | null;
+}
 
 export const RecordAttendanceItemSchema = z.object({
   memberId: z.string().uuid("Invalid member ID"),
@@ -85,6 +133,7 @@ export interface SessionListItem {
   endTime: string;
   location: string;
   notes: string | null;
+  driveFolderId: string | null;
   createdAt: string;
   presentCount: number;
   totalMarked: number;
@@ -124,4 +173,25 @@ export interface WarningListItem {
   active: boolean;
   issuedAt: string;
   resolvedAt: string | null;
+}
+
+/** One session as it appears in a single member's attendance history. */
+export interface MemberAttendanceRow {
+  sessionId: string;
+  title: string;
+  sessionDate: string;
+  status: AttendanceStatus | "unmarked";
+  notes: string | null;
+  /** Set when the member filed an absence notice for this session. */
+  absenceReason: string | null;
+  absenceStatus: ExpectedAbsenceStatus | null;
+}
+
+/** Everything the leadership view of one member's attendance needs. */
+export interface MemberAttendanceDetail {
+  memberId: string;
+  rosterName: string;
+  email: string;
+  totals: AttendanceTotals;
+  rows: MemberAttendanceRow[];
 }

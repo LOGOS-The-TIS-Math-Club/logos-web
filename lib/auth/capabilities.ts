@@ -19,6 +19,8 @@ export const CAPABILITIES = [
   "attendance:record",
   "warning:manage",
   "announcement:manage",
+  "resource:manage",
+  "data:export",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -37,6 +39,8 @@ const capabilityMap: Readonly<
     "attendance:record",
     "warning:manage",
     "announcement:manage",
+    "resource:manage",
+    "data:export",
   ]),
   access_admin: new Set([
     "identity:self:read",

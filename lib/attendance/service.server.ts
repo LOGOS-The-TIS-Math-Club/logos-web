@@ -20,22 +20,50 @@ import { recordBusinessAuditEvent } from "@/lib/security/audit";
 import {
   type CreateSessionInput,
   type IssueWarningInput,
+  type PublicSession,
+  type MemberAttendanceDetail,
   type MemberSessionAttendance,
   type RecordAttendanceItem,
   type SessionListItem,
   type SubmitExpectedAbsenceInput,
+  type UpdateSessionInput,
   type WarningListItem,
   type AttendanceTotals,
   CreateSessionSchema,
+  UpdateSessionSchema,
   IssueWarningSchema,
   RecordAttendanceBatchSchema,
   SubmitExpectedAbsenceSchema,
 } from "./schema";
 
+export class MemberAttendanceNotFoundError extends Error {
+  constructor(readonly memberId: string) {
+    super("Member not found");
+    this.name = "MemberAttendanceNotFoundError";
+  }
+}
+
 export class SessionNotFoundError extends Error {
   constructor(readonly sessionId: string) {
     super("Club session not found");
     this.name = "SessionNotFoundError";
+  }
+}
+
+/**
+ * Raised when a session still has attendance or absence records against it.
+ *
+ * Those rows are the club's record of who was there. Cascading the delete
+ * would erase that history silently, so the delete is refused and the caller
+ * is told what is holding it.
+ */
+export class SessionInUseError extends Error {
+  constructor(
+    readonly attendanceCount: number,
+    readonly absenceCount: number,
+  ) {
+    super("Club session still has records against it");
+    this.name = "SessionInUseError";
   }
 }
 
@@ -75,6 +103,7 @@ export async function createClubSession(
           endTime: parsedInput.endTime,
           location: parsedInput.location,
           notes: parsedInput.notes,
+          driveFolderId: parsedInput.driveFolderId || null,
           createdByIdentityId: actor.identityId,
         })
         .returning();
@@ -103,6 +132,152 @@ export async function createClubSession(
 }
 
 /**
+ * Updates a club session. Requires 'session:manage'.
+ *
+ * Only the keys present in the input are written, so editing a topic cannot
+ * quietly reset the room or the meeting time.
+ */
+export async function updateClubSession(
+  sessionId: string,
+  rawInput: UpdateSessionInput,
+  correlationId: string,
+) {
+  const actor = await requireCapability("session:manage", correlationId);
+  const parsedInput = UpdateSessionSchema.parse(rawInput);
+
+  return withDatabase((database) =>
+    database.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select()
+        .from(clubSessions)
+        .where(eq(clubSessions.id, sessionId))
+        .limit(1);
+
+      if (!existing) throw new SessionNotFoundError(sessionId);
+
+      const [updated] = await transaction
+        .update(clubSessions)
+        .set({ ...parsedInput, updatedAt: new Date() })
+        .where(eq(clubSessions.id, sessionId))
+        .returning();
+
+      await recordBusinessAuditEvent(transaction, {
+        actorId: actor.identityId,
+        actorType: "user",
+        actorRoleSnapshot: "leadership",
+        source: "web",
+        correlationId,
+        category: "session",
+        action: "update",
+        targetType: "club_session",
+        targetId: sessionId,
+        result: "success",
+        beforeSummary: {
+          title: existing.title,
+          sessionDate: existing.sessionDate,
+        },
+        afterSummary: {
+          title: updated.title,
+          sessionDate: updated.sessionDate,
+        },
+      });
+
+      return updated;
+    }),
+  );
+}
+
+/**
+ * Deletes a club session. Requires 'session:manage'.
+ *
+ * Refuses if attendance or expected absences reference it. Both foreign keys
+ * are ON DELETE restrict, so the database would reject this anyway — checking
+ * first turns an opaque constraint violation into a message that says which
+ * records are in the way.
+ */
+export async function deleteClubSession(
+  sessionId: string,
+  correlationId: string,
+) {
+  const actor = await requireCapability("session:manage", correlationId);
+
+  return withDatabase((database) =>
+    database.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select()
+        .from(clubSessions)
+        .where(eq(clubSessions.id, sessionId))
+        .limit(1);
+
+      if (!existing) throw new SessionNotFoundError(sessionId);
+
+      const [attendance] = await transaction
+        .select({ count: sql<number>`count(*)::int` })
+        .from(sessionAttendance)
+        .where(eq(sessionAttendance.sessionId, sessionId));
+
+      const [absences] = await transaction
+        .select({ count: sql<number>`count(*)::int` })
+        .from(expectedAbsences)
+        .where(eq(expectedAbsences.sessionId, sessionId));
+
+      if (attendance.count > 0 || absences.count > 0) {
+        throw new SessionInUseError(attendance.count, absences.count);
+      }
+
+      await transaction
+        .delete(clubSessions)
+        .where(eq(clubSessions.id, sessionId));
+
+      await recordBusinessAuditEvent(transaction, {
+        actorId: actor.identityId,
+        actorType: "user",
+        actorRoleSnapshot: "leadership",
+        source: "web",
+        correlationId,
+        category: "session",
+        action: "delete",
+        targetType: "club_session",
+        targetId: sessionId,
+        result: "success",
+        // The row is gone, so the journal is the only remaining record of it.
+        beforeSummary: {
+          title: existing.title,
+          sessionDate: existing.sessionDate,
+          location: existing.location,
+        },
+      });
+
+      return { id: sessionId };
+    }),
+  );
+}
+
+/**
+ * The programme as shown to the public, oldest first.
+ *
+ * Capability-free by design, like listPublishedAnnouncements: the home and
+ * meetings pages are public. It therefore returns only what those pages render
+ * — no attendance counts, no room or times — so widening this query can never
+ * quietly widen what an anonymous visitor can read.
+ */
+export async function listPublicSessions(): Promise<PublicSession[]> {
+  return withDatabase(async (database) => {
+    const rows = await database
+      .select({
+        id: clubSessions.id,
+        title: clubSessions.title,
+        sessionDate: clubSessions.sessionDate,
+        notes: clubSessions.notes,
+      })
+      .from(clubSessions)
+      .orderBy(clubSessions.sessionDate);
+
+    return rows;
+  });
+}
+
+/**
  * Lists all club sessions with summary counts.
  */
 export async function listClubSessions(): Promise<SessionListItem[]> {
@@ -116,6 +291,7 @@ export async function listClubSessions(): Promise<SessionListItem[]> {
         endTime: clubSessions.endTime,
         location: clubSessions.location,
         notes: clubSessions.notes,
+        driveFolderId: clubSessions.driveFolderId,
         createdAt: clubSessions.createdAt,
       })
       .from(clubSessions)
@@ -148,6 +324,7 @@ export async function listClubSessions(): Promise<SessionListItem[]> {
       endTime: s.endTime,
       location: s.location,
       notes: s.notes,
+      driveFolderId: s.driveFolderId,
       createdAt: s.createdAt.toISOString(),
       presentCount: statsMap.get(s.id)?.presentCount || 0,
       totalMarked: statsMap.get(s.id)?.totalMarked || 0,
@@ -425,6 +602,91 @@ export async function submitExpectedAbsence(
 /**
  * Derives attendance summary totals for a given member.
  */
+/**
+ * One member's attendance across every session. Requires 'membership:read'.
+ *
+ * The leadership counterpart to the per-session ledger: that answers "who was
+ * at this meeting", this answers "how has this student been attending". Driven
+ * from club_sessions with left joins, so a session the member was never marked
+ * for still appears as a gap rather than silently vanishing from the history.
+ */
+export async function getMemberAttendanceDetail(
+  memberId: string,
+  correlationId: string,
+): Promise<MemberAttendanceDetail> {
+  await requireCapability("membership:read", correlationId);
+
+  const totals = await getMemberAttendanceTotals(memberId);
+
+  return withDatabase(async (database) => {
+    const [member] = await database
+      .select({
+        id: clubMembers.id,
+        rosterName: clubMembers.rosterName,
+        preferredName: studentApplications.preferredName,
+        email: applicationIdentities.email,
+      })
+      .from(clubMembers)
+      .innerJoin(
+        applicationIdentities,
+        eq(clubMembers.identityId, applicationIdentities.id),
+      )
+      .leftJoin(
+        studentApplications,
+        eq(clubMembers.applicationId, studentApplications.id),
+      )
+      .where(eq(clubMembers.id, memberId))
+      .limit(1);
+
+    if (!member) throw new MemberAttendanceNotFoundError(memberId);
+
+    const rows = await database
+      .select({
+        sessionId: clubSessions.id,
+        title: clubSessions.title,
+        sessionDate: clubSessions.sessionDate,
+        status: sessionAttendance.status,
+        notes: sessionAttendance.notes,
+        absenceReason: expectedAbsences.reason,
+        absenceStatus: expectedAbsences.status,
+      })
+      .from(clubSessions)
+      .leftJoin(
+        sessionAttendance,
+        and(
+          eq(sessionAttendance.sessionId, clubSessions.id),
+          eq(sessionAttendance.memberId, memberId),
+        ),
+      )
+      .leftJoin(
+        expectedAbsences,
+        and(
+          eq(expectedAbsences.sessionId, clubSessions.id),
+          eq(expectedAbsences.memberId, memberId),
+        ),
+      )
+      .orderBy(desc(clubSessions.sessionDate));
+
+    return {
+      memberId: member.id,
+      rosterName: member.rosterName || member.preferredName || "Member",
+      email: member.email,
+      totals,
+      rows: rows.map((row) => ({
+        sessionId: row.sessionId,
+        title: row.title,
+        sessionDate: row.sessionDate,
+        // No attendance row means nobody has marked this member for the
+        // session yet, which is exactly what "unmarked" records.
+        status: row.status ?? "unmarked",
+        notes: row.notes,
+        absenceReason: row.absenceReason,
+        absenceStatus: row.absenceStatus,
+      })),
+    };
+  });
+}
+
 export async function getMemberAttendanceTotals(
   memberId: string,
 ): Promise<AttendanceTotals> {

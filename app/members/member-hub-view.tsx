@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 
 import {
   type AttendanceTotals,
   type SessionListItem,
 } from "@/lib/attendance/schema";
+import { type ResourceItem } from "@/lib/resources/schema";
 
 function getCookie(name: string): string {
   if (typeof document === "undefined") return "";
@@ -30,20 +32,82 @@ export interface MemberHubProps {
   member: {
     id: string;
     preferredName: string;
+    displayName: string;
     email: string;
     grade: string | null;
     status: string;
     joinedAt: string;
   };
   upcomingSession: SessionListItem | null;
+  sessions: SessionListItem[];
   attendanceTotals: AttendanceTotals;
+  resources: ResourceItem[];
 }
 
 export function MemberHubView({
   member,
   upcomingSession,
+  sessions,
   attendanceTotals,
+  resources,
 }: MemberHubProps) {
+  /*
+   * The member's own name. Editing it changes only how the member sees
+   * themselves — leadership works from a separate roster name, so a rename
+   * here cannot make someone hard to find on the roster.
+   */
+  const [displayName, setDisplayName] = useState(member.displayName);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(member.displayName);
+  const [savingName, setSavingName] = useState(false);
+  const [nameFeedback, setNameFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const nameFieldId = useId();
+
+  const handleNameSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSavingName(true);
+    setNameFeedback(null);
+
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
+      const sessionCsrfToken = decodeURIComponent(
+        getCookie("__Host-logos_session_csrf"),
+      );
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+      if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
+
+      const response = await fetch("/api/members/me/name", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ displayName: nameDraft }),
+      });
+
+      if (!response.ok) throw new Error("Could not save your name");
+
+      const { displayName: saved } = await response.json();
+      setDisplayName(saved);
+      setNameDraft(saved);
+      setEditingName(false);
+      setNameFeedback({ type: "success", text: "Name updated." });
+    } catch (error: unknown) {
+      setNameFeedback({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Could not save your name. Please try again.",
+      });
+    } finally {
+      setSavingName(false);
+    }
+  };
+
   const [absenceDate, setAbsenceDate] = useState(
     upcomingSession?.sessionDate || getNextFriday(),
   );
@@ -120,8 +184,68 @@ export function MemberHubView({
               <span aria-hidden="true">•</span>
               <span>{member.grade || "High School"}</span>
             </div>
-            <h1 className="heading-1">Welcome back, {member.preferredName}</h1>
+            {editingName ? (
+              <form
+                onSubmit={handleNameSubmit}
+                className="flex flex-wrap items-center gap-2 pt-1"
+              >
+                <label htmlFor={nameFieldId} className="sr-only">
+                  Your display name
+                </label>
+                <input
+                  id={nameFieldId}
+                  type="text"
+                  required
+                  maxLength={80}
+                  value={nameDraft}
+                  onChange={(event) => setNameDraft(event.target.value)}
+                  className="field-input max-w-xs"
+                />
+                <button
+                  type="submit"
+                  disabled={savingName}
+                  className="control control-primary"
+                >
+                  {savingName ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  disabled={savingName}
+                  onClick={() => {
+                    setEditingName(false);
+                    setNameDraft(displayName);
+                  }}
+                  className="control"
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              // The control sits beside the heading rather than inside it: a
+              // button nested in an h1 becomes part of the heading's
+              // accessible name, which screen reader users hear on every
+              // landmark jump.
+              <div className="flex flex-wrap items-baseline gap-3">
+                <h1 className="heading-1">Welcome back, {displayName}</h1>
+                <button
+                  type="button"
+                  onClick={() => setEditingName(true)}
+                  className="text-muted-foreground hover:text-foreground focus-visible:outline-focus rounded text-xs font-semibold focus-visible:outline-1"
+                >
+                  Edit name
+                </button>
+              </div>
+            )}
             <p className="text-muted-foreground text-xs">{member.email}</p>
+            {nameFeedback && (
+              <p
+                role="status"
+                aria-live="polite"
+                className={`text-xs ${nameFeedback.type === "error" ? "text-danger" : "text-success"}`}
+              >
+                {nameFeedback.text}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -158,6 +282,12 @@ export function MemberHubView({
                     {upcomingSession.notes}
                   </p>
                 )}
+                <Link
+                  href={`/members/sessions/${upcomingSession.id}`}
+                  className="text-primary hover:text-primary-hover focus-visible:outline-focus mt-3 inline-block rounded text-xs font-semibold focus-visible:outline-1"
+                >
+                  Session details and materials →
+                </Link>
               </div>
             </div>
           ) : (
@@ -290,6 +420,32 @@ export function MemberHubView({
         </form>
       </div>
 
+      {/* All sessions */}
+      <div className="panel space-y-4 p-6">
+        <h2 className="text-foreground text-base font-bold">Sessions</h2>
+        {sessions.length === 0 ? (
+          <p className="text-muted-foreground text-xs">
+            No sessions have been scheduled yet.
+          </p>
+        ) : (
+          <ul className="border-border divide-border divide-y border-t border-b">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <Link
+                  href={`/members/sessions/${session.id}`}
+                  className="hover:bg-surface-raised focus-visible:outline-focus flex items-baseline gap-4 px-2 py-3 transition-colors focus-visible:outline-2"
+                >
+                  <span className="datum text-subtle-foreground w-24 shrink-0 text-xs">
+                    {session.sessionDate}
+                  </span>
+                  <span className="text-sm">{session.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {/* Approved Club Resources */}
       <div className="panel space-y-4 p-6">
         <h2 className="text-foreground text-base font-bold">
@@ -300,31 +456,36 @@ export function MemberHubView({
           International School links:
         </p>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="panel-raised p-4">
-            <h3 className="text-foreground text-sm font-semibold">
-              Google Classroom
-            </h3>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Weekly problem sets, solution notes, and workshop handouts.
-            </p>
-            <span className="text-primary mt-2 inline-block text-xs font-medium">
-              Join code distributed in Room 101
-            </span>
+        {resources.length === 0 ? (
+          <p className="text-muted-foreground text-xs">
+            No resources have been published yet.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {resources.map((resource) => (
+              <a
+                key={resource.id}
+                href={resource.url}
+                target="_blank"
+                // noopener/noreferrer because these links are leadership-entered
+                // and open in a new tab: without it the opened page could
+                // reach back through window.opener.
+                rel="noopener noreferrer"
+                className="panel-raised hover:border-primary focus-visible:outline-focus block p-4 transition-colors focus-visible:outline-2"
+              >
+                <h3 className="text-foreground text-sm font-semibold">
+                  {resource.title}
+                </h3>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {resource.description}
+                </p>
+                <span className="text-primary mt-2 inline-block text-xs font-medium">
+                  Open →
+                </span>
+              </a>
+            ))}
           </div>
-
-          <div className="panel-raised p-4">
-            <h3 className="text-foreground text-sm font-semibold">
-              Shared Resource Drive
-            </h3>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Olympiad archive files, past contest rounds, and study guides.
-            </p>
-            <span className="text-primary mt-2 inline-block text-xs font-medium">
-              Restricted to verified @tokyois.com members
-            </span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

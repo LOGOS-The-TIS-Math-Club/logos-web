@@ -7,11 +7,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * and never reach Neon Auth or Postgres.
  */
 const listPublishedAnnouncements = vi.hoisted(() => vi.fn());
+const getProgramme = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/announcements/service.server", () => ({
   listPublishedAnnouncements,
 }));
 
+// The programme now comes from logos.club_sessions. Mocked for the same reason
+// as the announcements: this stays a render check, not a database test.
+vi.mock("@/lib/sessions/programme.server", () => ({ getProgramme }));
+
+import { SESSIONS } from "@/content/club";
 import Home from "./page";
 
 /** Home is async, so it must be awaited before rendering. */
@@ -23,6 +29,10 @@ describe("Home noticeboard", () => {
   beforeEach(() => {
     listPublishedAnnouncements.mockReset();
     listPublishedAnnouncements.mockResolvedValue([]);
+    getProgramme.mockReset();
+    // The committed curriculum is what getProgramme falls back to when the
+    // table is empty, so it is the right fixture for these assertions.
+    getProgramme.mockResolvedValue(SESSIONS);
   });
 
   it("leads with the club identity and the application action", async () => {

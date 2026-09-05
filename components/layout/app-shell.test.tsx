@@ -187,3 +187,54 @@ describe("AppShell", () => {
     expect(screen.getByRole("main")).toHaveClass("custom-shell-main");
   });
 });
+
+describe("AppShell header actions", () => {
+  it("offers sign-in to a signed-out visitor alongside Apply", () => {
+    // A returning member has no other route back into their hub short of
+    // typing the URL.
+    render(<AppShell>content</AppShell>);
+
+    expect(screen.getByRole("link", { name: /^apply$/i })).toHaveAttribute(
+      "href",
+      "/apply",
+    );
+    expect(screen.getByRole("link", { name: /sign in/i })).toHaveAttribute(
+      "href",
+      "/auth/sign-in",
+    );
+  });
+
+  it("replaces sign-in with the profile menu once signed in", () => {
+    render(
+      <AppShell
+        viewer={{
+          email: "student@tokyois.com",
+          avatarUrl: null,
+          isMember: true,
+          isLeadership: false,
+        }}
+      >
+        content
+      </AppShell>,
+    );
+
+    expect(screen.queryByRole("link", { name: /sign in/i })).toBeNull();
+  });
+
+  it("keeps Apply hidden from members, who have already applied", () => {
+    render(
+      <AppShell
+        viewer={{
+          email: "student@tokyois.com",
+          avatarUrl: null,
+          isMember: true,
+          isLeadership: false,
+        }}
+      >
+        content
+      </AppShell>,
+    );
+
+    expect(screen.queryByRole("link", { name: /^apply$/i })).toBeNull();
+  });
+});
