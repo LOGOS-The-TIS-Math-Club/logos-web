@@ -207,6 +207,19 @@ test("passes AxeBuilder automated WCAG scan with zero violations on public route
     .analyze();
   expect(confirmResults.violations).toEqual([]);
 
+  /*
+   * The story page. With an empty database this exercises the empty state and
+   * the page structure, not the image markup — seeding an entry from a browser
+   * test would need leadership access, which this suite deliberately does not
+   * have. The alt text requirement is enforced at the column and covered by
+   * the unit tests instead.
+   */
+  await page.goto("/story");
+  const storyResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(storyResults.violations).toEqual([]);
+
   await page.goto("/non-existent-route");
   const notFoundResults = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

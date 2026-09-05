@@ -22,12 +22,14 @@ export interface AppShellProps {
 
 const NAV_ITEMS = [
   { href: "/about", label: "About" },
+  { href: "/story", label: "Story" },
   { href: "/meetings", label: "Meetings" },
   { href: "/join", label: "Join" },
 ] as const;
 
 const FOOTER_LINKS = [
   { href: "/about", label: "About" },
+  { href: "/story", label: "Story" },
   { href: "/meetings", label: "Meetings" },
   { href: "/join", label: "Join" },
   { href: "/privacy", label: "Privacy" },
@@ -81,7 +83,19 @@ export function AppShell({ children, className, viewer }: AppShellProps) {
                 Apply
               </ActionLink>
             )}
-            {viewer ? <ProfileMenu viewer={viewer} /> : null}
+            {/*
+              Signed-out visitors get both actions. Apply is for new students;
+              Sign in is for existing members, who would otherwise find no way
+              back into their hub short of typing the URL. Once signed in the
+              profile menu replaces it.
+            */}
+            {viewer ? (
+              <ProfileMenu viewer={viewer} />
+            ) : (
+              <ActionLink href="/auth/sign-in" className="action-sm">
+                Sign in
+              </ActionLink>
+            )}
           </nav>
         </Container>
       </header>

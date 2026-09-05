@@ -30,7 +30,8 @@ export function SessionAdminView({
   initialSessions: SessionListItem[];
 }) {
   const [sessions, setSessions] = useState<SessionListItem[]>(initialSessions);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
@@ -44,6 +45,31 @@ export function SessionAdminView({
   const [endTime, setEndTime] = useState("16:30");
   const [location, setLocation] = useState("Room 101");
   const [notes, setNotes] = useState("");
+  const [driveFolderId, setDriveFolderId] = useState("");
+
+  function openCreate() {
+    setEditingId(null);
+    setTitle("LOGOS Weekly Meeting");
+    setSessionDate(getNextFriday());
+    setStartTime("15:30");
+    setEndTime("16:30");
+    setLocation("Room 101");
+    setNotes("");
+    setDriveFolderId("");
+    setShowModal(true);
+  }
+
+  function openEdit(session: SessionListItem) {
+    setEditingId(session.id);
+    setTitle(session.title);
+    setSessionDate(session.sessionDate);
+    setStartTime(session.startTime);
+    setEndTime(session.endTime);
+    setLocation(session.location);
+    setNotes(session.notes ?? "");
+    setDriveFolderId(session.driveFolderId ?? "");
+    setShowModal(true);
+  }
 
   const titleId = useId();
   const dateId = useId();
@@ -51,8 +77,9 @@ export function SessionAdminView({
   const endId = useId();
   const locId = useId();
   const notesId = useId();
+  const driveId = useId();
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setFeedback(null);
@@ -69,58 +96,149 @@ export function SessionAdminView({
       if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
       if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
 
-      const response = await fetch("/api/admin/sessions", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          title,
-          sessionDate,
-          startTime,
-          endTime,
-          location,
-          notes: notes || undefined,
-        }),
-      });
+      const response = await fetch(
+        editingId ? `/api/admin/sessions/${editingId}` : "/api/admin/sessions",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            title,
+            sessionDate,
+            startTime,
+            endTime,
+            location,
+            // null clears an existing note on edit; undefined leaves the field
+            // untouched on create.
+            notes: notes || (editingId ? null : undefined),
+            driveFolderId: driveFolderId || (editingId ? null : undefined),
+          }),
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData?.error?.message || "Failed to create club session",
+          errorData?.error?.message ||
+            `Failed to ${editingId ? "update" : "create"} club session`,
         );
       }
 
       const { session } = await response.json();
 
-      const newSessionItem: SessionListItem = {
-        id: session.id,
-        title: session.title,
-        sessionDate: session.sessionDate,
-        startTime: session.startTime,
-        endTime: session.endTime,
-        location: session.location,
-        notes: session.notes,
-        createdAt: new Date().toISOString(),
-        presentCount: 0,
-        totalMarked: 0,
-      };
+      if (editingId) {
+        // Attendance counts are not returned by the update, so carry the
+        // existing ones forward rather than resetting them to zero on screen.
+        setSessions((prev) =>
+          prev.map((item) =>
+            item.id === editingId
+              ? {
+                  ...item,
+                  title: session.title,
+                  sessionDate: session.sessionDate,
+                  startTime: session.startTime,
+                  endTime: session.endTime,
+                  location: session.location,
+                  notes: session.notes,
+                  driveFolderId: session.driveFolderId,
+                }
+              : item,
+          ),
+        );
+        setFeedback({
+          type: "success",
+          text: `Updated "${session.title}" (${session.sessionDate}).`,
+        });
+      } else {
+        setSessions((prev) => [
+          {
+            id: session.id,
+            title: session.title,
+            sessionDate: session.sessionDate,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            location: session.location,
+            notes: session.notes,
+            driveFolderId: session.driveFolderId,
+            createdAt: new Date().toISOString(),
+            presentCount: 0,
+            totalMarked: 0,
+          },
+          ...prev,
+        ]);
+        setFeedback({
+          type: "success",
+          text: `Created session "${session.title}" for ${session.sessionDate}.`,
+        });
+      }
 
-      setSessions((prev) => [newSessionItem, ...prev]);
+      setShowModal(false);
+      setEditingId(null);
+      setNotes("");
+    } catch (err: unknown) {
+      setFeedback({
+        type: "error",
+        text:
+          err instanceof Error ? err.message : "Save failed. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (session: SessionListItem) => {
+    // Deleting a meeting from the public programme is not something to do by
+    // a stray click, so confirm against the session's own name and date.
+    const confirmed = window.confirm(
+      `Delete "${session.title}" on ${session.sessionDate}?\n\nThis removes it from the public programme and cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(session.id);
+    setFeedback(null);
+
+    try {
+      const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
+      const sessionCsrfToken = decodeURIComponent(
+        getCookie("__Host-logos_session_csrf"),
+      );
+
+      const headers: Record<string, string> = {};
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+      if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
+
+      const response = await fetch(`/api/admin/sessions/${session.id}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        // A 409 explains which records are holding the session; surface that
+        // rather than a generic failure.
+        throw new Error(
+          errorData?.message ||
+            errorData?.error?.message ||
+            "Failed to delete club session",
+        );
+      }
+
+      setSessions((prev) => prev.filter((item) => item.id !== session.id));
       setFeedback({
         type: "success",
-        text: `Created session "${session.title}" for ${session.sessionDate}.`,
+        text: `Deleted "${session.title}".`,
       });
-      setShowCreateModal(false);
-      setNotes("");
     } catch (err: unknown) {
       setFeedback({
         type: "error",
         text:
           err instanceof Error
             ? err.message
-            : "Creation failed. Please try again.",
+            : "Delete failed. Please try again.",
       });
     } finally {
-      setIsSubmitting(false);
+      setDeletingId(null);
     }
   };
 
@@ -139,7 +257,7 @@ export function SessionAdminView({
         <div>
           <button
             type="button"
-            onClick={() => setShowCreateModal(true)}
+            onClick={openCreate}
             className="control control-primary"
           >
             + Create New Session
@@ -210,20 +328,37 @@ export function SessionAdminView({
                   </strong>{" "}
                   ({session.totalMarked} marked)
                 </span>
-                <Link
-                  href={`/admin/attendance?sessionId=${session.id}`}
-                  className="text-primary hover:text-primary-hover focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
-                >
-                  Mark Ledger →
-                </Link>
+                <span className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(session)}
+                    className="text-muted-foreground hover:text-foreground focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(session)}
+                    disabled={deletingId === session.id}
+                    className="text-muted-foreground hover:text-danger focus-visible:outline-focus rounded font-semibold focus-visible:outline-1 disabled:opacity-50"
+                  >
+                    {deletingId === session.id ? "Deleting…" : "Delete"}
+                  </button>
+                  <Link
+                    href={`/admin/attendance?sessionId=${session.id}`}
+                    className="text-primary hover:text-primary-hover focus-visible:outline-focus rounded font-semibold focus-visible:outline-1"
+                  >
+                    Mark Ledger →
+                  </Link>
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Create Session Modal */}
-      {showCreateModal && (
+      {/* Create / edit session */}
+      {showModal && (
         <div
           role="dialog"
           aria-modal="true"
@@ -235,20 +370,20 @@ export function SessionAdminView({
               id="create-session-title"
               className="text-foreground text-lg font-bold"
             >
-              Create Club Session
+              {editingId ? "Edit Club Session" : "Create Club Session"}
             </h2>
             <p className="text-muted-foreground text-xs">
-              Configure session date, time, and meeting room. Default Friday
-              15:30–16:30, Room 101.
+              The topic and date appear in the public programme on the home and
+              meetings pages. Default Friday 15:30–16:30, Room 101.
             </p>
 
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label
                   htmlFor={titleId}
                   className="text-foreground block text-xs font-medium"
                 >
-                  Title
+                  Topic
                 </label>
                 <input
                   id={titleId}
@@ -350,10 +485,36 @@ export function SessionAdminView({
                 />
               </div>
 
+              <div>
+                <label
+                  htmlFor={driveId}
+                  className="text-foreground block text-xs font-medium"
+                >
+                  Drive Folder ID (Optional)
+                </label>
+                <input
+                  id={driveId}
+                  type="text"
+                  maxLength={128}
+                  placeholder="1a2B3c4D5e6F7g8H9i"
+                  value={driveFolderId}
+                  onChange={(e) => setDriveFolderId(e.target.value)}
+                  className="field-input"
+                />
+                <p className="text-subtle-foreground mt-1 text-xs">
+                  Members see this folder&rsquo;s files on the session. Take the
+                  id from the folder&rsquo;s Drive URL, after{" "}
+                  <code>/folders/</code>.
+                </p>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingId(null);
+                  }}
                   disabled={isSubmitting}
                   className="control"
                 >
@@ -364,7 +525,11 @@ export function SessionAdminView({
                   disabled={isSubmitting}
                   className="control control-primary"
                 >
-                  {isSubmitting ? "Creating..." : "Create Session"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : editingId
+                      ? "Save Changes"
+                      : "Create Session"}
                 </button>
               </div>
             </form>

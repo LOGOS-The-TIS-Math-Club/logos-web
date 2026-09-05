@@ -57,6 +57,41 @@
       "when": 1788367127917,
       "tag": "0007_application_course_and_interest",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788577745958,
+      "tag": "0008_dusty_mongoose",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788577888662,
+      "tag": "0009_foamy_skrulls",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788595652254,
+      "tag": "0010_fast_meteorite",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788648776170,
+      "tag": "0011_white_tarot",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788649887429,
+      "tag": "0012_sparkling_doorman",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,15 @@
+# Findings gitleaks should not fail the build on.
+#
+# Each line is a fingerprint: <commit>:<file>:<rule>:<line>. Add one only for a
+# verified false positive, and say why — an ignore file that accumulates
+# unexplained entries is how a real secret eventually gets waved through.
+
+# A unit test fixture for normalisePrivateKey, which restores newlines in a PEM
+# key that a secret store wrote as literal "\n". The "key" in the fixture is the
+# string "abc"; the only reason it matches is the BEGIN PRIVATE KEY marker,
+# which the test needs in order to be representative of a real key.
+#
+# The current source no longer contains that literal — the marker is assembled
+# at runtime. This entry exists because the scan covers complete history, so the
+# original commit keeps the finding for ever.
+bec036cb9f7363ff540cf92359e1d4f93d779c86:lib/google/drive-protocol.test.ts:private-key:173

@@ -13,6 +13,8 @@ export const AnnouncementInputSchema = z.object({
     .min(1, "Write the announcement")
     .max(2000, "Announcement must not exceed 2000 characters"),
   published: z.boolean(),
+  /** Optional picture. Null clears an existing one. */
+  imageId: z.string().uuid("Invalid image").nullable().optional(),
 });
 
 export type AnnouncementInput = z.infer<typeof AnnouncementInputSchema>;
@@ -24,4 +26,9 @@ export interface AnnouncementRecord {
   readonly published: boolean;
   readonly publishedAt: Date | null;
   readonly updatedAt: Date;
+  readonly imageId: string | null;
+  /** Joined from the image, so the public page never renders a bare alt-less picture. */
+  readonly imageAlt: string | null;
+  readonly imageWidth: number | null;
+  readonly imageHeight: number | null;
 }
