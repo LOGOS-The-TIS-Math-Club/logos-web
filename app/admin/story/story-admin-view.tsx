@@ -165,7 +165,9 @@ export function StoryAdminView({
         <div>
           <h1 className="heading-1">Our story</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            The club&rsquo;s record, with pictures. Published entries appear on{" "}
+            The club&rsquo;s milestones, with pictures &mdash; the founding, a
+            first competition, the session where something clicked. Worth
+            recording, not every meeting. Published entries appear on{" "}
             <code>/story</code> immediately.
           </p>
         </div>
@@ -174,7 +176,7 @@ export function StoryAdminView({
           onClick={openCreate}
           className="control control-primary"
         >
-          + Add entry
+          + Add milestone
         </button>
       </div>
 
@@ -195,7 +197,7 @@ export function StoryAdminView({
       {entries.length === 0 ? (
         <div className="panel py-12 text-center">
           <p className="text-muted-foreground text-sm">
-            Nothing written up yet. Add the club&rsquo;s first entry.
+            No milestones yet. Add the first one.
           </p>
         </div>
       ) : (
@@ -261,7 +263,7 @@ export function StoryAdminView({
         >
           <div className="panel my-8 w-full max-w-lg space-y-4 p-6 shadow-xl">
             <h2 id="story-modal-title" className="heading-3">
-              {editingId ? "Edit entry" : "Add entry"}
+              {editingId ? "Edit milestone" : "Add milestone"}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -305,7 +307,7 @@ export function StoryAdminView({
                   htmlFor={bodyId}
                   className="text-foreground block text-xs font-medium"
                 >
-                  What happened
+                  What happened, and why it mattered
                 </label>
                 <textarea
                   id={bodyId}

@@ -56,7 +56,7 @@ const SECTIONS: readonly {
     label: "Our story",
     capability: "content:manage",
     description:
-      "The club's record with pictures, shown on the public story page. Drafts stay hidden until you publish them.",
+      "The club's milestones with pictures, shown on the public story page. Drafts stay hidden until you publish them.",
   },
   {
     href: "/admin/resources",
