@@ -65,6 +65,74 @@ export default async function MeetingsPage() {
         </dl>
       </section>
 
+      <Reveal as="section" aria-labelledby="room-heading">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+          <div className="space-y-3">
+            <p className="eyebrow">Finding us</p>
+            <h2 id="room-heading" className="heading-1">
+              Room 101.
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Along the upper school corridor. The nameplate on the wall reads{" "}
+              <span className="text-foreground">
+                Upper School Classroom 101
+              </span>
+              . Come in and sit down &mdash; you do not need to have applied
+              first.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {/*
+              Two photographs of the room, in the order somebody arriving would
+              see them: the corridor first, then the door itself.
+
+              Both are cropped to a common 3:4 by their container rather than
+              shown at their own 9:16, which would run the page on for two
+              screens. Served from /public, so they load from our own origin and
+              the `img-src 'self'` policy needs no exception. The width and
+              height are the real file dimensions, so the space is reserved
+              before the picture arrives and nothing below shifts as it loads.
+            */}
+            <figure className="space-y-2">
+              <div className="panel-lifted aspect-[3/4] overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a static, already-optimised asset from /public; the optimiser adds nothing. */}
+                <img
+                  src="/room-101/corridor.jpg"
+                  alt="The upper school corridor, with classroom doors along the left-hand side and a handrail down each wall."
+                  width={788}
+                  height={1400}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <figcaption className="text-subtle-foreground text-xs">
+                The corridor.
+              </figcaption>
+            </figure>
+
+            <figure className="space-y-2">
+              <div className="panel-lifted aspect-[3/4] overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a static, already-optimised asset from /public; the optimiser adds nothing. */}
+                <img
+                  src="/room-101/door.jpg"
+                  alt="The door to Room 101, with a wooden nameplate on the wall beside it reading Upper School Classroom 101."
+                  width={788}
+                  height={1400}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <figcaption className="text-subtle-foreground text-xs">
+                The door, and the nameplate to look for.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </Reveal>
+
       <Reveal as="section" aria-labelledby="shape-heading">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <div className="space-y-3">

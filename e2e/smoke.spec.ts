@@ -207,6 +207,15 @@ test("passes AxeBuilder automated WCAG scan with zero violations on public route
     .analyze();
   expect(confirmResults.violations).toEqual([]);
 
+  // The meetings page carries the Room 101 photographs, so it is scanned for
+  // the things images get wrong: a missing text alternative, or contrast on
+  // the caption beneath.
+  await page.goto("/meetings");
+  const meetingsResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(meetingsResults.violations).toEqual([]);
+
   /*
    * The story page. With an empty database this exercises the empty state and
    * the page structure, not the image markup — seeding an entry from a browser
