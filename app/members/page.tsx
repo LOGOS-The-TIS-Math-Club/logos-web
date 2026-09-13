@@ -6,6 +6,7 @@ import {
   getMemberAttendanceTotals,
   listClubSessions,
 } from "@/lib/attendance/service.server";
+import { selectNextUpcomingSession } from "@/lib/attendance/schedule";
 import { getCurrentMember } from "@/lib/membership/service.server";
 import { listResources } from "@/lib/resources/service.server";
 import { MemberHubView } from "./member-hub-view";
@@ -62,7 +63,7 @@ export default async function MembersPage() {
   }
 
   const sessions = await listClubSessions();
-  const upcomingSession = sessions[0] || null;
+  const upcomingSession = selectNextUpcomingSession(sessions);
   const totals = await getMemberAttendanceTotals(member.id);
   // A resource read failure should not take down the dashboard; the section
   // has a real empty state.
