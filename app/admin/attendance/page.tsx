@@ -8,6 +8,7 @@ import {
   getSessionAttendance,
   listClubSessions,
 } from "@/lib/attendance/service.server";
+import { selectNextUpcomingSession } from "@/lib/attendance/schedule";
 import { type MemberSessionAttendance } from "@/lib/attendance/schema";
 import { AttendanceAdminView } from "./attendance-admin-view";
 
@@ -33,7 +34,8 @@ export default async function AdminAttendancePage(props: {
 
     if (sessions.length > 0) {
       if (!targetSessionId || !sessions.some((s) => s.id === targetSessionId)) {
-        targetSessionId = sessions[0].id;
+        targetSessionId =
+          selectNextUpcomingSession(sessions)?.id || sessions[0].id;
       }
       const data = await getSessionAttendance(targetSessionId);
       roster = data.roster;
