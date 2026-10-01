@@ -6,7 +6,7 @@ import { listPublicSessions } from "@/lib/attendance/service.server";
 /*
  * The programme shown on the public pages.
  *
- * Sessions live in logos.club_sessions so leadership can edit the date and the
+ * Sessions live in meetings.club_sessions so leadership can edit the date and the
  * topic from /admin/sessions without a deploy. The committed 2026 curriculum in
  * content/club.ts is the fallback, used only while the table is still empty —
  * on a database with no sessions yet the site keeps showing the real programme

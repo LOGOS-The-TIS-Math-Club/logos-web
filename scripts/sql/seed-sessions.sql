@@ -1,4 +1,4 @@
--- Seed the 2026 programme into logos.club_sessions.
+-- Seed the 2026 programme into meetings.club_sessions.
 --
 -- Run in the Neon SQL editor, once, after someone holds operator access.
 --
@@ -18,7 +18,7 @@ DECLARE
   v_row      record;
 BEGIN
   SELECT a.identity_id INTO v_actor_id
-  FROM logos.technical_access_assignments a
+  FROM people.technical_access_assignments a
   WHERE a.revoked_at IS NULL
     AND a.access_level IN ('operator', 'access_admin')
   ORDER BY (a.access_level = 'operator') DESC, a.granted_at
@@ -45,11 +45,11 @@ BEGIN
     ORDER BY session_date
   LOOP
     CONTINUE WHEN EXISTS (
-      SELECT 1 FROM logos.club_sessions
+      SELECT 1 FROM meetings.club_sessions
       WHERE session_date = v_row.session_date
     );
 
-    INSERT INTO logos.club_sessions (
+    INSERT INTO meetings.club_sessions (
       title, session_date, start_time, end_time, location,
       created_by_identity_id
     ) VALUES (
@@ -65,5 +65,5 @@ END $$;
 
 -- Confirmation: the programme as the public pages will now render it.
 SELECT session_date, title, notes
-FROM logos.club_sessions
+FROM meetings.club_sessions
 ORDER BY session_date;

@@ -127,7 +127,7 @@ try {
   await runtimeSql`reset logos.app_environment`;
 
   const [fixture] = await runtimeSql`
-    select marker from logos.infrastructure_probe where id = 1
+    select marker from operations.infrastructure_probe where id = 1
   `;
   if (fixture?.marker !== "logos-phase-02-synthetic") {
     throw new Error("Synthetic fixture is missing or unexpected");
@@ -136,15 +136,15 @@ try {
   // --- Phase 02 Baseline Checks ---
   await runtimeSql.begin(async (transaction) => {
     await transaction`
-      insert into logos.infrastructure_probe (id, marker)
+      insert into operations.infrastructure_probe (id, marker)
       values (2, 'logos-phase-02-runtime-probe')
     `;
     await transaction`
-      update logos.infrastructure_probe
+      update operations.infrastructure_probe
       set marker = 'logos-phase-02-runtime-updated'
       where id = 2
     `;
-    await transaction`delete from logos.infrastructure_probe where id = 2`;
+    await transaction`delete from operations.infrastructure_probe where id = 2`;
   });
 
   await expectPermissionDenied("runtime DDL", async () => {
@@ -168,18 +168,18 @@ try {
   await runtimeSql.begin(async (transaction) => {
     const testHash = "a".repeat(64);
     await transaction`
-      insert into logos.rate_limits (subject_hash, policy, window_start, count)
+      insert into operations.rate_limits (subject_hash, policy, window_start, count)
       values (${testHash}, 'synthetic_test_policy', to_timestamp(0), 1)
       on conflict (subject_hash, policy, window_start)
-      do update set count = logos.rate_limits.count + 1
+      do update set count = operations.rate_limits.count + 1
     `;
     const [rl] = await transaction`
-      select count from logos.rate_limits where subject_hash = ${testHash}
+      select count from operations.rate_limits where subject_hash = ${testHash}
     `;
     if (rl?.count !== 1) {
       throw new Error("Rate limit upsert failed");
     }
-    await transaction`delete from logos.rate_limits where subject_hash = ${testHash}`;
+    await transaction`delete from operations.rate_limits where subject_hash = ${testHash}`;
   });
 
   // --- Phase 03 Audit Journals Role Hardening Checks ---
@@ -190,7 +190,7 @@ try {
   // 1. Runtime can INSERT into business audit journal (INSERT-only, no RETURNING)
   await runtimeSql.begin(async (transaction) => {
     await transaction`
-      insert into logos.business_audit_journal (
+      insert into operations.business_audit_journal (
         id, actor_type, actor_role_snapshot, source, correlation_id,
         category, action, target_type, target_id, result,
         before_summary, after_summary, metadata
@@ -205,7 +205,7 @@ try {
   // 2. Runtime can INSERT into security audit journal (INSERT-only, no RETURNING)
   await runtimeSql.begin(async (transaction) => {
     await transaction`
-      insert into logos.security_audit_journal (
+      insert into operations.security_audit_journal (
         id, actor_type, actor_role_snapshot, source, correlation_id,
         category, action, target_type, target_id, result,
         metadata
@@ -221,14 +221,14 @@ try {
   await expectPermissionDenied(
     "runtime direct SELECT business audit journal",
     async () => {
-      await runtimeSql`select * from logos.business_audit_journal`;
+      await runtimeSql`select * from operations.business_audit_journal`;
     },
   );
 
   await expectPermissionDenied(
     "runtime direct SELECT security audit journal",
     async () => {
-      await runtimeSql`select * from logos.security_audit_journal`;
+      await runtimeSql`select * from operations.security_audit_journal`;
     },
   );
 
@@ -236,28 +236,28 @@ try {
   await expectPermissionDenied(
     "runtime UPDATE business audit journal",
     async () => {
-      await runtimeSql`update logos.business_audit_journal set result = 'denied'`;
+      await runtimeSql`update operations.business_audit_journal set result = 'denied'`;
     },
   );
 
   await expectPermissionDenied(
     "runtime DELETE business audit journal",
     async () => {
-      await runtimeSql`delete from logos.business_audit_journal`;
+      await runtimeSql`delete from operations.business_audit_journal`;
     },
   );
 
   await expectPermissionDenied(
     "runtime TRUNCATE business audit journal",
     async () => {
-      await runtimeSql`truncate table logos.business_audit_journal`;
+      await runtimeSql`truncate table operations.business_audit_journal`;
     },
   );
 
   await expectPermissionDenied(
     "runtime ALTER business audit journal",
     async () => {
-      await runtimeSql`alter table logos.business_audit_journal add column hacked text`;
+      await runtimeSql`alter table operations.business_audit_journal add column hacked text`;
     },
   );
 
@@ -319,7 +319,7 @@ try {
   // 1. Runtime can INSERT and SELECT on durable_operations
   await runtimeSql.begin(async (transaction) => {
     const [op] = await transaction`
-      insert into logos.durable_operations (
+      insert into operations.durable_operations (
         correlation_id, audit_event_id, type, idempotency_key, payload, max_attempts
       ) values (
         ${testCorrelationId}::uuid, ${createdBusinessAuditId}::uuid,
@@ -334,7 +334,7 @@ try {
     }
 
     const [selected] = await transaction`
-      select id, status from logos.durable_operations where id = ${createdOpId}::uuid
+      select id, status from operations.durable_operations where id = ${createdOpId}::uuid
     `;
     if (selected?.id !== createdOpId) {
       throw new Error("Durable operation SELECT failed for runtime role");
@@ -345,21 +345,21 @@ try {
   await expectPermissionDenied(
     "runtime direct UPDATE durable_operations",
     async () => {
-      await runtimeSql`update logos.durable_operations set status = 'succeeded' where id = ${createdOpId}::uuid`;
+      await runtimeSql`update operations.durable_operations set status = 'succeeded' where id = ${createdOpId}::uuid`;
     },
   );
 
   await expectPermissionDenied(
     "runtime direct DELETE durable_operations",
     async () => {
-      await runtimeSql`delete from logos.durable_operations where id = ${createdOpId}::uuid`;
+      await runtimeSql`delete from operations.durable_operations where id = ${createdOpId}::uuid`;
     },
   );
 
   await expectPermissionDenied(
     "runtime direct TRUNCATE durable_operations",
     async () => {
-      await runtimeSql`truncate table logos.durable_operations`;
+      await runtimeSql`truncate table operations.durable_operations`;
     },
   );
 
@@ -610,7 +610,7 @@ try {
   // Verify operation transitioned back to pending with cleared lease
   const [afterFailRow] = await runtimeSql`
     select status, lease_token, failure_code, attempt_count
-    from logos.durable_operations
+    from operations.durable_operations
     where id = ${createdOpId}::uuid
   `;
   if (
@@ -657,7 +657,7 @@ try {
 
   const [exhaustedRow] = await runtimeSql`
     select status, lease_token, completed_at, failure_code
-    from logos.durable_operations
+    from operations.durable_operations
     where id = ${createdOpId}::uuid
   `;
   if (
@@ -673,7 +673,7 @@ try {
   let successOpId;
   await runtimeSql.begin(async (transaction) => {
     const [op] = await transaction`
-      insert into logos.durable_operations (
+      insert into operations.durable_operations (
         correlation_id, audit_event_id, type, idempotency_key, payload, max_attempts
       ) values (
         ${testCorrelationId}::uuid, ${createdBusinessAuditId}::uuid,
@@ -711,7 +711,7 @@ try {
 
   const [completedRow] = await runtimeSql`
     select status, lease_token, provider_reference, completed_at
-    from logos.durable_operations
+    from operations.durable_operations
     where id = ${successOpId}::uuid
   `;
   if (
@@ -750,10 +750,10 @@ try {
   }
 
   await expectPermissionDenied("runtime raw identity SELECT", async () => {
-    await runtimeSql`select * from logos.application_identities`;
+    await runtimeSql`select * from people.application_identities`;
   });
   await expectPermissionDenied("runtime raw identity UPDATE", async () => {
-    await runtimeSql`update logos.application_identities set active = false`;
+    await runtimeSql`update people.application_identities set active = false`;
   });
   await expectPermissionDenied("runtime bootstrap execution", async () => {
     await runtimeSql`select logos.bootstrap_access_admin(${adminIdentity.identity_id}::uuid, ${createdBusinessAuditId}::uuid)`;
@@ -775,7 +775,7 @@ try {
 
   const bootstrapAuditId = randomUUID();
   await ownerSql`
-    insert into logos.business_audit_journal (
+    insert into operations.business_audit_journal (
       id, actor_id, actor_type, actor_role_snapshot, source, correlation_id,
       category, action, target_type, target_id, result, reason_code
     ) values (
@@ -871,77 +871,77 @@ try {
 
   // Backup role can SELECT on all tables (including audit journals and durable operations)
   const [backupFixture] = await backupSql`
-    select marker from logos.infrastructure_probe where id = 1
+    select marker from operations.infrastructure_probe where id = 1
   `;
   if (backupFixture?.marker !== "logos-phase-02-synthetic") {
     throw new Error("Backup role could not read the synthetic fixture");
   }
 
   const [backupAudit] = await backupSql`
-    select count(*)::integer as count from logos.business_audit_journal
+    select count(*)::integer as count from operations.business_audit_journal
   `;
   if (backupAudit?.count < 1) {
     throw new Error("Backup role could not read business_audit_journal");
   }
 
   const [backupSecAudit] = await backupSql`
-    select count(*)::integer as count from logos.security_audit_journal
+    select count(*)::integer as count from operations.security_audit_journal
   `;
   if (backupSecAudit?.count < 1) {
     throw new Error("Backup role could not read security_audit_journal");
   }
 
   const [backupOps] = await backupSql`
-    select count(*)::integer as count from logos.durable_operations
+    select count(*)::integer as count from operations.durable_operations
   `;
   if (backupOps?.count < 1) {
     throw new Error("Backup role could not read durable_operations");
   }
 
   const [backupIdentities] = await backupSql`
-    select count(*)::integer as count from logos.application_identities
+    select count(*)::integer as count from people.application_identities
   `;
   if (backupIdentities?.count < 2) {
     throw new Error("Backup role could not read Phase 04 identities");
   }
 
   const [backupApplications] = await backupSql`
-    select count(*)::integer as count from logos.student_applications
+    select count(*)::integer as count from applications.student_applications
   `;
   if (backupApplications === undefined) {
     throw new Error("Backup role could not read Phase 06 applications");
   }
 
   const [backupMembers] = await backupSql`
-    select count(*)::integer as count from logos.club_members
+    select count(*)::integer as count from members.club_members
   `;
   if (backupMembers === undefined) {
     throw new Error("Backup role could not read Phase 07 club_members");
   }
 
   const [backupSessions] = await backupSql`
-    select count(*)::integer as count from logos.club_sessions
+    select count(*)::integer as count from meetings.club_sessions
   `;
   if (backupSessions === undefined) {
     throw new Error("Backup role could not read Phase 07 club_sessions");
   }
 
   const [backupAttendance] = await backupSql`
-    select count(*)::integer as count from logos.session_attendance
+    select count(*)::integer as count from meetings.session_attendance
   `;
   if (backupAttendance === undefined) {
     throw new Error("Backup role could not read Phase 07 session_attendance");
   }
 
   const [backupAbsences] = await backupSql`
-    select count(*)::integer as count from logos.expected_absences
+    select count(*)::integer as count from meetings.expected_absences
   `;
   if (backupAbsences === undefined) {
     throw new Error("Backup role could not read Phase 07 expected_absences");
   }
 
   const [backupWarnings] = await backupSql`
-    select count(*)::integer as count from logos.member_warnings
+    select count(*)::integer as count from members.member_warnings
   `;
   if (backupWarnings === undefined) {
     throw new Error("Backup role could not read Phase 07 member_warnings");
@@ -950,7 +950,7 @@ try {
   await expectPermissionDenied("backup write", async () => {
     await backupSql.begin(async (transaction) => {
       await transaction`
-        insert into logos.infrastructure_probe (id, marker)
+        insert into operations.infrastructure_probe (id, marker)
         values (3, 'must-not-write')
       `;
     });

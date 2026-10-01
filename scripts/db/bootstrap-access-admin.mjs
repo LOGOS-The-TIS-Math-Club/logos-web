@@ -36,7 +36,7 @@ try {
   const auditId = randomUUID();
   const assignmentId = await sql.begin(async (transaction) => {
     await transaction`
-      insert into logos.business_audit_journal (
+      insert into operations.business_audit_journal (
         id, actor_id, actor_type, actor_role_snapshot, source, correlation_id,
         category, action, target_type, target_id, result, reason_code,
         after_summary

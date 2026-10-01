@@ -127,7 +127,7 @@ function sanitizeAuditPayload(
 }
 
 /**
- * Records a business audit event in logos.business_audit_journal.
+ * Records a business audit event in operations.business_audit_journal.
  * Works under INSERT-only runtime role privileges without requiring table SELECT.
  *
  * @param db - Drizzle database or transaction client.
@@ -182,7 +182,7 @@ export async function recordBusinessAuditEvent(
 }
 
 /**
- * Records a security audit event in logos.security_audit_journal.
+ * Records a security audit event in operations.security_audit_journal.
  * Works under INSERT-only runtime role privileges without requiring table SELECT.
  *
  * @param db - Drizzle database or transaction client.

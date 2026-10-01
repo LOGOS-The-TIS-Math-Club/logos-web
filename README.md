@@ -10,7 +10,7 @@ The source is available under the [MIT License](./LICENSE). No student data, pro
 | ----------------- | ------------- |
 | Node.js           | `24.20.0` LTS |
 | pnpm              | `11.24.0`     |
-| Next.js           | `16.3.3`      |
+| Next.js           | `16.3.8`      |
 | React / React DOM | `19.2.8`      |
 | TypeScript        | `5.9.3`       |
 
@@ -73,6 +73,7 @@ app/                         App Router pages, route handlers, and status templa
 components/                  Reusable UI primitives and application shell
 db/                          Drizzle schema declarations
 drizzle/                     Committed SQL migrations and metadata
+docs/database-map.md          Plain-language map of database categories
 e2e/                         Playwright smoke and accessibility tests
 lib/                         Server-only database boundary and shared modules
 scripts/                     Repository and database verification scripts

@@ -125,7 +125,7 @@ export async function checkRateLimit(
           floor(extract(epoch from clock_timestamp()) / ${policy.windowSeconds}) * ${policy.windowSeconds}
         ) AS window_start
     )
-    INSERT INTO logos.rate_limits (subject_hash, policy, window_start, count)
+    INSERT INTO operations.rate_limits (subject_hash, policy, window_start, count)
     SELECT
       ${subjectHash},
       ${policy.name},
@@ -133,11 +133,11 @@ export async function checkRateLimit(
       1
     FROM window_calc
     ON CONFLICT (subject_hash, policy, window_start)
-    DO UPDATE SET count = logos.rate_limits.count + 1
+    DO UPDATE SET count = operations.rate_limits.count + 1
     RETURNING
-      logos.rate_limits.count,
-      logos.rate_limits.window_start,
-      (logos.rate_limits.window_start + (${policy.windowSeconds} || ' seconds')::interval) AS reset_at,
+      operations.rate_limits.count,
+      operations.rate_limits.window_start,
+      (operations.rate_limits.window_start + (${policy.windowSeconds} || ' seconds')::interval) AS reset_at,
       clock_timestamp() AS clock_now;
   `);
 
