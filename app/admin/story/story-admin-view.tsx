@@ -305,11 +305,10 @@ export function StoryAdminView({
                   htmlFor={bodyId}
                   className="text-foreground block text-xs font-medium"
                 >
-                  What happened
+                  What happened (optional)
                 </label>
                 <textarea
                   id={bodyId}
-                  required
                   maxLength={4000}
                   rows={6}
                   value={body}

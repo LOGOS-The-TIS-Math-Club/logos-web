@@ -840,7 +840,7 @@ export const storyEntries = contentSchema.table(
     ),
     check(
       "story_entries_body_len_check",
-      sql`char_length("body") BETWEEN 1 AND 4000`,
+      sql`char_length("body") BETWEEN 0 AND 4000`,
     ),
   ],
 );

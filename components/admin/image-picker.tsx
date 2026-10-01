@@ -141,19 +141,21 @@ export function ImagePicker({
         </div>
       )}
 
-      {selected && (
+      {value && (
         <figure className="space-y-2">
           {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of a same-origin upload; the optimiser adds nothing here. */}
           <img
-            src={`/api/images/${selected.id}`}
-            alt={selected.altText}
+            src={`/api/images/${value}`}
+            alt={selected?.altText ?? ""}
             className="border-border max-h-40 w-auto border object-contain"
           />
           <figcaption className="text-subtle-foreground text-xs">
-            {selected.width && selected.height
+            {selected?.width && selected.height
               ? `${selected.width}×${selected.height}, `
               : ""}
-            {Math.round(selected.byteSize / 1024)} KB
+            {selected
+              ? `${Math.round(selected.byteSize / 1024)} KB`
+              : "Loading picture…"}
           </figcaption>
         </figure>
       )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import {
   type AttendanceStatus,
@@ -29,13 +29,11 @@ export function AttendanceAdminView({
   initialRoster: MemberSessionAttendance[];
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const selectorId = useId();
   const sessionPickerRef = useRef<HTMLDivElement>(null);
   const sessionPickerTriggerRef = useRef<HTMLButtonElement>(null);
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
-  const selectedSessionId =
-    searchParams.get("sessionId") ?? initialSelectedSessionId;
+  const selectedSessionId = initialSelectedSessionId;
   const [roster, setRoster] =
     useState<MemberSessionAttendance[]>(initialRoster);
   const [isSaving, setIsSaving] = useState(false);

@@ -92,15 +92,17 @@ export default async function StoryPage() {
                   {/* Blank lines in the entry become paragraphs. Leadership
                       writes these in a plain textarea, so this is the whole of
                       the formatting — no markup is interpreted. */}
-                  <div className="text-muted-foreground space-y-4 leading-relaxed">
-                    {entry.body
-                      .split(/\n{2,}/)
-                      .map((paragraph: string) => paragraph.trim())
-                      .filter((paragraph: string) => paragraph.length > 0)
-                      .map((paragraph: string, paragraphIndex: number) => (
-                        <p key={paragraphIndex}>{paragraph}</p>
-                      ))}
-                  </div>
+                  {entry.body.trim() ? (
+                    <div className="text-muted-foreground space-y-4 leading-relaxed">
+                      {entry.body
+                        .split(/\n{2,}/)
+                        .map((paragraph: string) => paragraph.trim())
+                        .filter((paragraph: string) => paragraph.length > 0)
+                        .map((paragraph: string, paragraphIndex: number) => (
+                          <p key={paragraphIndex}>{paragraph}</p>
+                        ))}
+                    </div>
+                  ) : null}
                 </article>
               </li>
             ))}

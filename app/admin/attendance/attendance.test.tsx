@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
-  useSearchParams: () => new URLSearchParams(),
 }));
 
 import { AttendanceAdminView } from "./attendance-admin-view";
@@ -92,5 +91,36 @@ describe("AttendanceAdminView", () => {
     fireEvent.click(screen.getByRole("button", { name: /Problem Solving/ }));
 
     expect(push).toHaveBeenCalledWith("/admin/attendance?sessionId=session-2");
+  });
+
+  it("shows the newly loaded roster when the selected session changes", () => {
+    const sessions = [
+      ...mockSessions,
+      { ...mockSessions[0], id: "session-2", title: "Problem Solving" },
+    ];
+    const { rerender } = render(
+      <AttendanceAdminView
+        key="session-1"
+        sessions={sessions}
+        initialSelectedSessionId="session-1"
+        initialRoster={mockRoster}
+      />,
+    );
+
+    expect(screen.getByText("Alice Chen")).toBeInTheDocument();
+
+    rerender(
+      <AttendanceAdminView
+        key="session-2"
+        sessions={sessions}
+        initialSelectedSessionId="session-2"
+        initialRoster={[
+          { ...mockRoster[0], memberId: "member-3", preferredName: "Cara Lee" },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Cara Lee")).toBeInTheDocument();
+    expect(screen.queryByText("Alice Chen")).not.toBeInTheDocument();
   });
 });

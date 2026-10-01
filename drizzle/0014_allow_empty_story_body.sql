@@ -1,0 +1,2 @@
+ALTER TABLE "content"."story_entries" DROP CONSTRAINT "story_entries_body_len_check";--> statement-breakpoint
+ALTER TABLE "content"."story_entries" ADD CONSTRAINT "story_entries_body_len_check" CHECK (char_length("body") BETWEEN 0 AND 4000);

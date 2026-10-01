@@ -16,7 +16,6 @@ export const StoryEntryInputSchema = z.object({
   body: z
     .string()
     .trim()
-    .min(1, "Description is required")
     .max(4000, "Description must not exceed 4000 characters"),
   occurredOn: z
     .string()
@@ -42,7 +41,6 @@ export const UpdateStoryEntrySchema = z
     body: z
       .string()
       .trim()
-      .min(1, "Description is required")
       .max(4000, "Description must not exceed 4000 characters"),
     occurredOn: z
       .string()
