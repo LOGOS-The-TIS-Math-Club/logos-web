@@ -43,7 +43,7 @@ BEGIN
 
   SELECT id, active, affiliation_status::text
     INTO v_identity_id, v_active, v_affiliation
-  FROM logos.application_identities
+  FROM people.application_identities
   WHERE lower(email) = lower(trim(v_email));
 
   IF v_identity_id IS NULL THEN
@@ -63,15 +63,15 @@ BEGIN
   -- index. Done directly because set_technical_access requires an existing
   -- access_admin to act as grantor, which does not exist on a cold start.
   SELECT access_level::text INTO v_previous
-  FROM logos.technical_access_assignments
+  FROM people.technical_access_assignments
   WHERE identity_id = v_identity_id AND revoked_at IS NULL;
 
-  UPDATE logos.technical_access_assignments
+  UPDATE people.technical_access_assignments
   SET revoked_at         = clock_timestamp(),
       revoke_reason_code = 'replaced'
   WHERE identity_id = v_identity_id AND revoked_at IS NULL;
 
-  INSERT INTO logos.technical_access_assignments (
+  INSERT INTO people.technical_access_assignments (
     identity_id, access_level, grant_reason_code
   ) VALUES (
     v_identity_id, v_level::logos.technical_access_level, 'manual_sql_grant'
@@ -80,7 +80,7 @@ BEGIN
 
   -- Access changes are the most sensitive thing in this system. A grant with no
   -- record of it would be the one privileged action nobody could review.
-  INSERT INTO logos.business_audit_journal (
+  INSERT INTO operations.business_audit_journal (
     actor_id, actor_type, actor_role_snapshot, source, correlation_id,
     category, action, target_type, target_id, result, reason_code,
     before_summary, after_summary
@@ -102,7 +102,7 @@ SELECT
   a.access_level,
   a.grant_reason_code,
   a.granted_at
-FROM logos.technical_access_assignments a
-JOIN logos.application_identities i ON i.id = a.identity_id
+FROM people.technical_access_assignments a
+JOIN people.application_identities i ON i.id = a.identity_id
 WHERE a.revoked_at IS NULL
 ORDER BY a.granted_at;

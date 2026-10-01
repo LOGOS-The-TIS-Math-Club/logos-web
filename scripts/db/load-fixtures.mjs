@@ -13,7 +13,7 @@ const sql = createSqlClient("DATABASE_URL");
 try {
   await assertDatabaseEnvironmentIdentity(sql, "DATABASE_URL", databaseUrl);
   await sql`
-    insert into logos.infrastructure_probe (id, marker, updated_at)
+    insert into operations.infrastructure_probe (id, marker, updated_at)
     values (1, 'logos-phase-02-synthetic', now())
     on conflict (id) do update
     set marker = excluded.marker, updated_at = excluded.updated_at

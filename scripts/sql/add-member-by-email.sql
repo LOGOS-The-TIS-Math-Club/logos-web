@@ -1,7 +1,7 @@
 -- Activate an applicant as an active club member.
 --
 -- Run in the Neon SQL editor (which connects as neondb_owner). The runtime role
--- deliberately cannot write logos.club_members, so this cannot be run from the
+-- deliberately cannot write members.club_members, so this cannot be run from the
 -- application's own connection.
 --
 -- Edit ONE line: v_member_email, below. Everything else resolves itself.
@@ -30,7 +30,7 @@ DECLARE
   v_member_id       uuid;
 BEGIN
   SELECT id INTO v_identity_id
-  FROM logos.application_identities
+  FROM people.application_identities
   WHERE lower(email) = lower(trim(v_member_email));
 
   IF v_identity_id IS NULL THEN
@@ -41,7 +41,7 @@ BEGIN
 
   SELECT id, status::text, preferred_name
     INTO v_application_id, v_app_status, v_preferred_name
-  FROM logos.student_applications
+  FROM applications.student_applications
   WHERE identity_id = v_identity_id;
 
   IF v_application_id IS NULL THEN
@@ -51,7 +51,7 @@ BEGIN
   END IF;
 
   IF EXISTS (
-    SELECT 1 FROM logos.club_members
+    SELECT 1 FROM members.club_members
     WHERE identity_id = v_identity_id AND status = 'active'
   ) THEN
     RAISE EXCEPTION '% is already an active member.', v_member_email;
@@ -61,7 +61,7 @@ BEGIN
   -- operator capability, so prefer an operator; access_admin is only a fallback
   -- for a club that has not appointed one yet.
   SELECT a.identity_id INTO v_actor_id
-  FROM logos.technical_access_assignments a
+  FROM people.technical_access_assignments a
   WHERE a.revoked_at IS NULL
     AND a.access_level IN ('operator', 'access_admin')
   ORDER BY (a.access_level = 'operator') DESC, a.granted_at
@@ -76,7 +76,7 @@ BEGIN
   -- application to that state rather than leaving the admin list contradicting
   -- the members list.
   IF v_app_status <> 'accepted' THEN
-    UPDATE logos.student_applications
+    UPDATE applications.student_applications
     SET status                  = 'accepted',
         status_reason           = 'Accepted during manual activation',
         reviewed_by_identity_id = v_actor_id,
@@ -84,7 +84,7 @@ BEGIN
     WHERE id = v_application_id;
   END IF;
 
-  INSERT INTO logos.club_members (
+  INSERT INTO members.club_members (
     identity_id, application_id, status, status_reason, created_by_identity_id
   ) VALUES (
     v_identity_id, v_application_id, 'active',
@@ -94,7 +94,7 @@ BEGIN
 
   -- Every membership created through the app writes an audit row. A manual one
   -- that skipped this would be the only unexplained member on the list.
-  INSERT INTO logos.business_audit_journal (
+  INSERT INTO operations.business_audit_journal (
     actor_id, actor_type, actor_role_snapshot, source, correlation_id,
     category, action, target_type, target_id, result, reason_code, metadata
   ) VALUES (
@@ -119,8 +119,8 @@ SELECT
   i.email,
   a.preferred_name,
   a.grade
-FROM logos.club_members m
-JOIN logos.application_identities i ON i.id = m.identity_id
-LEFT JOIN logos.student_applications a ON a.id = m.application_id
+FROM members.club_members m
+JOIN people.application_identities i ON i.id = m.identity_id
+LEFT JOIN applications.student_applications a ON a.id = m.application_id
 ORDER BY m.joined_at DESC
 LIMIT 5;

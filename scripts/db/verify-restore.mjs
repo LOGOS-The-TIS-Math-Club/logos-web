@@ -149,7 +149,7 @@ try {
   const restoredSql = postgres(restoreUrl.toString(), { max: 1 });
   try {
     const [restoredFixture] = await restoredSql`
-      select marker from logos.infrastructure_probe where id = 1
+      select marker from operations.infrastructure_probe where id = 1
     `;
     const [restoredMigration] = await restoredSql`
       select count(*)::integer as count from drizzle.__drizzle_migrations
@@ -157,40 +157,40 @@ try {
     const [restoredPrivileges] = await restoredSql`
       select
         has_schema_privilege('logos_runtime', 'logos', 'USAGE') as runtime_usage,
-        has_table_privilege('logos_runtime', 'logos.infrastructure_probe', 'INSERT') as runtime_insert,
-        has_table_privilege('logos_runtime', 'logos.business_audit_journal', 'INSERT') as runtime_audit_insert,
-        has_table_privilege('logos_runtime', 'logos.business_audit_journal', 'SELECT') as runtime_audit_select,
-        has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'SELECT') as backup_select,
-        has_table_privilege('logos_backup', 'logos.business_audit_journal', 'SELECT') as backup_audit_select,
-        has_table_privilege('logos_runtime', 'logos.application_identities', 'SELECT') as runtime_identity_select,
+        has_table_privilege('logos_runtime', 'operations.infrastructure_probe', 'INSERT') as runtime_insert,
+        has_table_privilege('logos_runtime', 'operations.business_audit_journal', 'INSERT') as runtime_audit_insert,
+        has_table_privilege('logos_runtime', 'operations.business_audit_journal', 'SELECT') as runtime_audit_select,
+        has_table_privilege('logos_backup', 'operations.infrastructure_probe', 'SELECT') as backup_select,
+        has_table_privilege('logos_backup', 'operations.business_audit_journal', 'SELECT') as backup_audit_select,
+        has_table_privilege('logos_runtime', 'people.application_identities', 'SELECT') as runtime_identity_select,
         has_function_privilege('logos_runtime', 'logos.resolve_identity_access(text)', 'EXECUTE') as runtime_identity_resolve,
         has_function_privilege('logos_runtime', 'logos.bootstrap_access_admin(uuid, uuid)', 'EXECUTE') as runtime_bootstrap,
-        has_table_privilege('logos_backup', 'logos.application_identities', 'SELECT') as backup_identity_select,
-        has_table_privilege('logos_runtime', 'logos.student_applications', 'INSERT') as runtime_application_insert,
-        has_table_privilege('logos_backup', 'logos.student_applications', 'SELECT') as backup_application_select,
-        has_table_privilege('logos_runtime', 'logos.club_members', 'INSERT') as runtime_members_insert,
-        has_table_privilege('logos_backup', 'logos.club_members', 'SELECT') as backup_members_select,
-        has_table_privilege('logos_runtime', 'logos.club_sessions', 'INSERT') as runtime_sessions_insert,
-        has_table_privilege('logos_backup', 'logos.club_sessions', 'SELECT') as backup_sessions_select,
-        has_table_privilege('logos_runtime', 'logos.session_attendance', 'INSERT') as runtime_attendance_insert,
-        has_table_privilege('logos_backup', 'logos.session_attendance', 'SELECT') as backup_attendance_select,
-        has_table_privilege('logos_runtime', 'logos.expected_absences', 'INSERT') as runtime_absences_insert,
-        has_table_privilege('logos_backup', 'logos.expected_absences', 'SELECT') as backup_absences_select,
-        has_table_privilege('logos_runtime', 'logos.member_warnings', 'INSERT') as runtime_warnings_insert,
-        has_table_privilege('logos_backup', 'logos.member_warnings', 'SELECT') as backup_warnings_select,
-        has_table_privilege('logos_backup', 'logos.student_applications', 'INSERT') as backup_application_insert,
-        has_table_privilege('logos_runtime', 'logos.images', 'INSERT') as runtime_images_insert,
-        has_table_privilege('logos_backup', 'logos.images', 'SELECT') as backup_images_select,
-        has_table_privilege('logos_runtime', 'logos.story_entries', 'INSERT') as runtime_story_insert,
-        has_table_privilege('logos_backup', 'logos.story_entries', 'SELECT') as backup_story_select,
-        has_table_privilege('logos_backup', 'logos.story_entries', 'INSERT') as backup_story_insert,
-        has_table_privilege('logos_runtime', 'logos.club_resources', 'INSERT') as runtime_resources_insert,
-        has_table_privilege('logos_backup', 'logos.club_resources', 'SELECT') as backup_resources_select,
-        has_table_privilege('logos_backup', 'logos.club_resources', 'INSERT') as backup_resources_insert,
-        has_table_privilege('logos_runtime', 'logos.announcements', 'INSERT') as runtime_announcements_insert,
-        has_table_privilege('logos_backup', 'logos.announcements', 'SELECT') as backup_announcements_select,
-        has_table_privilege('logos_backup', 'logos.announcements', 'INSERT') as backup_announcements_insert,
-        has_table_privilege('logos_backup', 'logos.infrastructure_probe', 'INSERT') as backup_insert
+        has_table_privilege('logos_backup', 'people.application_identities', 'SELECT') as backup_identity_select,
+        has_table_privilege('logos_runtime', 'applications.student_applications', 'INSERT') as runtime_application_insert,
+        has_table_privilege('logos_backup', 'applications.student_applications', 'SELECT') as backup_application_select,
+        has_table_privilege('logos_runtime', 'members.club_members', 'INSERT') as runtime_members_insert,
+        has_table_privilege('logos_backup', 'members.club_members', 'SELECT') as backup_members_select,
+        has_table_privilege('logos_runtime', 'meetings.club_sessions', 'INSERT') as runtime_sessions_insert,
+        has_table_privilege('logos_backup', 'meetings.club_sessions', 'SELECT') as backup_sessions_select,
+        has_table_privilege('logos_runtime', 'meetings.session_attendance', 'INSERT') as runtime_attendance_insert,
+        has_table_privilege('logos_backup', 'meetings.session_attendance', 'SELECT') as backup_attendance_select,
+        has_table_privilege('logos_runtime', 'meetings.expected_absences', 'INSERT') as runtime_absences_insert,
+        has_table_privilege('logos_backup', 'meetings.expected_absences', 'SELECT') as backup_absences_select,
+        has_table_privilege('logos_runtime', 'members.member_warnings', 'INSERT') as runtime_warnings_insert,
+        has_table_privilege('logos_backup', 'members.member_warnings', 'SELECT') as backup_warnings_select,
+        has_table_privilege('logos_backup', 'applications.student_applications', 'INSERT') as backup_application_insert,
+        has_table_privilege('logos_runtime', 'content.images', 'INSERT') as runtime_images_insert,
+        has_table_privilege('logos_backup', 'content.images', 'SELECT') as backup_images_select,
+        has_table_privilege('logos_runtime', 'content.story_entries', 'INSERT') as runtime_story_insert,
+        has_table_privilege('logos_backup', 'content.story_entries', 'SELECT') as backup_story_select,
+        has_table_privilege('logos_backup', 'content.story_entries', 'INSERT') as backup_story_insert,
+        has_table_privilege('logos_runtime', 'content.club_resources', 'INSERT') as runtime_resources_insert,
+        has_table_privilege('logos_backup', 'content.club_resources', 'SELECT') as backup_resources_select,
+        has_table_privilege('logos_backup', 'content.club_resources', 'INSERT') as backup_resources_insert,
+        has_table_privilege('logos_runtime', 'content.announcements', 'INSERT') as runtime_announcements_insert,
+        has_table_privilege('logos_backup', 'content.announcements', 'SELECT') as backup_announcements_select,
+        has_table_privilege('logos_backup', 'content.announcements', 'INSERT') as backup_announcements_insert,
+        has_table_privilege('logos_backup', 'operations.infrastructure_probe', 'INSERT') as backup_insert
     `;
     /*
      * Named rather than folded into one boolean so a failure says which

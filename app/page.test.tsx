@@ -13,7 +13,7 @@ vi.mock("@/lib/announcements/service.server", () => ({
   listPublishedAnnouncements,
 }));
 
-// The programme now comes from logos.club_sessions. Mocked for the same reason
+// The programme now comes from meetings.club_sessions. Mocked for the same reason
 // as the announcements: this stays a render check, not a database test.
 vi.mock("@/lib/sessions/programme.server", () => ({ getProgramme }));
 

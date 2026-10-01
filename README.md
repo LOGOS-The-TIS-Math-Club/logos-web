@@ -73,6 +73,7 @@ app/                         App Router pages, route handlers, and status templa
 components/                  Reusable UI primitives and application shell
 db/                          Drizzle schema declarations
 drizzle/                     Committed SQL migrations and metadata
+docs/database-map.md          Plain-language map of database categories
 e2e/                         Playwright smoke and accessibility tests
 lib/                         Server-only database boundary and shared modules
 scripts/                     Repository and database verification scripts

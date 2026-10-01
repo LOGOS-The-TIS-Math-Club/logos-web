@@ -17,23 +17,32 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const logosSchema = pgSchema("logos");
+export const peopleSchema = pgSchema("people");
+export const applicationsSchema = pgSchema("applications");
+export const membersSchema = pgSchema("members");
+export const meetingsSchema = pgSchema("meetings");
+export const contentSchema = pgSchema("content");
+export const operationsSchema = pgSchema("operations");
 
 /**
  * A non-domain singleton used only to prove migrations, grants, fixtures, and
  * export/restore before Phase 02 has any domain tables.
  */
-export const infrastructureProbe = logosSchema.table("infrastructure_probe", {
-  id: integer().primaryKey(),
-  marker: text().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const infrastructureProbe = operationsSchema.table(
+  "infrastructure_probe",
+  {
+    id: integer().primaryKey(),
+    marker: text().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+);
 
 /**
  * Rate limit tracking table keyed by subject hash, policy, and window start.
  */
-export const rateLimits = logosSchema.table(
+export const rateLimits = operationsSchema.table(
   "rate_limits",
   {
     subjectHash: text("subject_hash").notNull(),
@@ -65,7 +74,7 @@ export const rateLimits = logosSchema.table(
 /**
  * Immutable append-only journal for business-meaningful actions and audit records.
  */
-export const businessAuditJournal = logosSchema.table(
+export const businessAuditJournal = operationsSchema.table(
   "business_audit_journal",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -138,7 +147,7 @@ export const businessAuditJournal = logosSchema.table(
 /**
  * Immutable append-only journal for security-sensitive audit records.
  */
-export const securityAuditJournal = logosSchema.table(
+export const securityAuditJournal = operationsSchema.table(
   "security_audit_journal",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -211,7 +220,7 @@ export const operationStatusEnum = logosSchema.enum("operation_status", [
 /**
  * Durable operations queue and execution tracking table.
  */
-export const durableOperations = logosSchema.table(
+export const durableOperations = operationsSchema.table(
   "durable_operations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -308,7 +317,7 @@ export const technicalAccessLevelEnum = logosSchema.enum(
  * LOGOS-owned identity association. Provider identifiers are immutable keys;
  * email remains mutable display/contact data and is never used as a join key.
  */
-export const applicationIdentities = logosSchema.table(
+export const applicationIdentities = peopleSchema.table(
   "application_identities",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -356,7 +365,7 @@ export const applicationIdentities = logosSchema.table(
 );
 
 /** Append-only normalized affiliation evidence; raw OIDC tokens are forbidden. */
-export const affiliationEvidence = logosSchema.table(
+export const affiliationEvidence = peopleSchema.table(
   "affiliation_evidence",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -396,7 +405,7 @@ export const affiliationEvidence = logosSchema.table(
 );
 
 /** Historical technical access assignments. Active assignments are unique. */
-export const technicalAccessAssignments = logosSchema.table(
+export const technicalAccessAssignments = peopleSchema.table(
   "technical_access_assignments",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -442,7 +451,7 @@ export const technicalAccessAssignments = logosSchema.table(
 );
 
 /** Singleton gate consumed by the first verified access administrator. */
-export const accessBootstrapState = logosSchema.table(
+export const accessBootstrapState = peopleSchema.table(
   "access_bootstrap_state",
   {
     id: integer("id").primaryKey(),
@@ -469,7 +478,7 @@ export const studentApplicationStatusEnum = logosSchema.enum(
  * Student applications submitted during recruitment cycles.
  * Bound to immutable verified Google application identities.
  */
-export const studentApplications = logosSchema.table(
+export const studentApplications = applicationsSchema.table(
   "student_applications",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -574,7 +583,7 @@ export const studentApplications = logosSchema.table(
  * a redeploy. Drafts are rows with published = false; the public read only ever
  * selects published rows, so an unfinished notice is never reachable.
  */
-export const announcements = logosSchema.table(
+export const announcements = contentSchema.table(
   "announcements",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -627,7 +636,7 @@ export const clubMemberStatusEnum = logosSchema.enum("club_member_status", [
 /**
  * Native LOGOS club memberships deliberately created from accepted applications.
  */
-export const clubMembers = logosSchema.table(
+export const clubMembers = membersSchema.table(
   "club_members",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -749,7 +758,7 @@ const customBytea = customType<{ data: Buffer; notNull: true }>({
   },
 });
 
-export const images = logosSchema.table(
+export const images = contentSchema.table(
   "images",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -801,7 +810,7 @@ export const images = logosSchema.table(
  * stale; a story entry is a record meant to be read years later, and the two
  * want different ordering, different lifetimes and different editing habits.
  */
-export const storyEntries = logosSchema.table(
+export const storyEntries = contentSchema.table(
   "story_entries",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -836,7 +845,7 @@ export const storyEntries = logosSchema.table(
   ],
 );
 
-export const clubResources = logosSchema.table(
+export const clubResources = contentSchema.table(
   "club_resources",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -879,7 +888,7 @@ export const clubResources = logosSchema.table(
   ],
 );
 
-export const clubSessions = logosSchema.table(
+export const clubSessions = meetingsSchema.table(
   "club_sessions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -945,7 +954,7 @@ export const expectedAbsenceStatusEnum = logosSchema.enum(
 /**
  * Expected absences submitted ahead of club sessions.
  */
-export const expectedAbsences = logosSchema.table(
+export const expectedAbsences = meetingsSchema.table(
   "expected_absences",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -989,7 +998,7 @@ export const attendanceStatusEnum = logosSchema.enum("attendance_status", [
 /**
  * Actual attendance ledger entries recorded by leadership.
  */
-export const sessionAttendance = logosSchema.table(
+export const sessionAttendance = meetingsSchema.table(
   "session_attendance",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -1028,7 +1037,7 @@ export const sessionAttendance = logosSchema.table(
 /**
  * Deliberate manual warnings recorded by leadership.
  */
-export const memberWarnings = logosSchema.table(
+export const memberWarnings = membersSchema.table(
   "member_warnings",
   {
     id: uuid("id").primaryKey().defaultRandom(),
