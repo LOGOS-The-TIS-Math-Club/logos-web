@@ -77,7 +77,9 @@ describe("SessionAdminView", () => {
     // The date and the topic are what leadership edits; both must arrive
     // populated rather than reset to the create-form defaults.
     expect(screen.getByLabelText("Topic")).toHaveValue("LOGOS Weekly Meeting");
-    expect(screen.getByLabelText("Date")).toHaveValue("2026-09-04");
+    expect(
+      screen.getByRole("button", { name: "Date: September 4, 2026" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Location")).toHaveValue("Room 101");
     expect(
       screen.getByRole("button", { name: "Save Changes" }),

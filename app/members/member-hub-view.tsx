@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
+import { DateField } from "@/components/ui/date-field";
 
 import {
   type AttendanceTotals,
@@ -393,13 +394,12 @@ export function MemberHubView({
               >
                 Session Date
               </label>
-              <input
+              <DateField
                 id={dateId}
-                type="date"
-                required
+                label="Session Date"
                 value={absenceDate}
-                onChange={(e) => setAbsenceDate(e.target.value)}
-                className="field-input mt-1"
+                onChange={setAbsenceDate}
+                className="mt-1"
               />
             </div>
             <div>

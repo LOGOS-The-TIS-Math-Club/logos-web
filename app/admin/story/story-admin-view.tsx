@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 
 import { ImagePicker } from "@/components/admin/image-picker";
+import { DateField } from "@/components/ui/date-field";
 import { type StoryEntryListItem } from "@/lib/story/schema";
 
 function getCookie(name: string): string {
@@ -272,13 +273,11 @@ export function StoryAdminView({
                 >
                   When it happened
                 </label>
-                <input
+                <DateField
                   id={dateId}
-                  type="date"
-                  required
+                  label="When it happened"
                   value={occurredOn}
-                  onChange={(event) => setOccurredOn(event.target.value)}
-                  className="field-input"
+                  onChange={setOccurredOn}
                 />
               </div>
 

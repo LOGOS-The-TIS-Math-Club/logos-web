@@ -76,8 +76,8 @@ export default function JoinPage() {
           Who can join
         </h2>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="plated">
-            <div className="panel-lifted space-y-3 p-8">
+          <div className="plated h-full">
+            <div className="panel-lifted h-full space-y-3 p-8">
               <h3 className="heading-3">No prior experience required</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Whether you have competed before or have simply never been given
@@ -86,12 +86,14 @@ export default function JoinPage() {
               </p>
             </div>
           </div>
-          <div className="panel ruled-left space-y-3 border-l-2 p-8">
-            <h3 className="heading-3">Grades 9 through 12</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              One hour a week, taken seriously. We ask members to arrive
-              prepared and attend regularly.
-            </p>
+          <div className="plated h-full">
+            <div className="panel-lifted h-full space-y-3 p-8">
+              <h3 className="heading-3">Grades 9 through 12</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                One hour a week, taken seriously. We ask members to arrive
+                prepared and attend regularly.
+              </p>
+            </div>
           </div>
         </div>
       </Reveal>

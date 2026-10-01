@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import Link from "next/link";
+import { DateField } from "@/components/ui/date-field";
 
 import { type SessionListItem } from "@/lib/attendance/schema";
 
@@ -438,13 +439,11 @@ export function SessionAdminView({
                   >
                     Date
                   </label>
-                  <input
+                  <DateField
                     id={dateId}
-                    type="date"
-                    required
+                    label="Date"
                     value={sessionDate}
-                    onChange={(e) => setSessionDate(e.target.value)}
-                    className="field-input"
+                    onChange={setSessionDate}
                   />
                 </div>
                 <div>
