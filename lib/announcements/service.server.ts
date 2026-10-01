@@ -85,6 +85,7 @@ export async function listAnnouncementsForManagement(
         updatedAt: announcements.updatedAt,
       })
       .from(announcements)
+      .leftJoin(images, eq(announcements.imageId, images.id))
       .orderBy(desc(announcements.updatedAt)),
   );
 }

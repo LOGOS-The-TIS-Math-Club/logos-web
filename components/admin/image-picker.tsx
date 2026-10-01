@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 import { MAX_IMAGE_BYTES } from "@/lib/images/format";
 
@@ -31,18 +39,25 @@ function getCookie(name: string): string {
  * disabled without it, because it is written once, by the only person who
  * knows what the photograph shows. Asking for it later never works.
  */
-export function ImagePicker({
-  value,
-  onChange,
-}: {
-  value: string | null;
-  onChange: (imageId: string | null) => void;
-}) {
+export interface ImagePickerHandle {
+  /** Upload a selected file, if any, and return the image id to attach. */
+  uploadPending(): Promise<string | null>;
+}
+
+export const ImagePicker = forwardRef<
+  ImagePickerHandle,
+  {
+    value: string | null;
+    onChange: (imageId: string | null) => void;
+    uploadOnSave?: boolean;
+  }
+>(function ImagePicker({ value, onChange, uploadOnSave = false }, ref) {
   const [library, setLibrary] = useState<ImageSummary[]>([]);
   const [altText, setAltText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const uploadTask = useRef<Promise<string | null> | null>(null);
 
   const fileId = useId();
   const altId = useId();
@@ -66,49 +81,71 @@ export function ImagePicker({
     };
   }, []);
 
-  const handleUpload = async () => {
-    if (!file) return;
+  const uploadPending = useCallback((): Promise<string | null> => {
+    if (uploadTask.current) return uploadTask.current;
+    if (!file) return Promise.resolve(value);
+    if (!altText.trim()) {
+      const message = "Describe the picture before saving the story.";
+      setError(message);
+      return Promise.reject(new Error(message));
+    }
 
     setUploading(true);
     setError(null);
 
-    try {
-      const body = new FormData();
-      body.set("file", file);
-      body.set("altText", altText);
+    const task = (async (): Promise<string> => {
+      try {
+        const body = new FormData();
+        body.set("file", file);
+        body.set("altText", altText);
 
-      const headers: Record<string, string> = {};
-      const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
-      const sessionCsrfToken = decodeURIComponent(
-        getCookie("__Host-logos_session_csrf"),
-      );
-      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
-      if (sessionCsrfToken) headers["X-Session-CSRF-Token"] = sessionCsrfToken;
+        const headers: Record<string, string> = {};
+        const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
+        const sessionCsrfToken = decodeURIComponent(
+          getCookie("__Host-logos_session_csrf"),
+        );
+        if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+        if (sessionCsrfToken)
+          headers["X-Session-CSRF-Token"] = sessionCsrfToken;
 
-      // No Content-Type header: the browser must set the multipart boundary.
-      const response = await fetch("/api/admin/images", {
-        method: "POST",
-        headers,
-        body,
-      });
+        // No Content-Type header: the browser must set the multipart boundary.
+        const response = await fetch("/api/admin/images", {
+          method: "POST",
+          headers,
+          body,
+        });
 
-      const payload = await response.json().catch(() => ({}));
+        const payload = await response.json().catch(() => ({}));
 
-      if (!response.ok) {
-        throw new Error(payload?.message || "Upload failed");
+        if (!response.ok) {
+          throw new Error(payload?.message || "Upload failed");
+        }
+
+        setLibrary((prev) => [...prev, payload.image]);
+        onChange(payload.image.id);
+        setFile(null);
+        setAltText("");
+        return payload.image.id as string;
+      } catch (uploadError: unknown) {
+        const message =
+          uploadError instanceof Error ? uploadError.message : "Upload failed";
+        setError(message);
+        throw new Error(message);
+      } finally {
+        setUploading(false);
+        uploadTask.current = null;
       }
+    })();
+    uploadTask.current = task;
+    return task;
+  }, [file, altText, value, onChange]);
 
-      setLibrary((prev) => [...prev, payload.image]);
-      onChange(payload.image.id);
-      setFile(null);
-      setAltText("");
-    } catch (uploadError: unknown) {
-      setError(
-        uploadError instanceof Error ? uploadError.message : "Upload failed",
-      );
-    } finally {
-      setUploading(false);
-    }
+  useImperativeHandle(ref, () => ({ uploadPending }), [uploadPending]);
+
+  const handleUpload = () => {
+    void uploadPending().catch(() => {
+      // The picker displays the upload error next to the file controls.
+    });
   };
 
   const selected = library.find((image) => image.id === value) ?? null;
@@ -178,6 +215,7 @@ export function ImagePicker({
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              disabled={uploading}
               className="text-muted-foreground mt-1 block w-full text-xs"
             />
             <p className="text-subtle-foreground mt-1">
@@ -199,6 +237,7 @@ export function ImagePicker({
               maxLength={300}
               value={altText}
               onChange={(event) => setAltText(event.target.value)}
+              disabled={uploading}
               placeholder="Six students at a whiteboard covered in working"
               className="field-input"
             />
@@ -206,6 +245,11 @@ export function ImagePicker({
               Required. This is what someone using a screen reader hears in
               place of the picture.
             </p>
+            {uploadOnSave ? (
+              <p className="text-subtle-foreground mt-1">
+                Saving the story uploads and attaches this picture.
+              </p>
+            ) : null}
           </div>
 
           {error && (
@@ -226,4 +270,4 @@ export function ImagePicker({
       </details>
     </div>
   );
-}
+});

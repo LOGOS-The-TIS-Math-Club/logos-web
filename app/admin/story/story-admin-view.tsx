@@ -1,8 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import { ImagePicker } from "@/components/admin/image-picker";
+import {
+  ImagePicker,
+  type ImagePickerHandle,
+} from "@/components/admin/image-picker";
 import { DateField } from "@/components/ui/date-field";
 import { type StoryEntryListItem } from "@/lib/story/schema";
 
@@ -49,6 +52,7 @@ export function StoryAdminView({
   const [occurredOn, setOccurredOn] = useState("");
   const [imageId, setImageId] = useState<string | null>(null);
   const [published, setPublished] = useState(false);
+  const imagePickerRef = useRef<ImagePickerHandle>(null);
 
   const titleId = useId();
   const bodyId = useId();
@@ -81,6 +85,7 @@ export function StoryAdminView({
     setFeedback(null);
 
     try {
+      const savedImageId = await imagePickerRef.current?.uploadPending();
       const response = await fetch(
         editingId ? `/api/admin/story/${editingId}` : "/api/admin/story",
         {
@@ -90,7 +95,7 @@ export function StoryAdminView({
             title,
             body,
             occurredOn,
-            imageId,
+            imageId: savedImageId ?? imageId,
             published,
           }),
         },
@@ -319,7 +324,12 @@ export function StoryAdminView({
                 </p>
               </div>
 
-              <ImagePicker value={imageId} onChange={setImageId} />
+              <ImagePicker
+                ref={imagePickerRef}
+                value={imageId}
+                onChange={setImageId}
+                uploadOnSave
+              />
 
               <div className="border-border flex items-center gap-2 border-t pt-4">
                 <input
