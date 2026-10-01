@@ -509,7 +509,7 @@ Backup and archive jobs may use a suitable scheduled runner, but the runner is n
 ### Drive
 
 - Drive is authoritative for club documents and learning files.
-- Session folders live in the `mathclub@tokyois.com` Drive account. Leadership pastes each folder URL into the session editor and grants the intended members access in Drive; the site link does not change Drive permissions.
+- Session materials live in the `mathclub@tokyois.com` Drive account. Leadership pastes a materials-only folder URL into the session editor and grants the intended members access in Drive; the site link does not change Drive permissions. Internal session reports stay outside that folder.
 - To list files inside a folder on the session page, share that folder with the configured service account as well. A direct folder link still works when API listing is unavailable.
 - The normal resource adapter is read-only and limited to explicitly shared resources.
 - PostgreSQL stores safe metadata and existing links, not file binaries.

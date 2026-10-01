@@ -537,8 +537,9 @@ export function SessionAdminView({
                   className="field-input"
                 />
                 <p className="text-subtle-foreground mt-1 text-xs">
-                  Paste the folder URL or its ID. Members see files in that
-                  folder on the session page.
+                  Paste a folder containing member materials only. Members can
+                  open the folder and see its files; keep internal session
+                  reports in a separate folder.
                 </p>
               </div>
 
