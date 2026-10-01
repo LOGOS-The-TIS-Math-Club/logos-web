@@ -10,7 +10,7 @@ The source is available under the [MIT License](./LICENSE). No student data, pro
 | ----------------- | ------------- |
 | Node.js           | `24.20.0` LTS |
 | pnpm              | `11.24.0`     |
-| Next.js           | `16.3.3`      |
+| Next.js           | `16.3.8`      |
 | React / React DOM | `19.2.8`      |
 | TypeScript        | `5.9.3`       |
 
