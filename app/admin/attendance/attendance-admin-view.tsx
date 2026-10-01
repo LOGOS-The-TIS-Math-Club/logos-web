@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   type AttendanceStatus,
@@ -29,9 +29,13 @@ export function AttendanceAdminView({
   initialRoster: MemberSessionAttendance[];
 }) {
   const router = useRouter();
-  const [selectedSessionId, setSelectedSessionId] = useState(
-    initialSelectedSessionId,
-  );
+  const searchParams = useSearchParams();
+  const selectorId = useId();
+  const sessionPickerRef = useRef<HTMLDivElement>(null);
+  const sessionPickerTriggerRef = useRef<HTMLButtonElement>(null);
+  const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
+  const selectedSessionId =
+    searchParams.get("sessionId") ?? initialSelectedSessionId;
   const [roster, setRoster] =
     useState<MemberSessionAttendance[]>(initialRoster);
   const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +49,27 @@ export function AttendanceAdminView({
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (!sessionPickerOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSessionPickerOpen(false);
+        sessionPickerTriggerRef.current?.focus();
+      }
+    }
+    function closeOnOutsidePointer(event: PointerEvent) {
+      if (!sessionPickerRef.current?.contains(event.target as Node)) {
+        setSessionPickerOpen(false);
+      }
+    }
+    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+    };
+  }, [sessionPickerOpen]);
 
   const selectedSession = sessions.find((s) => s.id === selectedSessionId);
 
@@ -60,7 +85,8 @@ export function AttendanceAdminView({
   const unmarkedCount = roster.filter((r) => r.status === "unmarked").length;
 
   const handleSessionChange = (sessionId: string) => {
-    setSelectedSessionId(sessionId);
+    setSessionPickerOpen(false);
+    sessionPickerTriggerRef.current?.focus();
     router.push(`/admin/attendance?sessionId=${sessionId}`);
   };
 
@@ -226,24 +252,60 @@ export function AttendanceAdminView({
 
         {sessions.length > 0 && (
           <div className="flex items-center gap-3">
-            <label
-              htmlFor="session-select"
-              className="text-muted-foreground text-xs font-semibold whitespace-nowrap"
-            >
+            <span className="text-muted-foreground text-xs font-semibold whitespace-nowrap">
               Session:
-            </label>
-            <select
-              id="session-select"
-              value={selectedSessionId}
-              onChange={(e) => handleSessionChange(e.target.value)}
-              className="field-input"
-            >
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.sessionDate} — {s.title} ({s.location})
-                </option>
-              ))}
-            </select>
+            </span>
+            <div ref={sessionPickerRef} className="relative">
+              <button
+                ref={sessionPickerTriggerRef}
+                type="button"
+                aria-expanded={sessionPickerOpen}
+                aria-controls={selectorId}
+                aria-label={`Choose session${selectedSession ? `, current session ${selectedSession.sessionDate}, ${selectedSession.title}` : ""}`}
+                onClick={() => setSessionPickerOpen((open) => !open)}
+                className="field-input flex min-w-64 items-center justify-between gap-4 text-left"
+              >
+                <span className="truncate">
+                  {selectedSession
+                    ? `${selectedSession.sessionDate} — ${selectedSession.title}`
+                    : "Choose a session"}
+                </span>
+                <span aria-hidden="true" className="text-subtle-foreground">
+                  ⌄
+                </span>
+              </button>
+              {sessionPickerOpen ? (
+                <div
+                  id={selectorId}
+                  aria-label="Available sessions"
+                  className="panel-lifted absolute right-0 z-30 mt-2 max-h-72 w-[min(24rem,calc(100vw-3rem))] overflow-y-auto p-1"
+                >
+                  {sessions.map((session) => (
+                    <button
+                      key={session.id}
+                      type="button"
+                      aria-pressed={session.id === selectedSessionId}
+                      onClick={() => handleSessionChange(session.id)}
+                      className="text-foreground hover:bg-surface-raised focus-visible:outline-focus flex w-full items-start justify-between gap-3 rounded px-3 py-2 text-left text-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
+                    >
+                      <span>
+                        <span className="block font-medium">
+                          {session.sessionDate} — {session.title}
+                        </span>
+                        <span className="text-muted-foreground block text-xs">
+                          {session.location}
+                        </span>
+                      </span>
+                      {session.id === selectedSessionId ? (
+                        <span aria-label="Selected" className="text-primary">
+                          ✓
+                        </span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
         )}
       </div>

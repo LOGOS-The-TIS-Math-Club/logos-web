@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { AppShell } from "./app-shell";
@@ -20,6 +20,48 @@ describe("AppShell", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+  });
+
+  it("provides a keyboard-operable compact section menu", () => {
+    render(
+      <AppShell>
+        <p>Content</p>
+      </AppShell>,
+    );
+
+    const toggle = screen.getByRole("button", { name: "Open navigation menu" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveAttribute("aria-controls", "mobile-main-navigation");
+
+    fireEvent.click(toggle);
+
+    const menu = screen.getByRole("list", { name: "Section navigation" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(within(menu).getByRole("link", { name: "About" })).toHaveAttribute(
+      "href",
+      "/about",
+    );
+    expect(within(menu).getByRole("link", { name: "Story" })).toHaveAttribute(
+      "href",
+      "/story",
+    );
+    expect(
+      within(menu).getByRole("link", { name: "Meetings" }),
+    ).toHaveAttribute("href", "/meetings");
+    expect(within(menu).getByRole("link", { name: "Join" })).toHaveAttribute(
+      "href",
+      "/join",
+    );
+
+    fireEvent.keyDown(within(menu).getByRole("link", { name: "About" }), {
+      key: "Escape",
+    });
+    expect(
+      screen.getByRole("button", { name: "Open navigation menu" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.getByRole("button", { name: "Open navigation menu" }),
+    ).toHaveFocus();
   });
 
   it("structures the main content landmark with #main-content and tabindex -1", () => {

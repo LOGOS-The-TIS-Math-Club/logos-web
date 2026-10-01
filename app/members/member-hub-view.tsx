@@ -25,7 +25,22 @@ function getNextFriday(): string {
   const diff = (5 - day + 7) % 7 || 7;
   const nextFriday = new Date(today);
   nextFriday.setDate(today.getDate() + diff);
-  return nextFriday.toISOString().split("T")[0];
+  // Keep the browser's local calendar date. ISO conversion would move
+  // midnight in Japan to the previous UTC day.
+  return [
+    nextFriday.getFullYear(),
+    String(nextFriday.getMonth() + 1).padStart(2, "0"),
+    String(nextFriday.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function formatSessionDate(value: string): string {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 export interface MemberHubProps {
@@ -51,6 +66,9 @@ export function MemberHubView({
   attendanceTotals,
   resources,
 }: MemberHubProps) {
+  const orderedSessions = [...sessions].sort((a, b) =>
+    a.sessionDate.localeCompare(b.sessionDate),
+  );
   /*
    * The member's own name. Editing it changes only how the member sees
    * themselves — leadership works from a separate roster name, so a rename
@@ -268,7 +286,9 @@ export function MemberHubView({
             <div className="space-y-3">
               <div className="panel-raised p-4">
                 <p className="text-primary text-xs font-bold tracking-wider uppercase">
-                  {upcomingSession.sessionDate}
+                  <time dateTime={upcomingSession.sessionDate}>
+                    {formatSessionDate(upcomingSession.sessionDate)}
+                  </time>
                 </p>
                 <h3 className="text-foreground mt-1 text-base font-bold">
                   {upcomingSession.title}
@@ -353,8 +373,7 @@ export function MemberHubView({
 
         {feedback && (
           <div
-            role="status"
-            aria-live="polite"
+            role={feedback.type === "error" ? "alert" : "status"}
             className={`rounded-component border p-3 text-xs ${
               feedback.type === "success"
                 ? "border-success bg-success-surface text-success"
@@ -429,15 +448,18 @@ export function MemberHubView({
           </p>
         ) : (
           <ul className="border-border divide-border divide-y border-t border-b">
-            {sessions.map((session) => (
+            {orderedSessions.map((session) => (
               <li key={session.id}>
                 <Link
                   href={`/members/sessions/${session.id}`}
-                  className="hover:bg-surface-raised focus-visible:outline-focus flex items-baseline gap-4 px-2 py-3 transition-colors focus-visible:outline-2"
+                  className="hover:bg-surface-raised focus-visible:outline-focus flex flex-col gap-1 px-2 py-3 transition-colors focus-visible:outline-2 sm:flex-row sm:items-baseline sm:gap-4"
                 >
-                  <span className="datum text-subtle-foreground w-24 shrink-0 text-xs">
-                    {session.sessionDate}
-                  </span>
+                  <time
+                    dateTime={session.sessionDate}
+                    className="datum text-subtle-foreground text-xs sm:w-32 sm:shrink-0"
+                  >
+                    {formatSessionDate(session.sessionDate)}
+                  </time>
                   <span className="text-sm">{session.title}</span>
                 </Link>
               </li>
@@ -480,7 +502,7 @@ export function MemberHubView({
                   {resource.description}
                 </p>
                 <span className="text-primary mt-2 inline-block text-xs font-medium">
-                  Open →
+                  Open in a new tab →
                 </span>
               </a>
             ))}

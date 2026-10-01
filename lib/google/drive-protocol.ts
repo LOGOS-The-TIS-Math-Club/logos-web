@@ -29,6 +29,37 @@ export interface DriveFile {
   size: number | null;
 }
 
+/** Builds the public Drive viewer URL for a folder id stored by the session. */
+export function buildFolderViewUrl(folderId: string): string {
+  return `https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`;
+}
+
+/**
+ * Drive returns viewer links, but only allow HTTPS Google Drive destinations
+ * into the member-facing page. This also protects against malformed fixture
+ * data or a compromised upstream response turning into an arbitrary link.
+ */
+export function safeDriveViewUrl(
+  candidate: string | null,
+  fileId: string,
+): string {
+  if (candidate) {
+    try {
+      const url = new URL(candidate);
+      if (
+        url.protocol === "https:" &&
+        (url.hostname === "drive.google.com" ||
+          url.hostname === "docs.google.com")
+      ) {
+        return url.toString();
+      }
+    } catch {
+      // Use the deterministic Drive URL below for malformed values.
+    }
+  }
+  return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/view`;
+}
+
 /**
  * Escapes a folder id for use inside a Drive query string literal.
  *

@@ -6,15 +6,9 @@ import { getClubSessionById } from "@/lib/attendance/service.server";
 import { type DriveFile } from "@/lib/google/drive-protocol";
 import { isDriveConfigured, listFolderFiles } from "@/lib/google/drive.server";
 import { getCurrentMember } from "@/lib/membership/service.server";
+import { SessionMaterials } from "../session-materials";
 
 export const dynamic = "force-dynamic";
-
-function formatSize(bytes: number | null): string {
-  if (bytes === null) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export default async function MemberSessionPage(context: {
   params: Promise<{ id: string }>;
@@ -73,52 +67,12 @@ export default async function MemberSessionPage(context: {
           Materials
         </h2>
 
-        {!session.driveFolderId ? (
-          <p className="text-muted-foreground text-sm">
-            No materials folder has been attached to this session.
-          </p>
-        ) : !driveConfigured ? (
-          <p className="text-muted-foreground text-sm">
-            Drive is not connected yet, so files cannot be listed here. Ask
-            leadership for the folder link in the meantime.
-          </p>
-        ) : driveError ? (
-          <p className="text-muted-foreground text-sm">
-            The materials could not be loaded from Drive just now. Please try
-            again shortly.
-          </p>
-        ) : files.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            The folder for this session is empty.
-          </p>
-        ) : (
-          <ul className="border-border divide-border divide-y border-t border-b">
-            {files.map((file) => (
-              <li key={file.id}>
-                {/*
-                 * Links out to Drive rather than proxying the file. Drive's own
-                 * permissions stay the only thing deciding who can open it, so
-                 * this page can never hand a member a file the school has not
-                 * shared with them.
-                 */}
-                <a
-                  href={
-                    file.webViewLink ??
-                    `https://drive.google.com/file/d/${file.id}/view`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:bg-surface focus-visible:outline-focus flex items-baseline justify-between gap-4 px-2 py-3 transition-colors focus-visible:outline-2"
-                >
-                  <span className="text-sm">{file.name}</span>
-                  <span className="text-subtle-foreground shrink-0 text-xs">
-                    {formatSize(file.size)}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+        <SessionMaterials
+          folderId={session.driveFolderId}
+          driveConfigured={driveConfigured}
+          driveError={driveError}
+          files={files}
+        />
       </section>
     </AppPage>
   );

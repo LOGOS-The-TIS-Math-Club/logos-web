@@ -7,6 +7,7 @@ import { ActionLink } from "@/components/ui/action";
 import type { Viewer } from "@/lib/auth/viewer.server";
 
 import { Container } from "./container";
+import { MobileNavigation } from "./mobile-navigation";
 import { ProfileMenu } from "./profile-menu";
 import { SkipLink } from "./skip-link";
 
@@ -78,6 +79,7 @@ export function AppShell({ children, className, viewer }: AppShellProps) {
                 </li>
               ))}
             </ul>
+            <MobileNavigation />
             {viewer?.isMember ? null : (
               <ActionLink href="/apply" variant="primary" className="action-sm">
                 Apply

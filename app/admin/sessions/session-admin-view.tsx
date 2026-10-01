@@ -15,13 +15,43 @@ function getCookie(name: string): string {
   );
 }
 
-function getNextFriday(): string {
+export function getNextFriday(): string {
   const today = new Date();
   const day = today.getDay(); // 0 is Sunday, 5 is Friday
   const diff = (5 - day + 7) % 7 || 7;
   const nextFriday = new Date(today);
   nextFriday.setDate(today.getDate() + diff);
-  return nextFriday.toISOString().split("T")[0];
+  const year = nextFriday.getFullYear();
+  const month = String(nextFriday.getMonth() + 1).padStart(2, "0");
+  const date = String(nextFriday.getDate()).padStart(2, "0");
+  return `${year}-${month}-${date}`;
+}
+
+export function normalizeDriveFolder(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  if (!/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname !== "drive.google.com") {
+      throw new Error("Use a drive.google.com folder URL.");
+    }
+    const folderMatch = url.pathname.match(/\/folders\/([^/]+)/);
+    const id = folderMatch?.[1] ?? url.searchParams.get("id");
+    if (!id) throw new Error("Enter a Drive folder URL or folder ID.");
+    return decodeURIComponent(id);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message.startsWith("Enter a Drive") ||
+        error.message.startsWith("Use a drive.google.com"))
+    ) {
+      throw error;
+    }
+    throw new Error("Enter a valid Drive folder URL or folder ID.");
+  }
 }
 
 export function SessionAdminView({
@@ -85,6 +115,10 @@ export function SessionAdminView({
     setFeedback(null);
 
     try {
+      const normalizedDriveFolderId = normalizeDriveFolder(driveFolderId);
+      if (normalizedDriveFolderId.length > 128) {
+        throw new Error("Drive folder IDs must be 128 characters or fewer.");
+      }
       const csrfToken = decodeURIComponent(getCookie("__Host-logos_csrf"));
       const sessionCsrfToken = decodeURIComponent(
         getCookie("__Host-logos_session_csrf"),
@@ -110,7 +144,8 @@ export function SessionAdminView({
             // null clears an existing note on edit; undefined leaves the field
             // untouched on create.
             notes: notes || (editingId ? null : undefined),
-            driveFolderId: driveFolderId || (editingId ? null : undefined),
+            driveFolderId:
+              normalizedDriveFolderId || (editingId ? null : undefined),
           }),
         },
       );
@@ -490,21 +525,20 @@ export function SessionAdminView({
                   htmlFor={driveId}
                   className="text-foreground block text-xs font-medium"
                 >
-                  Drive Folder ID (Optional)
+                  Drive Folder link or ID (Optional)
                 </label>
                 <input
                   id={driveId}
                   type="text"
-                  maxLength={128}
-                  placeholder="1a2B3c4D5e6F7g8H9i"
+                  maxLength={2048}
+                  placeholder="https://drive.google.com/drive/folders/…"
                   value={driveFolderId}
                   onChange={(e) => setDriveFolderId(e.target.value)}
                   className="field-input"
                 />
                 <p className="text-subtle-foreground mt-1 text-xs">
-                  Members see this folder&rsquo;s files on the session. Take the
-                  id from the folder&rsquo;s Drive URL, after{" "}
-                  <code>/folders/</code>.
+                  Paste the folder URL or its ID. Members see files in that
+                  folder on the session page.
                 </p>
               </div>
 

@@ -210,20 +210,20 @@ Detailed schemas, functions, folder placement, and cross-module orchestration be
 
 ## 7. Sources of truth
 
-| Information                                                       | Authority                       | Permitted secondary representation                                      |
-| ----------------------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
-| Authenticated identity and session                                | Neon Auth with Google OAuth     | Stable internal user reference in application records                   |
-| Membership applications                                           | PostgreSQL                      | Notifications and sanitized audit references                            |
-| Membership                                                        | **Cutover decision required**   | See the membership-authority note below                                 |
-| Sessions, expected absences, actual attendance, warnings          | PostgreSQL                      | Rebuildable totals, views, reports, and archives                        |
-| Website announcements, leadership profiles, and resource metadata | PostgreSQL                      | Rendered pages and caches                                               |
-| Events                                                            | Google Calendar                 | Short-lived cache and optional website-only presentation metadata       |
-| Documents and learning files                                      | Google Drive                    | Safe metadata and existing links in PostgreSQL                          |
-| Weekly materials                                                  | Google Classroom                | Convenient website links                                                |
-| Classroom roster and Classroom membership status                  | Google Classroom                | No automatic synchronization is currently approved                      |
-| Email delivery                                                    | Gmail API                       | Delivery state and provider reference; never email bodies in audit logs |
-| Business and security history                                     | Append-only PostgreSQL journals | Encrypted daily archives in a restricted Drive folder                   |
-| Source code and releases                                          | GitHub                          | Vercel deployments built from the repository                            |
+| Information                                                       | Authority                       | Permitted secondary representation                                                                     |
+| ----------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Authenticated identity and session                                | Neon Auth with Google OAuth     | Stable internal user reference in application records                                                  |
+| Membership applications                                           | PostgreSQL                      | Notifications and sanitized audit references                                                           |
+| Membership                                                        | **Cutover decision required**   | See the membership-authority note below                                                                |
+| Sessions, expected absences, actual attendance, warnings          | PostgreSQL                      | Rebuildable totals, views, reports, and archives                                                       |
+| Website announcements, leadership profiles, and resource metadata | PostgreSQL                      | Rendered pages and caches                                                                              |
+| Events                                                            | Google Calendar                 | Short-lived cache and optional website-only presentation metadata                                      |
+| Documents and learning files                                      | Google Drive                    | Session folder IDs in PostgreSQL; member pages link to Drive and optionally list files through the API |
+| Weekly materials                                                  | Google Classroom                | Convenient website links                                                                               |
+| Classroom roster and Classroom membership status                  | Google Classroom                | No automatic synchronization is currently approved                                                     |
+| Email delivery                                                    | Gmail API                       | Delivery state and provider reference; never email bodies in audit logs                                |
+| Business and security history                                     | Append-only PostgreSQL journals | Encrypted daily archives in a restricted Drive folder                                                  |
+| Source code and releases                                          | GitHub                          | Vercel deployments built from the repository                                                           |
 
 ### Membership-authority note
 
@@ -509,6 +509,8 @@ Backup and archive jobs may use a suitable scheduled runner, but the runner is n
 ### Drive
 
 - Drive is authoritative for club documents and learning files.
+- Session folders live in the `mathclub@tokyois.com` Drive account. Leadership pastes each folder URL into the session editor and grants the intended members access in Drive; the site link does not change Drive permissions.
+- To list files inside a folder on the session page, share that folder with the configured service account as well. A direct folder link still works when API listing is unavailable.
 - The normal resource adapter is read-only and limited to explicitly shared resources.
 - PostgreSQL stores safe metadata and existing links, not file binaries.
 - The website does not change sharing permissions.

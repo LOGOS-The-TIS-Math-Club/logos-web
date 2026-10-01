@@ -3,12 +3,14 @@ import { describe, expect, it } from "vitest";
 import {
   base64url,
   buildFilesUrl,
+  buildFolderViewUrl,
   buildFolderQuery,
   buildJwtClaims,
   escapeDriveLiteral,
   mapDriveFile,
   mapDriveFiles,
   normalisePrivateKey,
+  safeDriveViewUrl,
   TOKEN_ENDPOINT,
 } from "./drive-protocol";
 
@@ -60,6 +62,26 @@ describe("buildFilesUrl", () => {
 
     expect(url).not.toContain("or+trashed+%3D+true+and+%271%27%3D%271'");
     expect(new URL(url).searchParams.get("q")).toContain("\\'");
+  });
+});
+
+describe("Drive viewer URLs", () => {
+  it("encodes folder ids in the direct folder link", () => {
+    expect(buildFolderViewUrl("folder id/1")).toBe(
+      "https://drive.google.com/drive/folders/folder%20id%2F1",
+    );
+  });
+
+  it("allows valid Google viewer links and rejects other destinations", () => {
+    expect(
+      safeDriveViewUrl("https://docs.google.com/document/d/abc/edit", "abc"),
+    ).toBe("https://docs.google.com/document/d/abc/edit");
+    expect(safeDriveViewUrl("javascript:alert(1)", "abc")).toBe(
+      "https://drive.google.com/file/d/abc/view",
+    );
+    expect(
+      safeDriveViewUrl("https://drive.google.com.attacker.test/x", "abc"),
+    ).toBe("https://drive.google.com/file/d/abc/view");
   });
 });
 
