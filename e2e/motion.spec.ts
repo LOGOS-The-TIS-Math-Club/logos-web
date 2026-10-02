@@ -1,17 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-test("explicit animation choice overrides reduced motion and survives refresh", async ({
+test("animations default on and an explicit off choice survives refresh", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(
-    page.getByRole("button", { name: "Enable animations", exact: true }),
+    page.getByRole("button", { name: "Disable animations", exact: true }),
   ).toBeVisible();
 
-  await page
-    .getByRole("button", { name: "Enable animations", exact: true })
-    .click();
   await expect(page.locator("html")).toHaveAttribute("data-motion", "on");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-motion", "on");
@@ -56,4 +53,9 @@ test("explicit animation choice overrides reduced motion and survives refresh", 
       .first()
       .evaluate((element) => getComputedStyle(element).animationName),
   ).toBe("none");
+
+  await page
+    .getByRole("button", { name: "Enable animations", exact: true })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "on");
 });

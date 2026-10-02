@@ -165,7 +165,13 @@ test("prevents horizontal overflow across mobile (320px) and desktop viewports",
   }
 });
 
-test("respects prefers-reduced-motion media query", async ({ page }) => {
+test("respects a saved preference to disable animations", async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([
+    { name: "logos_motion", value: "off", url: "http://127.0.0.1:3000" },
+  ]);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
 

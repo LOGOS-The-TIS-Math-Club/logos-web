@@ -72,8 +72,7 @@ export default async function RootLayout({
 }>) {
   await connection();
   const motionCookie = (await cookies()).get("logos_motion")?.value;
-  const motionPreference =
-    motionCookie === "on" || motionCookie === "off" ? motionCookie : undefined;
+  const motionPreference = motionCookie === "off" ? "off" : "on";
 
   // Never throws: resolves to null when auth is unconfigured or the session is
   // absent, which renders the shell exactly as it does for a public visitor.
