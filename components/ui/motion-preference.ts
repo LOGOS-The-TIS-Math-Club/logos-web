@@ -22,5 +22,10 @@ export function reducedMotionQuery(): MediaQueryList | null {
 }
 
 export function prefersReducedMotion(): boolean {
+  if (typeof document !== "undefined") {
+    const preference = document.documentElement.dataset.motion;
+    if (preference === "on") return false;
+    if (preference === "off") return true;
+  }
   return reducedMotionQuery()?.matches ?? false;
 }

@@ -1,8 +1,12 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import { ImagePicker } from "@/components/admin/image-picker";
+import {
+  ImagePicker,
+  type ImagePickerHandle,
+} from "@/components/admin/image-picker";
+import { DateField } from "@/components/ui/date-field";
 import { type StoryEntryListItem } from "@/lib/story/schema";
 
 function getCookie(name: string): string {
@@ -48,6 +52,7 @@ export function StoryAdminView({
   const [occurredOn, setOccurredOn] = useState("");
   const [imageId, setImageId] = useState<string | null>(null);
   const [published, setPublished] = useState(false);
+  const imagePickerRef = useRef<ImagePickerHandle>(null);
 
   const titleId = useId();
   const bodyId = useId();
@@ -80,6 +85,7 @@ export function StoryAdminView({
     setFeedback(null);
 
     try {
+      const savedImageId = await imagePickerRef.current?.uploadPending();
       const response = await fetch(
         editingId ? `/api/admin/story/${editingId}` : "/api/admin/story",
         {
@@ -89,7 +95,7 @@ export function StoryAdminView({
             title,
             body,
             occurredOn,
-            imageId,
+            imageId: savedImageId ?? imageId,
             published,
           }),
         },
@@ -272,13 +278,11 @@ export function StoryAdminView({
                 >
                   When it happened
                 </label>
-                <input
+                <DateField
                   id={dateId}
-                  type="date"
-                  required
+                  label="When it happened"
                   value={occurredOn}
-                  onChange={(event) => setOccurredOn(event.target.value)}
-                  className="field-input"
+                  onChange={setOccurredOn}
                 />
               </div>
 
@@ -305,11 +309,10 @@ export function StoryAdminView({
                   htmlFor={bodyId}
                   className="text-foreground block text-xs font-medium"
                 >
-                  What happened
+                  What happened (optional)
                 </label>
                 <textarea
                   id={bodyId}
-                  required
                   maxLength={4000}
                   rows={6}
                   value={body}
@@ -321,7 +324,12 @@ export function StoryAdminView({
                 </p>
               </div>
 
-              <ImagePicker value={imageId} onChange={setImageId} />
+              <ImagePicker
+                ref={imagePickerRef}
+                value={imageId}
+                onChange={setImageId}
+                uploadOnSave
+              />
 
               <div className="border-border flex items-center gap-2 border-t pt-4">
                 <input

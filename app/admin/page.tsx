@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AppPage } from "@/components/layout/app-page";
-import { hasCapability, type Capability } from "@/lib/auth/capabilities";
+import { hasCapability } from "@/lib/auth/capabilities";
 import { EXPORT_DATASETS } from "@/lib/export/datasets";
 import { resolveCurrentIdentity } from "@/lib/auth/identity-access.server";
+import { ADMIN_SECTIONS } from "./admin-sections";
 
 export const dynamic = "force-dynamic";
 
@@ -24,68 +25,6 @@ export const metadata: Metadata = {
  * reaches it sees an honest explanation rather than a list of dead ends.
  */
 
-const SECTIONS: readonly {
-  href: string;
-  label: string;
-  capability: Capability;
-  description: string;
-}[] = [
-  {
-    href: "/admin/applications",
-    label: "Applications",
-    capability: "application:review",
-    description:
-      "Read every submitted application, set its review status, and export the full list as CSV.",
-  },
-  {
-    href: "/admin/announcements",
-    label: "Announcements",
-    capability: "announcement:manage",
-    description:
-      "Post and edit the notices on the home page. Published changes appear immediately, with no deploy.",
-  },
-  {
-    href: "/admin/members",
-    label: "Members",
-    capability: "membership:read",
-    description:
-      "The active roster. Activate an accepted applicant into a member, or change a member's status.",
-  },
-  {
-    href: "/admin/story",
-    label: "Our story",
-    capability: "content:manage",
-    description:
-      "The club's record with pictures, shown on the public story page. Drafts stay hidden until you publish them.",
-  },
-  {
-    href: "/admin/resources",
-    label: "Resources",
-    capability: "resource:manage",
-    description:
-      "The link cards on the member dashboard — Classroom, the shared Drive, and anything else you add.",
-  },
-  {
-    href: "/admin/sessions",
-    label: "Sessions",
-    capability: "session:manage",
-    description: "Create and edit the Friday meeting sessions.",
-  },
-  {
-    href: "/admin/attendance",
-    label: "Attendance",
-    capability: "attendance:record",
-    description:
-      "Record who attended each session, and review expected-absence notices members submitted.",
-  },
-  {
-    href: "/admin/warnings",
-    label: "Warnings",
-    capability: "warning:manage",
-    description: "Manual warning records. Nothing here is automatic.",
-  },
-];
-
 export default async function AdminIndexPage() {
   let accessLevel: string | null = null;
   let signedIn = false;
@@ -99,7 +38,7 @@ export default async function AdminIndexPage() {
     // signed-out explanation rather than surfacing provider detail.
   }
 
-  const available = SECTIONS.filter((section) =>
+  const available = ADMIN_SECTIONS.filter((section) =>
     hasCapability(accessLevel, section.capability),
   );
   const canExport = hasCapability(accessLevel, "data:export");

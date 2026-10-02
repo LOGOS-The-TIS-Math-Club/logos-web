@@ -4,9 +4,11 @@ import Link from "next/link";
 import { LogosLockup, LogosLogomark } from "@/components/brand/marks";
 import { CONTACT_EMAIL } from "@/content/club";
 import { ActionLink } from "@/components/ui/action";
+import { MotionToggle } from "@/components/ui/motion-toggle";
 import type { Viewer } from "@/lib/auth/viewer.server";
 
 import { Container } from "./container";
+import { MobileNavigation } from "./mobile-navigation";
 import { ProfileMenu } from "./profile-menu";
 import { SkipLink } from "./skip-link";
 
@@ -78,6 +80,7 @@ export function AppShell({ children, className, viewer }: AppShellProps) {
                 </li>
               ))}
             </ul>
+            <MobileNavigation />
             {viewer?.isMember ? null : (
               <ActionLink href="/apply" variant="primary" className="action-sm">
                 Apply
@@ -161,6 +164,10 @@ export function AppShell({ children, className, viewer }: AppShellProps) {
                 ))}
               </ul>
             </nav>
+
+            <div className="text-xs">
+              <MotionToggle />
+            </div>
           </div>
 
           <div className="border-border text-subtle-foreground flex flex-col justify-between gap-2 border-t pt-6 text-xs sm:flex-row">

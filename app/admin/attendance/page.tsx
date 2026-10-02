@@ -82,6 +82,7 @@ export default async function AdminAttendancePage(props: {
 
   return (
     <AttendanceAdminView
+      key={targetSessionId}
       sessions={sessions}
       initialSelectedSessionId={targetSessionId}
       initialRoster={roster}

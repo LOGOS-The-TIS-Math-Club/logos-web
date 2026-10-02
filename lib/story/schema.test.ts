@@ -66,4 +66,23 @@ describe("StoryEntryInputSchema", () => {
       }).title,
     ).toBe("First meeting");
   });
+
+  it("allows a dated image entry with no written description", () => {
+    expect(
+      StoryEntryInputSchema.parse({
+        title: "First meeting",
+        body: "   ",
+        occurredOn: "2026-09-04",
+        imageId: "76bdac42-f3f5-4c0c-a113-4f311e29b737",
+      }).body,
+    ).toBe("");
+  });
+});
+
+describe("UpdateStoryEntrySchema", () => {
+  it("allows clearing the description", () => {
+    expect(UpdateStoryEntrySchema.parse({ body: "   " })).toEqual({
+      body: "",
+    });
+  });
 });

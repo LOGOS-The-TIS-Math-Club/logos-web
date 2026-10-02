@@ -1,8 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SessionAdminView } from "./session-admin-view";
+import {
+  getNextFriday,
+  normalizeDriveFolder,
+  SessionAdminView,
+} from "./session-admin-view";
 import { type SessionListItem } from "@/lib/attendance/schema";
+
+afterEach(() => vi.useRealTimers());
 
 describe("SessionAdminView", () => {
   const mockSessions: SessionListItem[] = [
@@ -20,6 +26,25 @@ describe("SessionAdminView", () => {
       totalMarked: 15,
     },
   ];
+
+  it("normalizes Drive folder URLs and rejects links from other hosts", () => {
+    expect(
+      normalizeDriveFolder(
+        "https://drive.google.com/drive/folders/folder-123?usp=sharing",
+      ),
+    ).toBe("folder-123");
+    expect(normalizeDriveFolder("folder-123")).toBe("folder-123");
+    expect(() =>
+      normalizeDriveFolder("https://example.com/folders/folder-123"),
+    ).toThrow("Use a drive.google.com folder URL.");
+  });
+
+  it("formats the next Friday from the local calendar date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-01T12:00:00.000Z"));
+
+    expect(getNextFriday()).toBe("2026-10-02");
+  });
 
   it("renders sessions list and create session action", () => {
     render(<SessionAdminView initialSessions={mockSessions} />);
@@ -52,7 +77,9 @@ describe("SessionAdminView", () => {
     // The date and the topic are what leadership edits; both must arrive
     // populated rather than reset to the create-form defaults.
     expect(screen.getByLabelText("Topic")).toHaveValue("LOGOS Weekly Meeting");
-    expect(screen.getByLabelText("Date")).toHaveValue("2026-09-04");
+    expect(
+      screen.getByRole("button", { name: "Date: September 4, 2026" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Location")).toHaveValue("Room 101");
     expect(
       screen.getByRole("button", { name: "Save Changes" }),

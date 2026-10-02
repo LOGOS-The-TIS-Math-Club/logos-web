@@ -99,6 +99,13 @@
       "when": 1790868492143,
       "tag": "0013_categorize_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790875287083,
+      "tag": "0014_allow_empty_story_body",
+      "breakpoints": true
     }
   ]
 }

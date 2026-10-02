@@ -85,4 +85,34 @@ describe("MemberHubView", () => {
       screen.getByRole("button", { name: "Submit absence notice" }),
     ).toBeInTheDocument();
   });
+
+  it("orders the session list from the next date onward", () => {
+    const laterSession = {
+      ...mockSession,
+      id: "session-later",
+      title: "Later meeting",
+      sessionDate: "2026-09-11",
+    };
+
+    const { container } = render(
+      <MemberHubView
+        member={mockMember}
+        upcomingSession={mockSession}
+        sessions={[laterSession, mockSession]}
+        attendanceTotals={mockTotals}
+        resources={[]}
+      />,
+    );
+
+    const sessionLinks = screen.getAllByRole("link", {
+      name: /weekly meeting|later meeting/i,
+    });
+    expect(sessionLinks.map((link) => link.getAttribute("href"))).toEqual([
+      "/members/sessions/session-1",
+      "/members/sessions/session-later",
+    ]);
+    expect(
+      container.querySelector("time[datetime='2026-09-04']"),
+    ).toHaveTextContent(/2026|Sep/i);
+  });
 });

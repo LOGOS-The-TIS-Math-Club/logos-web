@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { connection } from "next/server";
+import { cookies } from "next/headers";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { getViewer } from "@/lib/auth/viewer.server";
@@ -70,6 +71,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   await connection();
+  const motionCookie = (await cookies()).get("logos_motion")?.value;
+  const motionPreference = motionCookie === "off" ? "off" : "on";
 
   // Never throws: resolves to null when auth is unconfigured or the session is
   // absent, which renders the shell exactly as it does for a public visitor.
@@ -79,6 +82,7 @@ export default async function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable}`}
+      data-motion={motionPreference}
       suppressHydrationWarning
     >
       <body>
