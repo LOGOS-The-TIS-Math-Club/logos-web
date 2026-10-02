@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LogosLockup, LogosLogomark } from "@/components/brand/marks";
 import { CONTACT_EMAIL } from "@/content/club";
 import { ActionLink } from "@/components/ui/action";
+import { MotionToggle } from "@/components/ui/motion-toggle";
 import type { Viewer } from "@/lib/auth/viewer.server";
 
 import { Container } from "./container";
@@ -163,6 +164,10 @@ export function AppShell({ children, className, viewer }: AppShellProps) {
                 ))}
               </ul>
             </nav>
+
+            <div className="text-xs">
+              <MotionToggle />
+            </div>
           </div>
 
           <div className="border-border text-subtle-foreground flex flex-col justify-between gap-2 border-t pt-6 text-xs sm:flex-row">

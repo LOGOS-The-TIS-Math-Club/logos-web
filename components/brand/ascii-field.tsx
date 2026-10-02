@@ -2,7 +2,10 @@
 
 import { useEffect, useRef } from "react";
 
-import { reducedMotionQuery } from "@/components/ui/motion-preference";
+import {
+  prefersReducedMotion,
+  reducedMotionQuery,
+} from "@/components/ui/motion-preference";
 
 import {
   CIRCLE_RADIUS,
@@ -290,7 +293,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
 
     const config = SCENES[scene];
     const motionQuery = reducedMotionQuery();
-    const isReduced = () => motionQuery?.matches ?? false;
+    const isReduced = () => prefersReducedMotion();
 
     const styles = getComputedStyle(container);
     let dim = parseColor(styles.getPropertyValue("--ascii-dim")) ?? [
