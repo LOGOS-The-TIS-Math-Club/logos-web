@@ -1,0 +1,25 @@
+{
+  "name": "logos-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:db": "node --experimental-strip-types scripts/test-db.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run test:db",
+    "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "db:rehearse": "node --experimental-strip-types scripts/rehearse-import.ts"
+  },
+  "dependencies": {
+    "postgres": "3.4.9",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "5.9.3"
+  }
+}
