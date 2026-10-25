@@ -1,6 +1,6 @@
 # LOGOS
 
-Backend foundation for Tokyo International School’s student mathematics club. This repository currently contains data definitions and core rules; the Next.js frontend and authentication integration will follow.
+Backend for Tokyo International School’s student mathematics club. Next.js serves request interfaces and hosted Neon Auth; the familiar frontend will be integrated later.
 
 ## Run checks
 
@@ -23,7 +23,7 @@ The migration runner locks concurrent migration attempts, applies changes transa
 
 ## Structure and rules
 
-SQL migrations in `db/migrations` are the schema source of truth. TypeScript feature modules validate boundary inputs and expose focused operations; there is no ORM, web server, or second authentication system. This code can be called by Next.js server code later.
+SQL migrations in `db/migrations` are the schema source of truth. TypeScript feature modules validate boundary inputs and expose focused operations; Next.js route handlers expose these operations through one request boundary, without an ORM or a second authentication system.
 
 | Schema         | Purpose                                                                                 |
 | -------------- | --------------------------------------------------------------------------------------- |
@@ -35,7 +35,7 @@ SQL migrations in `db/migrations` are the schema source of truth. TypeScript fea
 | `operations`   | Small administrative change history                                                     |
 
 - Verified school identities may apply without a permission role. Provider identifiers are unique; email is contact data, never a relational key. Nullable provider identifiers support historical imports before account reconciliation.
-- Admin access is explicit, independent of membership and public titles. Future account setup must explicitly grant admin to the verified club account and designated leaders. The schema does not infer authority from a matching email or title.
+- Admin access is explicit, independent of membership and public titles. The verified club account receives an audited explicit admin grant; designated leaders require explicit admin assignment. The schema does not infer authority from a matching email or title.
 - A member grant gives access during active or paused membership. Former members lose member access; an independent admin grant still works. Disabled or unverified identities have neither access.
 - One open application per identity (`submitted` or `under_review`) is enforced by a partial unique index. Rejection and withdrawal permit immediate reapplication unless a separate dated restriction applies. Active/paused members cannot submit again.
 - Applications move from submitted to under review or a terminal state; under review may become accepted, rejected, or withdrawn. Terminal states cannot reopen. Owners may withdraw; admins review. Acceptance uses `applications.accept`, which atomically writes the reviewed member card, active state, explicit member grant, accepted association, and history. Concurrent retries return the same membership without changing the card.
@@ -62,10 +62,14 @@ One attendance record per member/session is enforced in PostgreSQL. Admin correc
 
 ## Integration boundaries
 
-Operations take a trusted actor identity from the future single server current-user lookup. Never accept that identity from request bodies or expose SQL functions as public RPCs. Functions use invoker rights; PUBLIC function/table privileges are revoked. This is a trusted backend foundation, not a deployed authentication or row-level security implementation. Define and test the deployed runtime database role when wiring authentication.
+Operations take a trusted actor identity from the single server current-user lookup. Never accept that identity from request bodies or expose SQL functions as public RPCs. Functions use invoker rights; PUBLIC function/table privileges are revoked. The trusted application boundary enforces authorization rather than exposing public SQL RPCs. A restricted runtime group is defined in `db/runtime-role.sql` and exercised in local request tests.
 
-Google sign-in must verify provider claims and the school domain before marking an identity verified. Reconcile hosted Neon Auth separately; provider tables are not recreated here.
+Google sign-in verifies signed provider claims and the school domain before marking an identity verified. Hosted Neon Auth remains separate; application migrations never recreate provider tables. Real provider sign-in/linking remains unverified.
 
 Session materials store a specific Google Drive folder URL only. Folder provenance (materials, not internal reports) must be checked by the admin attaching it; a URL cannot prove that distinction. Membership grants no Drive permission. No Drive APIs or credentials are used. Stories accept an empty description; keep legacy image upload-on-save when reusing the frontend. Image bytes remain in PostgreSQL with a 2 MiB cap.
 
-See [migration guidance](docs/migration.md) for the isolated, credential-free `db:rehearse` command before importing existing records. Vercel/Neon ownership, hosted Auth, Google access, data import, frontend reuse, deployment, and domain changes remain separate work.
+See [migration guidance](docs/migration.md) for the isolated, credential-free `db:rehearse` command before importing existing records. Data import, real Google sign-in verification, frontend integration, deployment, and domain changes remain separate work.
+
+## Run the backend
+
+Copy `.env.example` to `.env.local` and fill development settings. Run `npm run dev`; use `npm run build` for a production compilation. No deployment is needed to run locally. See [request interfaces and Auth setup](docs/api.md) for routes, revision tokens, image saves and remaining provider verification.

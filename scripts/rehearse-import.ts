@@ -69,7 +69,7 @@ let running = false;
 // Never use a connection URL, .env file, selected cloud project, or inherited PG settings.
 const env = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => !key.startsWith("PG")),
-);
+) as NodeJS.ProcessEnv;
 Object.assign(env, {
   PGHOST: socket,
   PGPORT: "5432",

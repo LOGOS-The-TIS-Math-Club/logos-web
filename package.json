@@ -12,14 +12,28 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm test && npm run test:db",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
-    "db:rehearse": "node --experimental-strip-types scripts/rehearse-import.ts"
+    "db:rehearse": "node --experimental-strip-types scripts/rehearse-import.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
+    "@neondatabase/auth": "^0.7.0-beta",
+    "jose": "^6.2.13",
+    "next": "^16.4.3",
     "postgres": "3.4.9",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sharp": "^0.35.5",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "zod": "$zod"
   }
 }

@@ -2,7 +2,7 @@ import type postgres from "postgres";
 import { z } from "zod";
 import { applicationInput, memberCardInput } from "./input.ts";
 
-// actorId must come from the future server current-user lookup, never request JSON.
+// actorId must come from the server current-user lookup, never request JSON.
 export async function submitApplication(
   sql: postgres.Sql,
   actorId: string,
