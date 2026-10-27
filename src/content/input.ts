@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const contentId = z.uuid().transform(value => value.toLowerCase());
+
 const imageBytes = z.custom<Uint8Array>(
   (value) => value instanceof Uint8Array && value.byteLength > 0 && value.byteLength <= 2_097_152,
   "Image must contain between 1 byte and 2 MiB",
@@ -15,23 +17,23 @@ export const storyInput = z.object({
   title: z.string().trim().min(1).max(120),
   occurredOn: z.iso.date(),
   description: z.string().trim().max(4000).default(""),
-  imageId: z.uuid().nullable().optional(),
+  imageId: contentId.nullable().optional(),
   published: z.boolean().default(false),
 });
 
 export const announcementInput = z.object({
   title: z.string().trim().min(1).max(120),
   body: z.string().trim().min(1).max(2000),
-  imageId: z.uuid().nullable().optional(),
+  imageId: contentId.nullable().optional(),
   published: z.boolean().default(false),
 });
 
 export const leadershipInput = z.object({
-  memberId: z.uuid().nullable().optional(),
+  memberId: contentId.nullable().optional(),
   displayName: z.string().trim().min(1).max(80),
   title: z.string().trim().min(1).max(120),
   biography: z.string().trim().max(4000).default(""),
-  imageId: z.uuid().nullable().optional(),
+  imageId: contentId.nullable().optional(),
   sortOrder: z.number().int().min(-2_147_483_648).max(2_147_483_647).default(0),
   published: z.boolean().default(false),
 });
@@ -57,3 +59,6 @@ export const clubInfoInput = z.object({
 });
 
 export const revisionInput = z.number().int().positive();
+
+// Required only for creates; edits retain their existing revision contract.
+export const creationRequestInput = z.object({ requestId: contentId });

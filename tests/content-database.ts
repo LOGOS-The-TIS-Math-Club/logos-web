@@ -40,8 +40,8 @@ export async function verifyContent(sql: postgres.Sql) {
     await assert.rejects(Promise.resolve(promise), (error: unknown) => (error as { code: string }).code === code);
   };
 
-  await expectCode(createStory(sql, member.id, { title: "Forbidden", occurredOn: "2026-10-25" }), "42501");
-  const draft = await createStory(sql, admin.id, { title: "Draft", occurredOn: "2026-10-25" }, {
+  await expectCode(createStory(sql, member.id, { requestId: randomUUID(), title: "Forbidden", occurredOn: "2026-10-25" }), "42501");
+  const draft = await createStory(sql, admin.id, { requestId: randomUUID(), title: "Draft", occurredOn: "2026-10-25" }, {
     data: Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=", "base64"),
     mimeType: "image/gif",
     altText: "One pixel",
@@ -53,13 +53,13 @@ export async function verifyContent(sql: postgres.Sql) {
   assert.ok((await listAdminStories(sql, admin.id)).some((row) => row.id === draft.id));
   assert.equal((await getAdminStory(sql, admin.id, draft.id)).revision, draft.revision);
   await expectCode(getAdminImage(sql, member.id, draft.image_id), "42501");
-  const privateImage = await createImage(sql, admin.id, {
+  const privateImage = await createImage(sql, admin.id, { requestId: randomUUID(),
     data: Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=", "base64"),
     mimeType: "image/gif",
     altText: "Unlinked private image",
   });
   await expectCode(getPublicImage(sql, privateImage.id), "NOT_FOUND");
-  const published = await createStory(sql, admin.id, { title: "Published", occurredOn: "2026-10-24", published: true });
+  const published = await createStory(sql, admin.id, { requestId: randomUUID(), title: "Published", occurredOn: "2026-10-24", published: true });
   assert.deepEqual((await getPublishedStories(sql)).map((row) => row.id), [published.id]);
   const revised = await updateStory(sql, admin.id, published.id, published.revision, {
     title: "Updated story", occurredOn: "2026-10-24", description: "Reviewed", published: true,
@@ -76,11 +76,11 @@ export async function verifyContent(sql: postgres.Sql) {
     title: "Missing", occurredOn: "2026-10-24",
   }), "NOT_FOUND");
 
-  const announcement = await createAnnouncement(sql, admin.id, { title: "Notice", body: "Published", published: true });
+  const announcement = await createAnnouncement(sql, admin.id, { requestId: randomUUID(), title: "Notice", body: "Published", published: true });
   assert.deepEqual((await getPublishedAnnouncements(sql)).map((row) => row.id), [announcement.id]);
   assert.ok((await listAdminAnnouncements(sql, admin.id)).some((row) => row.id === announcement.id));
   assert.equal((await getAdminAnnouncement(sql, admin.id, announcement.id)).revision, announcement.revision);
-  const leader = await createLeadershipProfile(sql, admin.id, {
+  const leader = await createLeadershipProfile(sql, admin.id, { requestId: randomUUID(),
     displayName: "Ada", title: "President", published: true,
   });
   assert.deepEqual((await getPublishedLeadership(sql)).map((row) => row.id), [leader.id]);
@@ -88,8 +88,8 @@ export async function verifyContent(sql: postgres.Sql) {
   assert.equal((await getAdminLeadershipProfile(sql, admin.id, leader.id)).revision, leader.revision);
   const importedResource = (await sql`insert into content.resource_links(title, url)
     values ('Imported handbook', 'https://example.com/imported') returning *`)[0];
-  const hiddenResource = await createResource(sql, admin.id, { title: "Draft handbook", url: "https://example.com/draft" });
-  const resource = await createResource(sql, admin.id, {
+  const hiddenResource = await createResource(sql, admin.id, { requestId: randomUUID(), title: "Draft handbook", url: "https://example.com/draft" });
+  const resource = await createResource(sql, admin.id, { requestId: randomUUID(),
     title: "Handbook", url: "https://example.com/handbook", published: true,
   });
   assert.deepEqual((await getResources(sql)).map((row) => row.id), [resource.id]);
@@ -110,7 +110,7 @@ export async function verifyContent(sql: postgres.Sql) {
   assert.deepEqual((await getResources(sql)).map((row) => row.id), [resource.id]);
   assert.deepEqual((await getResources(sql)).map((row) => row.id).includes(importedResource.id), false);
 
-  const club = await createClubInfo(sql, admin.id, {
+  const club = await createClubInfo(sql, admin.id, { requestId: randomUUID(),
     about: "Math club", semesterFocus: "Proofs", contactEmail: "mathclub@example.com",
   });
   assert.equal((await getClubInfo(sql))?.about, club.about);

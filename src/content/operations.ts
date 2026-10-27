@@ -1,9 +1,12 @@
 import sharp from "sharp";
+import { createHash } from "node:crypto";
+import { createContentOnce } from "./replay.ts";
 import type postgres from "postgres";
 import { z } from "zod";
 import { BackendError } from "../server/errors.ts";
 import {
   announcementInput,
+  creationRequestInput,
   clubInfoInput,
   imageInput,
   leadershipInput,
@@ -22,6 +25,15 @@ const imageFormats = {
 } as const;
 
 type Upload = z.input<typeof imageInput>;
+
+function uploadFingerprint(upload: z.infer<typeof imageInput> | undefined) {
+  return upload ? {
+    mimeType: upload.mimeType,
+    altText: upload.altText,
+    sha256: createHash("sha256").update(upload.data).digest("hex"),
+  } : null;
+}
+
 
 async function validateImage(raw: Upload | undefined) {
   if (raw === undefined) return undefined;
@@ -62,7 +74,7 @@ async function validateImage(raw: Upload | undefined) {
 }
 
 function uuid(value: string) {
-  return z.uuid().parse(value);
+  return z.uuid().parse(value).toLowerCase();
 }
 
 async function requireAdmin(tx: Tx, actor: string) {
@@ -222,8 +234,8 @@ export async function getAdminClubInfo(sql: postgres.Sql, actorId: string) {
 export async function createImage(sql: postgres.Sql, actorId: string, raw: unknown) {
   const actor = uuid(actorId);
   const upload = imageInput.parse(raw);
-  return sql.begin(async (tx) => {
-    await requireAdmin(tx, actor);
+  const { requestId } = creationRequestInput.parse(raw);
+  return createContentOnce(sql, actor, "image", requestId, uploadFingerprint(upload), async (tx) => {
     const image = await validateImage(upload);
     if (!image) throw new BackendError("INVALID_INPUT", "An image upload is required", 400);
     const id = await insertImage(tx, actor, image);
@@ -263,10 +275,11 @@ export async function getAdminImage(sql: postgres.Sql, actorId: string, id: stri
 export async function createStory(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload) {
   const actor = uuid(actorId);
   const input = storyInput.parse(raw);
-  if (upload && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
-  return sql.begin(async (tx) => {
-    await requireAdmin(tx, actor);
-    const image = await validateImage(upload);
+  const { requestId } = creationRequestInput.parse(raw);
+  const selectedImage = upload === undefined ? undefined : imageInput.parse(upload);
+  if (selectedImage && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
+  return createContentOnce(sql, actor, "story", requestId, { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage) }, async (tx) => {
+    const image = await validateImage(selectedImage);
     const imageId = image ? await insertImage(tx, actor, image) : input.imageId ?? null;
     const [row] = await tx`insert into content.stories(title, occurred_on, description, image_id, published, created_by)
       values (${input.title}, ${input.occurredOn}::text::date, ${input.description}, ${imageId}, ${input.published}, ${actor})
@@ -300,10 +313,11 @@ export async function updateStory(sql: postgres.Sql, actorId: string, id: string
 export async function createAnnouncement(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload) {
   const actor = uuid(actorId);
   const input = announcementInput.parse(raw);
-  if (upload && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
-  return sql.begin(async (tx) => {
-    await requireAdmin(tx, actor);
-    const image = await validateImage(upload);
+  const { requestId } = creationRequestInput.parse(raw);
+  const selectedImage = upload === undefined ? undefined : imageInput.parse(upload);
+  if (selectedImage && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
+  return createContentOnce(sql, actor, "announcement", requestId, { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage) }, async (tx) => {
+    const image = await validateImage(selectedImage);
     const imageId = image ? await insertImage(tx, actor, image) : input.imageId ?? null;
     const [row] = await tx`insert into content.announcements(title, body, image_id, published_at, created_by)
       values (${input.title}, ${input.body}, ${imageId}, case when ${input.published} then now() else null end, ${actor}) returning *`;
@@ -337,8 +351,8 @@ export async function updateAnnouncement(sql: postgres.Sql, actorId: string, id:
 export async function createLeadershipProfile(sql: postgres.Sql, actorId: string, raw: unknown) {
   const actor = uuid(actorId);
   const input = leadershipInput.parse(raw);
-  return sql.begin(async (tx) => {
-    await requireAdmin(tx, actor);
+  const { requestId } = creationRequestInput.parse(raw);
+  return createContentOnce(sql, actor, "leadership", requestId, input, async (tx) => {
     const [row] = await tx`insert into content.leadership_profiles(member_id, display_name, title, biography, image_id, sort_order, published)
       values (${input.memberId ?? null}, ${input.displayName}, ${input.title}, ${input.biography}, ${input.imageId ?? null}, ${input.sortOrder}, ${input.published}) returning *`;
     await recordHistory(tx, actor, "content.leadership.created", row.id, { displayName: input.displayName, title: input.title });
@@ -365,8 +379,8 @@ export async function updateLeadershipProfile(sql: postgres.Sql, actorId: string
 export async function createResource(sql: postgres.Sql, actorId: string, raw: unknown) {
   const actor = uuid(actorId);
   const input = resourceInput.parse(raw);
-  return sql.begin(async (tx) => {
-    await requireAdmin(tx, actor);
+  const { requestId } = creationRequestInput.parse(raw);
+  return createContentOnce(sql, actor, "resource", requestId, input, async (tx) => {
     const [row] = await tx`insert into content.resource_links(title, description, url, sort_order, published, created_by)
       values (${input.title}, ${input.description}, ${input.url}, ${input.sortOrder}, ${input.published}, ${actor}) returning *`;
     await recordHistory(tx, actor, "content.resource.created", row.id, { title: input.title });
@@ -392,8 +406,8 @@ export async function updateResource(sql: postgres.Sql, actorId: string, id: str
 export async function createClubInfo(sql: postgres.Sql, actorId: string, raw: unknown) {
   const actor = uuid(actorId);
   const input = clubInfoInput.parse(raw);
-  return sql.begin(async (tx) => {
-    await requireAdmin(tx, actor);
+  const { requestId } = creationRequestInput.parse(raw);
+  return createContentOnce(sql, actor, "club_info", requestId, input, async (tx) => {
     const [row] = await tx`insert into content.club_info(id, about, semester_focus, contact_email) values (true, ${input.about}, ${input.semesterFocus}, ${input.contactEmail}) returning *`;
     await recordHistory(tx, actor, "content.club_info.created", z.uuid().parse("00000000-0000-0000-0000-000000000000"), { fields: "about,semester_focus,contact_email" });
     return row;

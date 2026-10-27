@@ -8,6 +8,7 @@ import { verifyImportRollback } from "../tests/import-database.ts";
 import { verifyApi } from "../tests/api-database.ts";
 import { verifyAuth } from "../tests/auth-database.ts";
 import { verifyMeetings } from "../tests/meetings-database.ts";
+import { verifyContentReplay } from "../tests/content-replay-database.ts";
 import { verifyContent } from "../tests/content-database.ts";
 import { verifyMembership } from "../tests/membership-database.ts";
 import { verifyDatabase } from "../tests/database.ts";
@@ -72,6 +73,8 @@ try {
   await reset();
   await verifyContent(sql);
   await reset();
+  await verifyContentReplay(sql);
+  await reset();
   await verifyMembership(sql);
   await reset();
   await verifyAuth(sql);
@@ -85,13 +88,15 @@ try {
     host: socket,
     username: "postgres",
     database: "postgres",
-    max: 1,
+    max: 4,
     connection: { options: "-c role=logos_runtime" },
     onnotice: () => {},
   });
   try {
     await verifyRuntime(runtime);
     await verifyApi(runtime);
+    await reset();
+    await verifyContentReplay(runtime, false);
   } finally {
     await runtime.end();
   }

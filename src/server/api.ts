@@ -432,7 +432,7 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
               if (kind === "club-info")
                 return json(await content.createClubInfo(sql, actor, b), 201);
               if (kind === "images" && upload)
-                return json(await content.createImage(sql, actor, upload), 201);
+                return json(await content.createImage(sql, actor, { ...upload, requestId: b.requestId }), 201);
             }
             if (method === "PUT" && entity) {
               if (kind === "stories")
