@@ -24,8 +24,8 @@ const mono = JetBrains_Mono({
 });
 export const metadata: Metadata = {
   title: {
-    default: "LOGOS — Tokyo International School Math Club",
-    template: "%s — LOGOS",
+    default: "LOGOS - Tokyo International School Math Club",
+    template: "%s - LOGOS",
   },
   description:
     "The student-led mathematics club of Tokyo International School.",

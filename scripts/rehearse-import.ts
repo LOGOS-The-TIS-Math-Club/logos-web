@@ -250,7 +250,7 @@ try {
     );
     for (const row of member.excludedRecords)
       reviewLines.push(
-        `- ${row.sessionDate}: ${row.status} — attendance ${row.attendanceId}`,
+        `- ${row.sessionDate}: ${row.status}; attendance ${row.attendanceId}`,
       );
     reviewLines.push("");
   }

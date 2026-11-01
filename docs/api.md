@@ -46,7 +46,7 @@ Every mutation requires the exact `APP_URL` Origin; request bodies use JSON cont
 | `GET, POST /api/admin/content/{stories,announcements,leadership,resources}`    | List drafts/create                                                                                                |
 | `GET, PUT /api/admin/content/{stories,announcements,leadership,resources}/:id` | Load/edit with revision                                                                                           |
 | `GET, POST, PUT /api/admin/content/club-info`                                  | Singleton load/create/edit                                                                                        |
-| `POST /api/admin/content/images`                                               | `{requestId, upload: {base64, mimeType, altText}}` for a validated standalone image                                          |
+| `POST /api/admin/content/images`                                               | `{requestId, upload: {base64, mimeType, altText}}` for a validated standalone image                               |
 | `GET /api/admin/content/images/:id`                                            | Private image preview                                                                                             |
 
 Imported resource links default to unpublished and stay available in admin detail until reviewed. Publishing a resource is an explicit admin edit.
@@ -78,7 +78,6 @@ Set `APP_URL`, pooled runtime `DATABASE_URL`, branch `NEON_AUTH_BASE_URL`, local
 Live Google sign-in, provider linking and session restoration must still be exercised by a human on the selected branch. The local Auth fixtures are synthetic contract tests, not evidence of real OAuth success. The current club CLI confirms project ownership/admin access and hosted Better Auth with shared Google development credentials; Google Cloud IAM access remains unavailable, and no production trusted origin or Vercel project is configured. No remote configuration was changed during implementation.
 
 Provider references: [Neon Next.js API setup](https://neon.com/docs/auth/quick-start/nextjs-api-only) and [Google OAuth configuration](https://neon.com/docs/auth/guides/setup-oauth). The installed SDK is the authority for the cookie TTL and route-handler signatures used here.
-
 
 ## Public homepage session summary
 

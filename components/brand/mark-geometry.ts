@@ -30,7 +30,7 @@ export const LOGOMARK_CIRCLES: readonly Vec2[] = [
 /**
  * Where the six dots begin: two separated logic signs.
  * Order is ∴ apex, ∴ lower left, ∴ lower right, ∵ upper left, ∵ upper right,
- * ∵ base — and SIGN_TARGETS uses the same order.
+ * ∵ base; and SIGN_TARGETS uses the same order.
  */
 export const SIGN_SOURCES: readonly Vec2[] = [
   [0, -112],

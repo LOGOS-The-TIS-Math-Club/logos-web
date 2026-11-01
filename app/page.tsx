@@ -158,7 +158,7 @@ export default function Home() {
           <div>
             <h2 id="cta-heading">Want to join?</h2>
             <p className="muted">
-              Grades 9–12. No prior competition experience required.
+              Grades 9-12. No prior competition experience required.
             </p>
           </div>
           <ActionLink href="/apply" variant="primary">

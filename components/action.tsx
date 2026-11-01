@@ -5,7 +5,7 @@ import Link from "next/link";
  * The signature LOGOS control.
  *
  * A duplicate label, colour-inverted, is clipped to a diagonal and wiped across
- * the control on hover. The press state is a one-pixel nudge — nothing scales.
+ * the control on hover. The press state is a one-pixel nudge; nothing scales.
  * All of it is CSS (see .action in globals.css); this component only supplies
  * the two label layers the effect needs.
  */

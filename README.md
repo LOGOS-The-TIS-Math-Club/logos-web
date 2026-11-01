@@ -45,7 +45,7 @@ SQL migrations in `db/migrations` are the schema source of truth. TypeScript fea
 
 ## Dates and attendance
 
-Date ranges use **inclusive start, exclusive end**. Academic years run August 1 through the next August 1; terms fit within them and cannot overlap within the same year, making current-year/term selection unambiguous. Sessions may overlap. Imported sessions may remain unassigned to a term, while retaining a required academic year; admins configure actual term dates and assign sessions through `src/sessions/calendar.ts`. Normal session input still requires a term. A session must start within its academic year and, when assigned, its term and last 1–1440 minutes; it may end the following day.
+Date ranges use **inclusive start, exclusive end**. Academic years run August 1 through the next August 1; terms fit within them and cannot overlap within the same year, making current-year/term selection unambiguous. Sessions may overlap. Imported sessions may remain unassigned to a term, while retaining a required academic year; admins configure actual term dates and assign sessions through `src/sessions/calendar.ts`. Normal session input still requires a term. A session must start within its academic year and, when assigned, its term and last 1-1440 minutes; it may end the following day.
 
 Membership state changes take effect for the entire Tokyo calendar date. Before the first state change there is no membership eligibility. One change per member/date prevents conflicting same-day states; later dates define pauses, departures, and rejoins without deleting history. Retroactive changes recalculate historical eligibility deliberately.
 

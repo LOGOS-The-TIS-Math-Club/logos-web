@@ -45,7 +45,7 @@ export async function verifyDatabase(sql: postgres.Sql) {
   assert.equal(await hasAccess(sql, admin.id, "admin"), true);
   assert.equal(await hasAccess(sql, student.id, "member"), false);
   const [year] =
-    await sql`insert into meetings.academic_years(name,start_year,starts_on,ends_on) values ('2025–26',2025,'2025-08-01','2026-08-01') returning id`;
+    await sql`insert into meetings.academic_years(name,start_year,starts_on,ends_on) values ('2025-26',2025,'2025-08-01','2026-08-01') returning id`;
   const [term] =
     await sql`insert into meetings.terms(academic_year_id,name,starts_on,ends_on) values (${year.id},'Term 1','2025-08-01','2026-01-01') returning id`;
   await expectCode(
@@ -84,7 +84,7 @@ export async function verifyDatabase(sql: postgres.Sql) {
     calendar.id,
   );
   const [nextYear] =
-    await sql`insert into meetings.academic_years(name,start_year,starts_on,ends_on) values ('2026–27',2026,'2026-08-01','2027-08-01') returning id`;
+    await sql`insert into meetings.academic_years(name,start_year,starts_on,ends_on) values ('2026-27',2026,'2026-08-01','2027-08-01') returning id`;
   const nextCalendar = {
     id: randomUUID(),
     academicYearId: nextYear.id,

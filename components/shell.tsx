@@ -56,7 +56,7 @@ export function Shell({
           <Link
             href="/"
             className="brand"
-            aria-label="LOGOS — home"
+            aria-label="LOGOS home"
             onClick={() => setOpen(false)}
           >
             <span className="action-label" aria-hidden="true">
@@ -122,7 +122,7 @@ export function Shell({
             <div className="footer-brand">
               <LogosLockup aria-hidden="true" />
               <p className="sr-only">
-                LOGOS — Tokyo International School Math Club
+                LOGOS, Tokyo International School Math Club
               </p>
               <p>
                 The student-led mathematics club of Tokyo International School.
@@ -150,7 +150,7 @@ export function Shell({
             </button>
           </div>
           <div className="footer-bottom">
-            <p>Tokyo International School · Grades 9–12</p>
+            <p>Tokyo International School · Grades 9-12</p>
             <a href="mailto:mathclub@tokyois.com">mathclub@tokyois.com</a>
             <p>MIT License</p>
           </div>

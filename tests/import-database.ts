@@ -24,7 +24,7 @@ export async function verifyImportRollback(sql: postgres.Sql) {
       "meetings.academic_years": [
         {
           id: year,
-          name: "2026–27",
+          name: "2026-27",
           start_year: 2026,
           starts_on: "2026-08-01",
           ends_on: "2027-08-01",

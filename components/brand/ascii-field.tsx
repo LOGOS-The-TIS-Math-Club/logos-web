@@ -25,7 +25,7 @@ import { morphGraphAt } from "./graph-morph.ts";
  * The front scene is the point of it. The LOGOS mark is the therefore sign and
  * the because sign collapsed together: ∴ is one dot above two, ∵ is two dots
  * above one, and laid over each other their six dots resolve into the mark's
- * five circles — the two apex dots meet in the middle. The "collapse" scene
+ * five circles; the two apex dots meet in the middle. The "collapse" scene
  * plays exactly that, then holds on the finished mark.
  *
  * Each page picks a different scene, so the banners read as distinct places
@@ -62,7 +62,7 @@ interface Point3 {
   readonly x: number;
   readonly y: number;
   readonly z: number;
-  /** 0–1; drives glyph density and colour mix. */
+  /** 0-1; drives glyph density and colour mix. */
   readonly bright: number;
 }
 
@@ -124,7 +124,7 @@ function pushCircle(
 function sceneCollapse(t: number): Point3[] {
   const CYCLE = 12000;
 
-  // A plain (t % CYCLE) / CYCLE sawtooth snaps from 1 back to 0 every cycle —
+  // A plain (t % CYCLE) / CYCLE sawtooth snaps from 1 back to 0 every cycle;
   // the fully-formed mark would vanish and reappear as two separated dots in
   // a single frame, which reads as the whole animation resetting. A triangle
   // wave climbs to 1 and eases back down instead, so the signs converge, hold
@@ -136,9 +136,9 @@ function sceneCollapse(t: number): Point3[] {
    * left a third of the cycle showing six specks and no recognisable form:
    * the transition is the punctuation, not the subject.
    *
-   * 0.00–0.08 the two signs hold apart, on separate planes.
-   * 0.08–0.44 they converge; the dots open into circles.
-   * 0.44–1.00 the finished mark holds and turns.
+   * 0.00-0.08 the two signs hold apart, on separate planes.
+   * 0.08-0.44 they converge; the dots open into circles.
+   * 0.44-1.00 the finished mark holds and turns.
    */
   const travel = smoothstep(0.08, 0.4, phase);
   const open = smoothstep(0.14, 0.44, phase);
@@ -162,7 +162,7 @@ function sceneCollapse(t: number): Point3[] {
 
     if (open < 0.06) {
       // Still reading as a logic sign. The dots are drawn large enough to be
-      // seen as ∴ and ∵ rather than as specks — that reading is the point.
+      // seen as ∴ and ∵ rather than as specks; that reading is the point.
       pushCircle(points, x, y, z, 17, bright, 40);
     } else {
       pushCircle(points, x, y, z, CIRCLE_RADIUS * open, bright, 190);
@@ -172,7 +172,7 @@ function sceneCollapse(t: number): Point3[] {
   return points;
 }
 
-/** The finished mark, held — the club's identity at rest. */
+/** The finished mark, held; the club's identity at rest. */
 function sceneMark(): Point3[] {
   const points: Point3[] = [];
   const layout: readonly (readonly [number, number, number])[] = [
@@ -237,7 +237,7 @@ function sceneNetwork(t: number): Point3[] {
     ]);
   }
 
-  // Edges draw in progressively, then retract and redraw — a triangle wave
+  // Edges draw in progressively, then retract and redraw; a triangle wave
   // rather than a sawtooth, so the full set never disappears in one frame.
   const progress = triangleWave(t, 9500);
   const wanted = Math.floor(progress * NODES * 2);
@@ -505,7 +505,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
         // convention (increasing angle turns the near/front-facing side of
         // the object toward positive x, or toward positive y for pitch) so a
         // drag in a given direction always turns the surface the same way it
-        // moves — dragging right and dragging down both feel like pushing
+        // moves; dragging right and dragging down both feel like pushing
         // the front of the object in that direction, rather than one axis
         // reacting backwards from the other.
         const x1 = point.x * cosYaw - point.z * sinYaw;

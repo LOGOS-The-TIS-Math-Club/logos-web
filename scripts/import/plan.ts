@@ -267,7 +267,7 @@ export async function buildPlan(
   for (const year of [...years].sort())
     put("meetings.academic_years", {
       id: stableId(`year:${year}`),
-      name: `${year}–${String(year + 1).slice(2)}`,
+      name: `${year}-${String(year + 1).slice(2)}`,
       start_year: year,
       starts_on: `${year}-08-01`,
       ends_on: `${year + 1}-08-01`,
