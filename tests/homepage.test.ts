@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  readHomepage,
-  formatPublicationDate,
-} from "../src/content/homepage.ts";
+import { readHomepage } from "../src/content/homepage.ts";
+import { formatDisplayDate } from "../src/presentation/date.ts";
 
 test("an unavailable noticeboard preserves an independently readable term focus", async () => {
   const content = await readHomepage({
@@ -44,8 +42,8 @@ test("empty published content differs from a failed read, without falling back t
 
 test("announcement publication dates follow Tokyo across a UTC date boundary", () => {
   assert.equal(
-    formatPublicationDate(new Date("2026-10-31T15:00:00Z")),
-    "1 Nov 2026",
+    formatDisplayDate(new Date("2026-10-31T15:00:00Z")),
+    "2026/01/11",
   );
 });
 

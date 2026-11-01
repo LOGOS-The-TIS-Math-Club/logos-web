@@ -115,9 +115,25 @@ async function insertImage(tx: Tx, actor: string, image: Awaited<ReturnType<type
   return row.id as string;
 }
 
+export interface PublicStory {
+  id: string;
+  title: string;
+  occurred_on: Date;
+  description: string;
+  image_id: string | null;
+  image_alt: string | null;
+  image_width: number | null;
+  image_height: number | null;
+  published: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export function getPublishedStories(sql: postgres.Sql) {
-  return sql`select id, title, occurred_on, description, image_id, published, created_at, updated_at
-    from content.stories where published order by occurred_on desc, created_at desc`;
+  return sql<PublicStory[]>`select s.id, s.title, s.occurred_on, s.description, s.image_id, s.published, s.created_at, s.updated_at,
+    i.alt_text as image_alt, i.width as image_width, i.height as image_height
+    from content.stories s left join content.images i on i.id=s.image_id
+    where s.published order by s.occurred_on desc, s.created_at desc, s.id`;
 }
 
 export interface PublicAnnouncement {

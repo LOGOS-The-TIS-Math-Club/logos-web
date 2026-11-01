@@ -41,21 +41,19 @@ const TAU = Math.PI * 2;
 const MAX_DPR = 2;
 const FRAME_MS = 33;
 
-const WAVE_RAMP = "·-~=≈";
 const POINT_RAMP = "·:+*#@";
 
 export type AsciiScene = "collapse" | "mark" | "orbit" | "network";
 
 interface SceneConfig {
-  readonly back: "surface" | "wave" | "grid" | "none";
-  readonly mid: "graph" | "wave2" | "none";
+  readonly mid: "graph" | "none";
 }
 
 const SCENES: Record<AsciiScene, SceneConfig> = {
-  collapse: { back: "surface", mid: "graph" },
-  mark: { back: "grid", mid: "none" },
-  orbit: { back: "wave", mid: "wave2" },
-  network: { back: "grid", mid: "none" },
+  collapse: { mid: "graph" },
+  mark: { mid: "none" },
+  orbit: { mid: "none" },
+  network: { mid: "none" },
 };
 
 interface Point3 {
@@ -271,9 +269,14 @@ function sceneNetwork(t: number): Point3[] {
 export interface AsciiFieldProps {
   readonly className?: string;
   readonly scene?: AsciiScene;
+  readonly waveSurface?: boolean;
 }
 
-export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
+export function AsciiField({
+  className,
+  scene = "collapse",
+  waveSurface = false,
+}: AsciiFieldProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
   const midRef = useRef<HTMLCanvasElement>(null);
@@ -405,45 +408,18 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       }
     }
 
-    function drawWave(
-      context: CanvasRenderingContext2D,
-      t: number,
-      cell: number,
-      shift: number,
-      alpha: number,
-    ) {
-      context.clearRect(0, 0, width, height);
-      const columns = Math.ceil(width / cell);
-      const centreY = height / 2;
-      const amplitude = Math.min(height * 0.3, 150);
-      const sweep = ((t / 5200 + shift) % 1.35) * columns;
-
-      for (let i = 0; i < columns; i += 1) {
-        if (i > sweep) break;
-        const p = (i / columns) * TAU * 2;
-        const y =
-          centreY +
-          Math.sin(p + t / 1400 + shift * 6) * amplitude * 0.6 +
-          Math.cos(p * 2.3 - t / 2100) * amplitude * 0.25;
-        const age = Math.min(1, (sweep - i) / 8);
-        const level = Math.min(
-          WAVE_RAMP.length - 1,
-          Math.floor(age * WAVE_RAMP.length),
-        );
-        context.fillStyle = colorAt(0.15, alpha * (0.2 + age * 0.4));
-        context.fillText(WAVE_RAMP[level], i * cell + cell / 2, y);
-      }
-    }
-
     function drawGraph(t: number) {
       midContext!.clearRect(0, 0, width, height);
-      const columns = Math.ceil(width / 8);
+      const artLeft = width >= 1024 ? Math.max(0, (width - 1280) / 2) + 592 : 0;
+      const artRight = width >= 1024 ? Math.min(width, (width + 1280) / 2) - 32 : width;
+      const artWidth = artRight - artLeft;
+      const columns = Math.ceil(artWidth / 8);
       const centreY = height / 2;
       const amplitude = Math.min(height * 0.28, 170);
       midContext!.fillStyle = colorAt(0.66, 0.6);
 
       for (let i = 0; i <= columns; i += 1) {
-        const x = (i / columns) * width;
+        const x = artLeft + (i / columns) * artWidth;
         const u = (i / columns) * 3.4 - 1.7;
         const y = centreY - morphGraphAt(u, t) * amplitude;
         // Fractional positions move smoothly rather than jumping between rows.
@@ -452,27 +428,10 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       }
     }
 
-    function drawGrid(t: number) {
-      backContext!.clearRect(0, 0, width, height);
-      const columns = Math.ceil(width / CELL_BACK);
-      const rows = Math.ceil(height / CELL_BACK);
-      backContext!.fillStyle = colorAt(0.08, 0.2);
-      for (let r = 0; r < rows; r += 1) {
-        for (let c = 0; c < columns; c += 1) {
-          // A slow diagonal breath, so it is not a static dot field.
-          if (Math.sin((c + r) * 0.55 + t / 2600) < 0.72) continue;
-          backContext!.fillText(
-            "·",
-            c * CELL_BACK + CELL_BACK / 2,
-            r * CELL_BACK + CELL_BACK / 2,
-          );
-        }
-      }
-    }
-
     /* ------------------------------ front plate --------------------------- */
 
     function drawFront(t: number) {
+      const staticView = isReduced();
       frontContext!.clearRect(0, 0, width, height);
       depthBuffer.fill(0);
       glyphBuffer.fill(0);
@@ -493,10 +452,13 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
 
       // The shapes were too small to read. 0.86 fills the field without
       // clipping at the pitch extremes.
-      const fullHero = scene === "collapse" && width >= 1024;
+      const fullHero = width >= 1024;
+      const artLeft = fullHero ? Math.max(0, (width - 1280) / 2) + 592 : 0;
+      const artRight = fullHero ? Math.min(width, (width + 1280) / 2) - 32 : width;
+      const artWidth = artRight - artLeft;
       const markScale =
-        (Math.min(fullHero ? width * 0.55 : width, height) * 0.86) / 300;
-      const centreX = width * (fullHero ? 0.76 : 0.5);
+        (Math.min(artWidth, height) * 0.86) / 300;
+      const centreX = artLeft + artWidth / 2;
       const centreY = height / 2;
       const viewer = 620;
 
@@ -515,7 +477,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
 
         const depth = viewer + z2;
         if (depth <= 1) continue;
-        const perspective = viewer / depth;
+        const perspective = staticView ? 1 : viewer / depth;
 
         const sx = centreX + x1 * markScale * perspective;
         const sy = centreY + y2 * markScale * perspective;
@@ -572,15 +534,9 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
     }
 
     function draw(t: number) {
-      if (config.back === "surface") drawSurface(t);
-      else if (config.back === "wave")
-        drawWave(backContext!, t, CELL_BACK, 0, 0.4);
-      else if (config.back === "grid") drawGrid(t);
-      else backContext!.clearRect(0, 0, width, height);
+      if (waveSurface) drawSurface(t);
 
       if (config.mid === "graph") drawGraph(t);
-      else if (config.mid === "wave2")
-        drawWave(midContext!, t, CELL_MID, 0.45, 0.5);
       else midContext!.clearRect(0, 0, width, height);
 
       drawFront(t);
@@ -596,14 +552,28 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       frame = window.requestAnimationFrame(tick);
     }
 
+    function drawStaticFrame() {
+      // Static mode always shows the same flat view, independent of dragging.
+      yaw = 0;
+      pitch = 0;
+      yawVelocity = AUTO_YAW;
+      pitchVelocity = 0;
+      dragging = false;
+      if (activePointer !== null && container!.hasPointerCapture(activePointer)) {
+        container!.releasePointerCapture(activePointer);
+      }
+      activePointer = null;
+      delete container!.dataset.grabbing;
+      draw(9000);
+    }
+
     function start() {
       if (running || !inView || document.visibilityState === "hidden") return;
       measure();
       container!.dataset.asciiStatus = "live";
 
       if (isReduced()) {
-        // A single frame from the held part of the cycle.
-        draw(9000);
+        drawStaticFrame();
         return;
       }
       startedAt = 0;
@@ -678,7 +648,10 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
     if (typeof ResizeObserver !== "undefined") {
       resize = new ResizeObserver(() => {
         measure();
-        if (!running) draw(9000);
+        if (!running) {
+          if (isReduced()) drawStaticFrame();
+          else draw(9000);
+        }
       });
       resize.observe(container);
     }
@@ -723,7 +696,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       container.removeEventListener("pointerup", endDrag);
       container.removeEventListener("pointercancel", endDrag);
     };
-  }, [scene]);
+  }, [scene, waveSurface]);
 
   return (
     <div
@@ -731,7 +704,7 @@ export function AsciiField({ className, scene = "collapse" }: AsciiFieldProps) {
       className={`ascii-field ${className ?? ""}`}
       aria-hidden="true"
     >
-      <canvas ref={backRef} className="ascii-canvas ascii-canvas-back" />
+      <canvas ref={backRef} className="ascii-canvas ascii-canvas-back" hidden={!waveSurface} />
       <canvas ref={midRef} className="ascii-canvas ascii-canvas-mid" />
       <canvas ref={frontRef} className="ascii-canvas ascii-canvas-front" />
     </div>

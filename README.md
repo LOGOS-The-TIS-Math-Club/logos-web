@@ -76,6 +76,16 @@ Copy `.env.example` to `.env.local` and fill development settings. Run `npm run 
 
 ## Frontend
 
-The homepage uses the existing public content operations for announcements and term focus. Empty records and unavailable reads have distinct states; the latest completed session’s title/description and the current term’s non-cancelled session titles are public. Dates, locations, materials, attendance, and other session details remain behind the member/admin authorization boundary. No legacy programme fallback is used.
+The homepage uses the existing public content operations for announcements and term focus. Empty records and unavailable reads have distinct states; the latest completed session’s title/description and the current term’s non-cancelled session titles are public. Dates, locations, materials, attendance, and other session details remain behind the member/admin authorization boundary. No legacy programme fallback is used. Meetings uses this same public title-only programme. Story presents the club’s history as an oldest-first timeline of published Story milestones, including entries without a description. It never derives milestones from session records, and distinguishes empty content, unavailable reads, and image failures.
 
 Typography uses Montserrat for headings, Lato for body text and controls, and JetBrains Mono for mathematical/code content. Keep fonts FOSS; all three use SIL OFL 1.1, with notices retained in `LICENSES/`. `next/font` self-hosts the selected fonts.
+
+### Frontend review and next phase
+
+Privacy and Members are public information pages. The Members page is an access entry point and does not read or expose private account data.
+
+Step 5 is the protected frontend phase: sign-in and real authentication verification, applications and status tracking, the member dashboard, and the leadership control panel. The recurring meeting day, time, and room editor also requires the deferred backend support. These workflows remain outside the public-page implementation.
+
+The public Members page introduces people through published leadership profiles, without joining private identity or membership records. Verified legacy copy supplies the governance introduction; missing named profiles are left empty. Protected member services require a separate destination in Step 5. Privacy describes implemented backend records and access rules, without promising retention periods, automatic deletion, or verified live authentication. Retention duration, deletion handling, and the process for approving public profiles need policy confirmation before member services launch.
+
+ASCII foreground scenes use the right side of desktop heroes independently of the background surface. Only the landing page enables the full-hero wave surface.

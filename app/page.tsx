@@ -1,15 +1,13 @@
 import { Suspense } from "react";
 import { HomeBanner } from "../components/home-banner.tsx";
-import { AnnouncementImage } from "../components/announcement-image.tsx";
+import { ContentImage } from "../components/content-image.tsx";
 import { ActionLink } from "../components/action.tsx";
 import {
   getClubInfo,
   getPublishedAnnouncements,
 } from "../src/content/operations.ts";
-import {
-  readHomepage,
-  formatPublicationDate,
-} from "../src/content/homepage.ts";
+import { readHomepage } from "../src/content/homepage.ts";
+import { formatDisplayDate } from "../src/presentation/date.ts";
 import { getDatabase } from "../src/server/database.ts";
 import { getPublicSessionSummary } from "../src/sessions/public.ts";
 
@@ -82,7 +80,7 @@ async function HomeUpdates({
           <p className="small muted">
             Session dates and details are available to members.
           </p>
-          <ActionLink href="/members">Member hub</ActionLink>
+          <ActionLink href="/members">People behind LOGOS</ActionLink>
         </div>
       </section>
       <section className="home-section" aria-labelledby="news-heading">
@@ -112,12 +110,13 @@ async function HomeUpdates({
                     className="datum muted"
                     dateTime={item.published_at.toISOString()}
                   >
-                    {formatPublicationDate(item.published_at)}
+                    {formatDisplayDate(item.published_at)}
                   </time>
                   <h3>{item.title}</h3>
                   <p className="announcement-body muted">{item.body}</p>
                   {item.image_id && item.image_width && item.image_height ? (
-                    <AnnouncementImage
+                    <ContentImage
+                      unavailableMessage="Announcement image unavailable."
                       key={item.image_id}
                       id={item.image_id}
                       alt={item.image_alt ?? ""}

@@ -5,6 +5,7 @@ export function HomeBanner() {
   return (
     <PageBanner
       scene="collapse"
+      waveSurface
       theme="ascii-theme-violet"
       titleId="hero-heading"
       eyebrow="Tokyo International School · Grades 9-12"

@@ -401,7 +401,7 @@ footer {
     gap: 32px;
   }
 }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .desktop-nav {
     display: none;
   }
@@ -590,22 +590,32 @@ footer {
 }
 
 /* Public pages share the legacy banner, panels, and section spacing. */
-main:has(.homepage, .about-page, .join-page) {
+main:has(.homepage, .about-page, .join-page, .meetings-page, .story-page) {
   overflow-x: clip;
 }
-.page-content:has(> .homepage, > .about-page, > .join-page) {
+.page-content:has(
+  > .homepage,
+  > .about-page,
+  > .join-page,
+  > .meetings-page,
+  > .story-page
+) {
   padding-block: 0;
 }
 .homepage,
 .about-page,
-.join-page {
+.join-page,
+.meetings-page,
+.story-page {
   display: grid;
   gap: 96px;
   padding-bottom: 96px;
 }
 .homepage h2,
 .about-page h2,
-.join-page h2 {
+.join-page h2,
+.meetings-page h2,
+.story-page h2 {
   font-size: clamp(26px, 3vw, 36px);
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -613,7 +623,9 @@ main:has(.homepage, .about-page, .join-page) {
 }
 .homepage h3,
 .about-page h3,
-.join-page h3 {
+.join-page h3,
+.meetings-page h3,
+.story-page h3 {
   font-size: 22px;
   line-height: 1.4;
   margin: 16px 0;
@@ -719,7 +731,7 @@ main:has(.homepage, .about-page, .join-page) {
 .announcement h3 {
   overflow-wrap: anywhere;
 }
-.announcement-image {
+.content-image {
   display: block;
   max-width: 100%;
   height: auto;
@@ -958,7 +970,9 @@ main:has(.homepage, .about-page, .join-page) {
 @media (max-width: 639px) {
   .homepage,
   .about-page,
-  .join-page {
+  .join-page,
+  .meetings-page,
+  .story-page {
     gap: 64px;
     padding-bottom: 64px;
   }
@@ -977,9 +991,6 @@ main:has(.homepage, .about-page, .join-page) {
 }
 
 /* About: the legacy charter and values layout. */
-.about-banner .hero-field {
-  left: 42%;
-}
 .about-banner .ascii-fallback {
   color: var(--color-sand-deep);
 }
@@ -1055,9 +1066,6 @@ main:has(.homepage, .about-page, .join-page) {
   padding-top: 40px;
 }
 @media (max-width: 1023px) {
-  .about-banner .hero-field {
-    left: 0;
-  }
   .values-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1087,9 +1095,6 @@ main:has(.homepage, .about-page, .join-page) {
 }
 
 /* Join: public eligibility, application steps, and native FAQ disclosures. */
-.join-banner .hero-field {
-  left: 42%;
-}
 .join-banner .ascii-fallback {
   color: #33443c;
 }
@@ -1229,11 +1234,6 @@ main:has(.homepage, .about-page, .join-page) {
 .disclosure summary:focus-visible::after {
   scale: 1 1;
 }
-@media (max-width: 1023px) {
-  .join-banner .hero-field {
-    left: 0;
-  }
-}
 @media (max-width: 767px) {
   .join-eligibility,
   .join-steps {
@@ -1246,4 +1246,187 @@ main:has(.homepage, .about-page, .join-page) {
   .join-section-heading {
     margin-bottom: 24px;
   }
+}
+
+/* Meetings and Story reuse the public banner and layered panels. */
+.meetings-banner .ascii-fallback {
+  color: #33424b;
+}
+.story-banner .ascii-fallback {
+  color: var(--color-sand-deep);
+}
+.meeting-prose {
+  display: grid;
+  gap: 24px;
+}
+.meeting-prose p {
+  margin: 0;
+}
+.meeting-programme-heading {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+.meeting-programme {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block: 1px solid var(--color-border);
+}
+.meeting-programme li {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  padding: 16px 8px;
+  transition: background-color 0.2s var(--ease-out-quint);
+}
+.meeting-programme li + li {
+  border-top: 1px solid var(--color-border);
+}
+.meeting-programme li:hover {
+  background: var(--color-surface);
+}
+.meeting-programme li > :first-child {
+  flex: 0 0 32px;
+}
+.meeting-programme li > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.public-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 40px;
+  border-top: 1px solid var(--color-border);
+}
+.story-record-heading,
+.story-record,
+.story-state {
+  width: 100%;
+  max-width: 768px;
+  margin-inline: auto;
+}
+.story-state {
+  margin-top: 40px;
+}
+.story-record {
+  display: grid;
+  gap: 64px;
+  margin-top: 48px;
+  padding: 0 0 0 24px;
+  border-left: 1px solid var(--color-border);
+  list-style: none;
+}
+.story-record > li {
+  position: relative;
+}
+.story-record > li::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: -29px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+.story-entry {
+  display: grid;
+  gap: 20px;
+}
+.story-date {
+  color: var(--color-primary);
+}
+.story-page .story-entry h3 {
+  font-size: 24px;
+  margin: 10px 0 0;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.story-figure {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.story-figure .content-image {
+  width: 100%;
+  max-height: none;
+}
+.story-description {
+  display: grid;
+  gap: 16px;
+}
+.story-description p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Public people and privacy information share the layered panel system. */
+.public-info-page {
+  max-width: 768px;
+  margin-inline: auto;
+  display: grid;
+  gap: 56px;
+  padding-block: 24px 64px;
+}
+.public-info-page h1 {
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.public-info-page h2 { font-size: clamp(24px, 3vw, 30px); line-height: 1.3; }
+.public-info-page h3 { font-size: 20px; }
+.public-info-page section { display: grid; gap: 20px; }
+.public-info-page section > h2,
+.public-info-page section > p { margin: 0; }
+.public-info-page .home-panel { padding: clamp(24px, 4vw, 32px); }
+.public-info-page .home-panel > :first-child { margin-top: 0; }
+.public-info-page .home-panel > :last-child { margin-bottom: 0; }
+.info-list { margin-top: 0; padding-left: 20px; list-style: disc outside; }
+.info-list li + li { margin-top: 12px; }
+.info-note { font-size: 14px; margin-top: 20px; }
+
+.people-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 32px;
+}
+.people-list .content-image { max-height: 360px; width: auto; margin-block: 24px; }
+.person-biography { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (min-width: 1024px) {
+  .hero-field .ascii-fallback {
+    left: max(592px, calc((100% - 1280px) / 2 + 592px));
+    right: max(32px, calc((100% - 1280px) / 2 + 32px));
+  }
+}
+
+.hero-motion-control {
+  position: absolute;
+  top: 16px;
+  right: max(32px, calc((100% - 1280px) / 2 + 32px));
+  z-index: 6;
+}
+.hero-motion-control .motion-toggle {
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted-foreground);
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+  min-height: 44px;
+}
+.hero-motion-control .motion-toggle:hover {
+  color: var(--color-foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 639px) {
+  .hero-motion-control { right: 16px; top: 12px; }
+}
+@media (max-width: 1023px) {
+  .home-banner .hero-content { padding-top: 80px; }
 }

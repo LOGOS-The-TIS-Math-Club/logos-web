@@ -5,11 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation.js";
 import { ActionLink } from "./action.tsx";
 import { LogosLockup, LogosLogomark } from "./marks.tsx";
+import { MotionControl, MotionProvider } from "./motion-control.tsx";
 const links = [
   { href: "/about", label: "About" },
   { href: "/story", label: "Story" },
   { href: "/meetings", label: "Meetings" },
   { href: "/join", label: "Join" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/members", label: "Members" },
 ];
 export function Shell({
   children,
@@ -19,15 +22,8 @@ export function Shell({
   motion: "on" | "off";
 }) {
   const [open, setOpen] = useState(false);
-  const [animations, setAnimations] = useState(motion === "on");
   const toggle = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
-  function changeMotion() {
-    const next = animations ? "off" : "on";
-    document.cookie = `logos_motion=${next}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
-    document.documentElement.dataset.motion = next;
-    setAnimations(!animations);
-  }
   function navigation() {
     return links.map((link) => (
       <li key={link.href}>
@@ -47,6 +43,7 @@ export function Shell({
     ));
   }
   return (
+    <MotionProvider motion={motion}>
     <div className="shell">
       <a className="skip-link" href="#main-content">
         Skip to content
@@ -130,24 +127,14 @@ export function Shell({
             </div>
             <nav aria-label="Footer navigation">
               <ul>
-                {[
-                  ...links,
-                  { href: "/privacy", label: "Privacy" },
-                  { href: "/members", label: "Members" },
-                ].map((link) => (
+                {links.map((link) => (
                   <li key={link.href}>
                     <Link href={link.href}>{link.label}</Link>
                   </li>
                 ))}
               </ul>
             </nav>
-            <button
-              className="motion-toggle"
-              onClick={changeMotion}
-              aria-pressed={animations}
-            >
-              {animations ? "Disable animations" : "Enable animations"}
-            </button>
+            {!['/', '/about', '/join', '/meetings', '/story'].includes(pathname) ? <MotionControl /> : null}
           </div>
           <div className="footer-bottom">
             <p>Tokyo International School · Grades 9-12</p>
@@ -157,5 +144,6 @@ export function Shell({
         </div>
       </footer>
     </div>
+    </MotionProvider>
   );
 }

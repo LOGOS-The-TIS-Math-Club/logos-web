@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AsciiField, type AsciiScene } from "./brand/ascii-field.tsx";
 import { LogosLogomark } from "./marks.tsx";
+import { MotionControl } from "./motion-control.tsx";
 
 export function PageBanner({
   eyebrow,
@@ -11,6 +12,7 @@ export function PageBanner({
   theme,
   titleId,
   className = "",
+  waveSurface = false,
 }: {
   eyebrow: string;
   title: ReactNode;
@@ -20,6 +22,7 @@ export function PageBanner({
   theme: string;
   titleId: string;
   className?: string;
+  waveSurface?: boolean;
 }) {
   return (
     <section
@@ -27,11 +30,12 @@ export function PageBanner({
       aria-labelledby={titleId}
     >
       <div className="hero-field">
-        <AsciiField scene={scene} className={theme} />
+        <AsciiField scene={scene} className={theme} waveSurface={waveSurface} />
         <div className="ascii-fallback" aria-hidden="true">
           <LogosLogomark />
         </div>
       </div>
+      <div className="hero-motion-control"><MotionControl /></div>
       <div className="hero-content">
         <div className="plated hero-plate">
           <div className="home-panel hatched">

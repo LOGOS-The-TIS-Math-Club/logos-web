@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation.js";
 const destinations: Record<string, string> = {
-  about: "About",
-  story: "Story",
-  meetings: "Meetings",
-  join: "Join",
-  privacy: "Privacy",
-  members: "Members",
   apply: "Apply",
   "auth/sign-in": "Sign in",
 };

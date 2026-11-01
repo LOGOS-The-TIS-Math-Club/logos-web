@@ -59,8 +59,17 @@ export async function verifyContent(sql: postgres.Sql) {
     altText: "Unlinked private image",
   });
   await expectCode(getPublicImage(sql, privateImage.id), "NOT_FOUND");
-  const published = await createStory(sql, admin.id, { requestId: randomUUID(), title: "Published", occurredOn: "2026-10-24", published: true });
-  assert.deepEqual((await getPublishedStories(sql)).map((row) => row.id), [published.id]);
+  const published = await createStory(sql, admin.id, { requestId: randomUUID(), title: "Published", occurredOn: "2026-10-24", imageId: privateImage.id, published: true });
+  const publicStories = await getPublishedStories(sql);
+  assert.deepEqual(publicStories.map((row) => row.id), [published.id]);
+  assert.equal(publicStories[0].description, "");
+  assert.equal(publicStories[0].image_alt, "Unlinked private image");
+  assert.equal(publicStories[0].image_width, 1);
+  assert.equal(publicStories[0].image_height, 1);
+  assert.ok(publicStories[0].occurred_on instanceof Date);
+  assert.ok(!("created_by" in publicStories[0]));
+  assert.ok(!("uploaded_by" in publicStories[0]));
+  assert.ok(!("data" in publicStories[0]));
   const revised = await updateStory(sql, admin.id, published.id, published.revision, {
     title: "Updated story", occurredOn: "2026-10-24", description: "Reviewed", published: true,
   });

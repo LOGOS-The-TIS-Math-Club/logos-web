@@ -59,7 +59,7 @@ Content inputs are defined in `src/content/input.ts`. Stories require title/date
 
 Session times are Tokyo local `YYYY-MM-DD` and `HH:mm`. Ranges use exclusive ends. Materials accept specific HTTPS Google Drive folder links, including account-index links. An absent link means materials are not added. Saving a link does not verify its contents or grant Drive access; admins must attach only reviewed materials folders. This backend uses no Drive credentials or API.
 
-Published announcement responses include optional image alt text and dimensions (`image_alt`, `image_width`, `image_height`). They do not include image bytes or uploader identity; render images through the authorized public image route.
+Published story and announcement responses include optional image alt text and dimensions (`image_alt`, `image_width`, `image_height`). They do not include image bytes or uploader identity; render images through the authorized public image route.
 
 ## Attendance selection and edits
 

@@ -1,8 +1,6 @@
 import type { PublicAnnouncement } from "./operations.ts";
 import type { PublicSessionSummary } from "../sessions/public.ts";
 
-export type PublicRead<T> =
-  { status: "available"; data: T } | { status: "unavailable" };
 export type HomepageReads = {
   announcements: () => PromiseLike<readonly PublicAnnouncement[]>;
   clubInfo: () => PromiseLike<{ semester_focus: string } | null>;
@@ -33,13 +31,4 @@ export async function readHomepage(reads: HomepageReads) {
           } as const)
         : ({ status: "unavailable" } as const),
   };
-}
-
-export function formatPublicationDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Tokyo",
-  }).format(date);
 }
