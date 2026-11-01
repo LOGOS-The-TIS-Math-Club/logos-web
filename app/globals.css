@@ -5,7 +5,7 @@
    * The ramp is warm taupe rather than the previous mauve: same luminance
    * steps, hue rotated toward 35deg, so the dark theme reads like unbleached
    * paper in low light instead of cold purple-grey. Warmth is what was missing
-   * — flatness was as much a temperature problem as a layering one.
+   *; flatness was as much a temperature problem as a layering one.
    */
   --color-background: #14110d;
   --color-foreground: #f4f0e7;
@@ -49,7 +49,7 @@
   /*
    * Form controls need a visible boundary to satisfy WCAG 1.4.11 (3:1 for
    * non-text UI). The decorative border tokens above sit deliberately below
-   * that so panels can recede — inputs must not use them.
+   * that so panels can recede; inputs must not use them.
    * Measured >= 3.4:1 against every surface token.
    */
   --color-border-input: #847a66;
@@ -589,25 +589,28 @@ footer {
   display: none;
 }
 
-/* Homepage: the legacy noticeboard and ASCII banner, using the shared tokens. */
-main:has(.homepage) {
+/* Public pages share the legacy banner, panels, and section spacing. */
+main:has(.homepage, .about-page) {
   overflow-x: clip;
 }
-.page-content:has(> .homepage) {
+.page-content:has(> .homepage, > .about-page) {
   padding-block: 0;
 }
-.homepage {
+.homepage,
+.about-page {
   display: grid;
   gap: 96px;
   padding-bottom: 96px;
 }
-.homepage h2 {
+.homepage h2,
+.about-page h2 {
   font-size: clamp(26px, 3vw, 36px);
   line-height: 1.25;
   letter-spacing: -0.02em;
   margin: 12px 0;
 }
-.homepage h3 {
+.homepage h3,
+.about-page h3 {
   font-size: 22px;
   line-height: 1.4;
   margin: 16px 0;
@@ -768,7 +771,7 @@ main:has(.homepage) {
   /*
    * Establishes a stacking context. Without it, the z-index:-1 plate below
    * escapes to the nearest ancestor that has one and paints behind that
-   * ancestor's opaque background — so the plate silently vanished everywhere
+   * ancestor's opaque background; so the plate silently vanished everywhere
    * except the page banner, whose wrapper happens to be `relative z-10`.
    * `isolation` does this without changing layout or the element's own paint.
    */
@@ -950,7 +953,8 @@ main:has(.homepage) {
   }
 }
 @media (max-width: 639px) {
-  .homepage {
+  .homepage,
+  .about-page {
     gap: 64px;
     padding-bottom: 64px;
   }
@@ -966,4 +970,114 @@ main:has(.homepage) {
     padding: 24px;
     gap: 16px;
   }
+}
+
+/* About: the legacy charter and values layout. */
+.about-banner .hero-field {
+  left: 42%;
+}
+.about-banner .ascii-fallback {
+  color: var(--color-sand-deep);
+}
+.about-prose {
+  display: grid;
+  gap: 24px;
+}
+.about-prose > p {
+  margin: 0;
+}
+.about-lead {
+  font-size: 20px;
+  line-height: 1.65;
+}
+.about-charter {
+  width: 100%;
+  max-width: 576px;
+}
+.about-page .about-charter h3 {
+  margin-top: 0;
+}
+.about-charter .home-panel,
+.about-contact .home-panel {
+  padding: 28px;
+}
+.values-heading {
+  max-width: 680px;
+  margin-bottom: 40px;
+}
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: var(--color-border);
+}
+.values-grid li {
+  position: relative;
+  background: var(--color-surface);
+  padding: 28px;
+  transition: background-color 0.25s var(--ease-out-quint);
+}
+.values-grid li:hover {
+  background: var(--color-surface-raised);
+}
+.about-page .values-grid h3 {
+  margin-top: 0;
+  padding-right: 32px;
+}
+.values-grid p {
+  margin-bottom: 0;
+}
+.value-number {
+  position: absolute;
+  top: 28px;
+  right: 24px;
+  color: var(--color-sand-muted);
+}
+.about-contact {
+  width: 100%;
+  max-width: 448px;
+}
+.contact-email {
+  display: inline-block;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 40px;
+}
+@media (max-width: 1023px) {
+  .about-banner .hero-field {
+    left: 0;
+  }
+  .values-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
+  .values-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .values-heading {
+    margin-bottom: 24px;
+  }
+  .about-lead {
+    font-size: 18px;
+  }
+  .about-charter .home-panel,
+  .about-contact .home-panel {
+    padding: 24px;
+  }
+}
+
+.section-enter {
+  animation: logos-enter 0.62s var(--ease-out-expo);
+}
+
+.keep-together {
+  white-space: nowrap;
 }
