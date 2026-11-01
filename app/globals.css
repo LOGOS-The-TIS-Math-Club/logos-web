@@ -68,7 +68,7 @@
 
   /* ---- type ---- */
   --font-sans:
-    var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system,
+    var(--font-lato), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-heading: var(--font-montserrat), var(--font-sans);
   --font-mono:
@@ -587,4 +587,383 @@ footer {
 
 :root[data-motion="off"] .action-label-hover {
   display: none;
+}
+
+/* Homepage: the legacy noticeboard and ASCII banner, using the shared tokens. */
+main:has(.homepage) {
+  overflow-x: clip;
+}
+.page-content:has(> .homepage) {
+  padding-block: 0;
+}
+.homepage {
+  display: grid;
+  gap: 96px;
+  padding-bottom: 96px;
+}
+.homepage h2 {
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 12px 0;
+}
+.homepage h3 {
+  font-size: 22px;
+  line-height: 1.4;
+  margin: 16px 0;
+}
+.muted {
+  color: var(--color-muted-foreground);
+}
+.small {
+  font-size: 14px;
+}
+.home-banner {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  min-height: 76svh;
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+}
+.hero-field {
+  position: absolute;
+  inset: 0;
+}
+.hero-content {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 1280px;
+  padding: 80px 32px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.hero-plate {
+  max-width: 512px !important;
+  pointer-events: auto;
+}
+.home-panel {
+  padding: 40px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+.home-panel > :first-child {
+  margin-top: 0;
+}
+.home-panel > :last-child {
+  margin-bottom: 0;
+}
+.hatched {
+  background-image: repeating-linear-gradient(
+    119deg,
+    rgb(255 255 255 / 0.022) 0,
+    rgb(255 255 255 / 0.022) 1px,
+    transparent 1px,
+    transparent 9px
+  );
+}
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.home-section {
+  display: grid;
+  grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+  gap: 40px;
+}
+.home-rule {
+  border-block: 1px solid var(--color-border);
+  padding: 24px 8px;
+}
+.home-rule > :first-child {
+  margin-top: 0;
+}
+.home-rule .action {
+  margin-top: 12px;
+}
+.announcement-list {
+  display: grid;
+  gap: 24px;
+}
+.programme-titles {
+  margin-block: 24px;
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+.programme-titles li {
+  padding: 8px 0 8px 8px;
+  overflow-wrap: anywhere;
+}
+.programme-titles li::marker {
+  color: var(--color-sand);
+}
+.session-description {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.announcement-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.announcement h3 {
+  overflow-wrap: anywhere;
+}
+.announcement-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 640px;
+  object-fit: contain;
+  object-position: left;
+  margin-top: 24px;
+}
+.image-unavailable {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted-foreground);
+  font-size: 14px;
+}
+.home-closing .home-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 48px;
+}
+.home-closing .action {
+  flex-shrink: 0;
+}
+.home-loading {
+  padding: 32px;
+  border-block: 1px solid var(--color-border);
+  color: var(--color-muted-foreground);
+}
+.home-text-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.scroll-cue {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  animation: logos-scroll-cue 2.4s var(--ease-out-quint) infinite;
+}
+@keyframes logos-scroll-cue {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+.plated {
+  position: relative;
+  /*
+   * Establishes a stacking context. Without it, the z-index:-1 plate below
+   * escapes to the nearest ancestor that has one and paints behind that
+   * ancestor's opaque background — so the plate silently vanished everywhere
+   * except the page banner, whose wrapper happens to be `relative z-10`.
+   * `isolation` does this without changing layout or the element's own paint.
+   */
+  isolation: isolate;
+  width: auto;
+  max-width: calc(100% - 14px);
+  margin-right: 14px;
+  margin-bottom: 14px;
+}
+
+.plated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  translate: 10px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: inherit;
+  background-color: var(--color-surface-sunken);
+  z-index: -1;
+  transition:
+    translate 0.35s var(--ease-out-expo),
+    border-color 0.35s var(--ease-out-expo);
+}
+
+.plated:hover::before {
+  translate: 14px 14px;
+  border-color: var(--color-border-strong);
+}
+
+.ascii-field {
+  /* Violet is the brand default; pages retint with the themes below. */
+  --ascii-dim: #463e4e;
+  --ascii-bright: #c4b5fd;
+  --ascii-font: var(--font-mono);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.ascii-field[data-grabbing="true"] {
+  cursor: grabbing;
+}
+
+/*
+ * Per-page tints, drawn from the Tailwind palette and deliberately muted so
+ * they sit in the same low-light atmosphere as the mauve ground. The dim value
+ * is the far/dark end of the ramp, the bright value the near/lit end.
+ */
+/*
+ * Each dim value is a darkened, desaturated cousin of its bright value rather
+ * than a neutral grey, so the far side of a rotating shape stays in the same
+ * hue family as the near side and the form reads as one solid object.
+ */
+.ascii-theme-violet {
+  --ascii-dim: #4a4152; /* violet shadow */
+  --ascii-bright: #c9bcf7; /* violet, warmed slightly toward the ground */
+}
+
+.ascii-theme-sky {
+  --ascii-dim: #33424b; /* slate shadow */
+  --ascii-bright: #93cfe4; /* muted sky */
+}
+
+.ascii-theme-emerald {
+  --ascii-dim: #33443c; /* deep green shadow */
+  --ascii-bright: #8fceb0; /* muted emerald */
+}
+
+.ascii-theme-sand {
+  --ascii-dim: #4a4130; /* warm shadow */
+  --ascii-bright: #e3cfa4; /* sand, matching --color-sand */
+}
+
+.ascii-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.7s var(--ease-out-expo);
+}
+
+/* Depth cue: the back plate is softened, the front plate is crisp. */
+.ascii-canvas-back {
+  z-index: 1;
+  filter: blur(1.1px);
+}
+.hero-field .ascii-canvas-back {
+  filter: blur(0.25px);
+}
+
+.ascii-canvas-mid {
+  z-index: 2;
+  filter: blur(0.4px);
+}
+
+.ascii-canvas-front {
+  z-index: 3;
+}
+
+.ascii-field[data-ascii-status="live"] > .ascii-canvas {
+  opacity: 1;
+}
+
+/* The static mark sits behind the plates and fades once they go live. */
+.ascii-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-muted);
+  transition: opacity 0.6s var(--ease-out-expo);
+}
+
+.ascii-field[data-ascii-status="live"] ~ .ascii-fallback {
+  opacity: 0;
+}
+
+.enter {
+  animation: logos-enter 0.62s var(--ease-out-expo) var(--enter-delay, 0ms)
+    backwards;
+}
+
+/*
+ * Stagger delays are classes, not inline custom properties: the app's
+ * Content-Security-Policy has no 'unsafe-inline' in style-src, so inline style
+ * attributes would be blocked.
+ */
+.enter-1 {
+  --enter-delay: 60ms;
+}
+.enter-2 {
+  --enter-delay: 140ms;
+}
+.enter-3 {
+  --enter-delay: 220ms;
+}
+.enter-4 {
+  --enter-delay: 300ms;
+}
+.enter-5 {
+  --enter-delay: 380ms;
+}
+
+@keyframes logos-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.ascii-fallback svg {
+  width: 160px;
+  height: 160px;
+  opacity: 0.4;
+}
+:root[data-motion="off"] .ascii-field {
+  cursor: default;
+}
+@media (max-width: 1023px) {
+  .hero-field {
+    inset: 0;
+    opacity: 0.6;
+  }
+  .hero-content {
+    padding: 64px 24px;
+  }
+  .home-banner {
+    min-height: 68svh;
+  }
+  .home-section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .scroll-cue {
+    display: none;
+  }
+}
+@media (max-width: 639px) {
+  .homepage {
+    gap: 64px;
+    padding-bottom: 64px;
+  }
+  .hero-content {
+    padding: 48px 16px;
+  }
+  .home-panel {
+    padding: 24px;
+  }
+  .home-closing .home-panel {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+    gap: 16px;
+  }
 }

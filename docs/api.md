@@ -1,6 +1,6 @@
 # Backend request interface
 
-Next.js serves the backend at `/api`; the homepage is a placeholder until frontend integration. Feature operations live under `src/` and take the internal actor ID only from `getCurrentUser`. They are server modules, never browser RPCs. SQL migrations remain the model source of truth.
+Next.js serves the backend at `/api`; the homepage reads published announcements and club information through the same content operations. Feature operations live under `src/` and take the internal actor ID only from `getCurrentUser`. They are server modules, never browser RPCs. SQL migrations remain the model source of truth.
 
 Responses are `{ data: ... }` or `{ error: { code, message, requestId, fields? } }`. All API reads use `Cache-Control: no-store, private`; attendance is never served from a shared cache. Errors distinguish unauthenticated (401), denied (403), missing/hidden record (404), stale/duplicate change (409), invalid data (400/422), oversized upload (413), and infrastructure failure (503). Internal SQL/provider errors are not returned. Server failure logs contain a request ID, error type and code, without payloads or tokens.
 
@@ -59,6 +59,8 @@ Content inputs are defined in `src/content/input.ts`. Stories require title/date
 
 Session times are Tokyo local `YYYY-MM-DD` and `HH:mm`. Ranges use exclusive ends. Materials accept specific HTTPS Google Drive folder links, including account-index links. An absent link means materials are not added. Saving a link does not verify its contents or grant Drive access; admins must attach only reviewed materials folders. This backend uses no Drive credentials or API.
 
+Published announcement responses include optional image alt text and dimensions (`image_alt`, `image_width`, `image_height`). They do not include image bytes or uploader identity; render images through the authorized public image route.
+
 ## Attendance selection and edits
 
 Read and write `/admin/sessions/:id/attendance` with the selected session's ID. The response repeats `sessionId`; reject a response if it no longer matches the active selection. Abort old requests or track a request sequence. Reset selection-local roster and modal state when the selected session changes. The legacy code's old URL-only selection could retain the previous roster in React state; that is separate from backend caching. The new request tests cover A → B reads and save → reread, not the future UI interaction.
@@ -76,3 +78,8 @@ Set `APP_URL`, pooled runtime `DATABASE_URL`, branch `NEON_AUTH_BASE_URL`, local
 Live Google sign-in, provider linking and session restoration must still be exercised by a human on the selected branch. The local Auth fixtures are synthetic contract tests, not evidence of real OAuth success. The current club CLI confirms project ownership/admin access and hosted Better Auth with shared Google development credentials; Google Cloud IAM access remains unavailable, and no production trusted origin or Vercel project is configured. No remote configuration was changed during implementation.
 
 Provider references: [Neon Next.js API setup](https://neon.com/docs/auth/quick-start/nextjs-api-only) and [Google OAuth configuration](https://neon.com/docs/auth/guides/setup-oauth). The installed SDK is the authority for the cookie TTL and route-handler signatures used here.
+
+
+## Public homepage session summary
+
+The server-rendered homepage also calls `getPublicSessionSummary` in `src/sessions/public.ts`. It returns only the latest completed, non-cancelled session’s title and description, plus every non-cancelled session title in the current Tokyo term in chronological order. An unconfigured term (`null`), an empty programme (`[]`), and an unavailable read are distinct states. This is a narrow public projection of the same session records; authenticated calendar endpoints retain their existing permissions and full session details. No materials, location, attendance, identity, or administrative fields are returned.

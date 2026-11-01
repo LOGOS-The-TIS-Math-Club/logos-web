@@ -28,6 +28,7 @@
     "app/**/*.ts",
     "app/**/*.tsx",
     "components/**/*.tsx",
+    "components/**/*.ts",
     "proxy.ts",
     "next.config.ts",
     ".next/types/**/*.ts",

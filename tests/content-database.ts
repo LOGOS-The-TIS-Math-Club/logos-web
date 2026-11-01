@@ -76,8 +76,17 @@ export async function verifyContent(sql: postgres.Sql) {
     title: "Missing", occurredOn: "2026-10-24",
   }), "NOT_FOUND");
 
-  const announcement = await createAnnouncement(sql, admin.id, { requestId: randomUUID(), title: "Notice", body: "Published", published: true });
-  assert.deepEqual((await getPublishedAnnouncements(sql)).map((row) => row.id), [announcement.id]);
+  const announcement = await createAnnouncement(sql, admin.id, { requestId: randomUUID(), title: "Notice", body: "Published", imageId: draft.image_id, published: true });
+  await createAnnouncement(sql, admin.id, { requestId: randomUUID(), title: "Private draft notice", body: "Not public" });
+  await sql`insert into content.announcements(title, body, published_at, created_by)
+    values ('Future notice', 'Not public yet', now() + interval '1 day', ${admin.id})`;
+  const publicNotices = await getPublishedAnnouncements(sql);
+  assert.deepEqual(publicNotices.map((row) => row.id), [announcement.id]);
+  assert.equal(publicNotices[0].image_alt, "One pixel");
+  assert.equal(publicNotices[0].image_width, 1);
+  assert.equal(publicNotices[0].image_height, 1);
+  assert.ok(!("data" in publicNotices[0]));
+  assert.ok(!("uploaded_by" in publicNotices[0]));
   assert.ok((await listAdminAnnouncements(sql, admin.id)).some((row) => row.id === announcement.id));
   assert.equal((await getAdminAnnouncement(sql, admin.id, announcement.id)).revision, announcement.revision);
   const leader = await createLeadershipProfile(sql, admin.id, { requestId: randomUUID(),

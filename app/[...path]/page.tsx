@@ -27,11 +27,11 @@ export default async function PendingPage({
         <p>
           {title === "Sign in"
             ? "Google sign-in is not available in this preview. Live sign-in, account linking, and session restoration remain unverified."
-            : "This preview covers the shared visual shell. This destination will be implemented and reviewed separately."}
+            : "This destination will be implemented and reviewed separately. It is not available in this local preview."}
         </p>
       </div>
       <Link className="back-link" href="/">
-        ← Return to shell preview
+        ← Return home
       </Link>
     </section>
   );

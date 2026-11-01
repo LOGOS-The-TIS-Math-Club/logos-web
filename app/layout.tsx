@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { IBM_Plex_Sans, JetBrains_Mono, Montserrat } from "next/font/google";
+import { Lato, JetBrains_Mono, Montserrat } from "next/font/google";
 import { cookies } from "next/headers.js";
 import { Shell } from "../components/shell.tsx";
 import "./globals.css";
-const plex = IBM_Plex_Sans({
+const lato = Lato({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex-sans",
+  weight: ["400", "700"],
+  variable: "--font-lato",
   display: "swap",
 });
 const montserrat = Montserrat({
@@ -38,7 +38,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       data-motion={motion}
-      className={`${plex.variable} ${montserrat.variable} ${mono.variable}`}
+      className={`${lato.variable} ${montserrat.variable} ${mono.variable}`}
     >
       <body>
         <Shell motion={motion}>{children}</Shell>

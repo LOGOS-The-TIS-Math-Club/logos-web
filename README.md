@@ -1,6 +1,6 @@
 # LOGOS
 
-Backend for Tokyo International School’s student mathematics club. Next.js serves request interfaces and hosted Neon Auth; the familiar frontend will be integrated later.
+Tokyo International School’s student mathematics club website. Next.js serves the public frontend, request interfaces, and hosted Neon Auth integration. Protected frontend workflows are being integrated incrementally.
 
 ## Run checks
 
@@ -73,3 +73,9 @@ See [migration guidance](docs/migration.md) for the isolated, credential-free `d
 ## Run the backend
 
 Copy `.env.example` to `.env.local` and fill development settings. Run `npm run dev`; use `npm run build` for a production compilation. No deployment is needed to run locally. See [request interfaces and Auth setup](docs/api.md) for routes, revision tokens, image saves and remaining provider verification.
+
+## Frontend
+
+The homepage uses the existing public content operations for announcements and term focus. Empty records and unavailable reads have distinct states; the latest completed session’s title/description and the current term’s non-cancelled session titles are public. Dates, locations, materials, attendance, and other session details remain behind the member/admin authorization boundary. No legacy programme fallback is used.
+
+Typography uses Montserrat for headings, Lato for body text and controls, and JetBrains Mono for mathematical/code content. Keep fonts FOSS; all three use SIL OFL 1.1, with notices retained in `LICENSES/`. `next/font` self-hosts the selected fonts.

@@ -10,6 +10,7 @@ import { verifyAuth } from "../tests/auth-database.ts";
 import { verifyMeetings } from "../tests/meetings-database.ts";
 import { verifyContentReplay } from "../tests/content-replay-database.ts";
 import { verifyContent } from "../tests/content-database.ts";
+import { verifyPublicSessions } from "../tests/public-sessions-database.ts";
 import { verifyMembership } from "../tests/membership-database.ts";
 import { verifyDatabase } from "../tests/database.ts";
 
@@ -72,6 +73,7 @@ try {
   await verifyMeetings(sql);
   await reset();
   await verifyContent(sql);
+  await verifyPublicSessions(sql);
   await reset();
   await verifyContentReplay(sql);
   await reset();
@@ -96,6 +98,7 @@ try {
     await verifyRuntime(runtime);
     await verifyApi(runtime);
     await reset();
+    await verifyPublicSessions(runtime);
     await verifyContentReplay(runtime, false);
   } finally {
     await runtime.end();

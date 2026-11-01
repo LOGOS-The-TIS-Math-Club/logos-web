@@ -120,9 +120,24 @@ export function getPublishedStories(sql: postgres.Sql) {
     from content.stories where published order by occurred_on desc, created_at desc`;
 }
 
+export interface PublicAnnouncement {
+  id: string;
+  title: string;
+  body: string;
+  image_id: string | null;
+  image_alt: string | null;
+  image_width: number | null;
+  image_height: number | null;
+  published_at: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export function getPublishedAnnouncements(sql: postgres.Sql) {
-  return sql`select id, title, body, image_id, published_at, created_at, updated_at
-    from content.announcements where published_at <= now() order by published_at desc`;
+  return sql<PublicAnnouncement[]>`select a.id, a.title, a.body, a.image_id, a.published_at, a.created_at, a.updated_at,
+    i.alt_text as image_alt, i.width as image_width, i.height as image_height
+    from content.announcements a left join content.images i on i.id=a.image_id
+    where a.published_at <= now() order by a.published_at desc, a.id`;
 }
 
 export function getPublishedLeadership(sql: postgres.Sql) {
@@ -136,7 +151,7 @@ export function getResources(sql: postgres.Sql) {
 }
 
 export async function getClubInfo(sql: postgres.Sql) {
-  const [row] = await sql`select about, semester_focus, contact_email from content.club_info where id=true`;
+  const [row] = await sql<{ about: string; semester_focus: string; contact_email: string }[]>`select about, semester_focus, contact_email from content.club_info where id=true`;
   return row ?? null;
 }
 
