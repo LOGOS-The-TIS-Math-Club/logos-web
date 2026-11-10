@@ -379,27 +379,35 @@ export async function updateAnnouncement(sql: postgres.Sql, actorId: string, id:
   });
 }
 
-export async function createLeadershipProfile(sql: postgres.Sql, actorId: string, raw: unknown) {
+export async function createLeadershipProfile(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload) {
   const actor = uuid(actorId);
   const input = leadershipInput.parse(raw);
   const { requestId } = creationRequestInput.parse(raw);
-  return createContentOnce(sql, actor, "leadership", requestId, input, async (tx) => {
+  const selectedImage = upload === undefined ? undefined : imageInput.parse(upload);
+  if (selectedImage && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
+  return createContentOnce(sql, actor, "leadership", requestId, selectedImage ? { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage) } : input, async (tx) => {
+    const image = await validateImage(selectedImage);
+    const imageId = image ? await insertImage(tx, actor, image) : input.imageId ?? null;
     const [row] = await tx`insert into content.leadership_profiles(member_id, display_name, title, biography, image_id, sort_order, published)
-      values (${input.memberId ?? null}, ${input.displayName}, ${input.title}, ${input.biography}, ${input.imageId ?? null}, ${input.sortOrder}, ${input.published}) returning *`;
+      values (${input.memberId ?? null}, ${input.displayName}, ${input.title}, ${input.biography}, ${imageId}, ${input.sortOrder}, ${input.published}) returning *`;
     await recordHistory(tx, actor, "content.leadership.created", row.id, { displayName: input.displayName, title: input.title });
     return row;
   });
 }
 
-export async function updateLeadershipProfile(sql: postgres.Sql, actorId: string, id: string, expectedRevision: number, raw: unknown) {
+export async function updateLeadershipProfile(sql: postgres.Sql, actorId: string, id: string, expectedRevision: number, raw: unknown, upload?: Upload) {
   const actor = uuid(actorId);
   const profileId = uuid(id);
   const revision = revisionInput.parse(expectedRevision);
   const input = leadershipInput.parse(raw);
   return sql.begin(async (tx) => {
     await requireAdmin(tx, actor);
+    if (upload && input.imageId != null) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
+    const image = await validateImage(upload);
+    const imageId = image ? await insertImage(tx, actor, image) : input.imageId;
+    const keepImage = !image && imageId === undefined;
     const [row] = await tx`update content.leadership_profiles set member_id=${input.memberId ?? null}, display_name=${input.displayName},
-      title=${input.title}, biography=${input.biography}, image_id=${input.imageId ?? null}, sort_order=${input.sortOrder}, published=${input.published}, revision=revision+1
+      title=${input.title}, biography=${input.biography}, image_id=case when ${keepImage} then image_id else ${imageId ?? null} end, sort_order=${input.sortOrder}, published=${input.published}, revision=revision+1
       where id=${profileId} and revision=${revision} returning *`;
     if (!row) await requireExistingOrConflict(tx, "content.leadership_profiles", profileId);
     await recordHistory(tx, actor, "content.leadership.updated", profileId, { displayName: input.displayName, title: input.title, revision: row.revision });

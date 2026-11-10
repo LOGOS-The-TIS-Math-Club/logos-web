@@ -43,7 +43,7 @@ test("empty published content differs from a failed read, without falling back t
 test("announcement publication dates follow Tokyo across a UTC date boundary", () => {
   assert.equal(
     formatDisplayDate(new Date("2026-10-31T15:00:00Z")),
-    "2026/01/11",
+    "2026/11/01",
   );
 });
 

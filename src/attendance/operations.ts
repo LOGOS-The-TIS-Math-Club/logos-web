@@ -34,7 +34,8 @@ const attendanceBatchInput = z
 
 const noticeInput = z
   .object({
-    sessionId: z.uuid().optional(),
+    requestId: z.uuid().transform(value => value.toLowerCase()).optional(),
+    sessionId: z.uuid().transform(value => value.toLowerCase()).optional(),
     sessionDate: z.iso.date().optional(),
     reason: z.string().trim().min(1).max(500),
   })
@@ -206,11 +207,23 @@ export async function createAbsenceNotice(
   const v = noticeInput.parse(raw);
   return sql.begin(async (tx) => {
     const member = await requireMember(tx, actor);
+    if (v.requestId) {
+      await tx`select id from members.memberships where id=${member} for update`;
+      await requireMember(tx, actor);
+      const [existing] = await tx`select id,member_id,session_id,session_date::text as date,reason,status,revision
+        from meetings.absence_notices where id=${v.requestId}`;
+      if (existing) {
+        if (existing.member_id !== member || existing.reason !== v.reason ||
+          existing.session_id !== (v.sessionId ?? null) || existing.date !== (v.sessionDate ?? null))
+          throw new BackendError("CONFLICT", "This notice ID was already used. Check your notices before starting a new notice.", 409);
+        return { id: existing.id as string, revision: existing.revision as number, status: existing.status as string };
+      }
+    }
     const [row] = v.sessionId
-      ? await tx`insert into meetings.absence_notices(member_id,session_id,reason,submitted_by)
-          values (${member},${v.sessionId},${v.reason},${actor}) returning id,revision,status`
-      : await tx`insert into meetings.absence_notices(member_id,session_date,reason,submitted_by)
-          values (${member},${v.sessionDate!}::text::date,${v.reason},${actor}) returning id,revision,status`;
+      ? await tx`insert into meetings.absence_notices(id,member_id,session_id,reason,submitted_by)
+          values (coalesce(${v.requestId ?? null}::uuid,gen_random_uuid()),${member},${v.sessionId},${v.reason},${actor}) returning id,revision,status`
+      : await tx`insert into meetings.absence_notices(id,member_id,session_date,reason,submitted_by)
+          values (coalesce(${v.requestId ?? null}::uuid,gen_random_uuid()),${member},${v.sessionDate!}::text::date,${v.reason},${actor}) returning id,revision,status`;
     return {
       id: row.id as string,
       revision: row.revision as number,

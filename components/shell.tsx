@@ -1,6 +1,6 @@
 "use client";
 import type { ReactNode } from "react";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation.js";
 import { ActionLink } from "./action.tsx";
@@ -24,6 +24,26 @@ export function Shell({
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  const content = useRef<HTMLDivElement>(null);
+  const previousPath = useRef(pathname);
+  useLayoutEffect(() => {
+    if (previousPath.current === pathname) return;
+    previousPath.current = pathname;
+    const element = content.current;
+    if (!element?.animate || document.documentElement.dataset.motion === "off") return;
+    // Animate the committed destination without delaying routing or remounting it.
+    // Opacity leaves fixed drawers, focus, and scroll positioning untouched.
+    const entrance = element.animate([{ opacity: 0.84 }, { opacity: 1 }], {
+      duration: 150,
+      easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+    });
+    const preference = new MutationObserver(() => {
+      if (document.documentElement.dataset.motion === "off") entrance.cancel();
+    });
+    preference.observe(document.documentElement, { attributes: true, attributeFilter: ["data-motion"] });
+    void entrance.finished.then(() => preference.disconnect(), () => preference.disconnect());
+    return () => { preference.disconnect(); entrance.cancel(); };
+  }, [pathname]);
   function navigation() {
     return links.map((link) => (
       <li key={link.href}>
@@ -44,7 +64,10 @@ export function Shell({
   }
   return (
     <MotionProvider motion={motion}>
-    <div className="shell">
+    <div className="shell" onDragStart={(event) => {
+      const target = event.target;
+      if (target instanceof Element && !target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])')) event.preventDefault();
+    }}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -111,7 +134,7 @@ export function Shell({
         </div>
       </header>
       <main id="main-content" tabIndex={-1}>
-        <div className="container page-content">{children}</div>
+        <div ref={content} className="container page-content">{children}</div>
       </main>
       <footer>
         <div className="container">

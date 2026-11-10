@@ -330,3 +330,25 @@ export async function getCurrentCalendar(sql: postgres.Sql, actorId: string) {
     };
   });
 }
+
+export async function getCalendarHierarchy(sql: postgres.Sql, actorId: string) {
+  const actor = z.uuid().parse(actorId);
+  return sql.begin("isolation level repeatable read read only", async tx => {
+    await requireCalendarReader(tx, actor);
+    return {
+      academicYears: await tx`select id,name,start_year,starts_on,ends_on from meetings.academic_years order by starts_on desc,id`,
+      terms: await tx`select id,academic_year_id,name,starts_on,ends_on from meetings.terms order by starts_on,id`,
+    };
+  });
+}
+
+export async function getSessionSummaries(sql: postgres.Sql, actorId: string, sessionIds: string[]): Promise<postgres.Row[]> {
+  const actor = z.uuid().parse(actorId);
+  const ids = z.array(z.uuid()).parse(sessionIds);
+  return sql.begin(async (tx): Promise<postgres.Row[]> => {
+    await requireCalendarReader(tx, actor);
+    if (!ids.length) return [];
+    return tx`select id,title,starts_at,ends_at,status,duration_minutes from meetings.session_times
+      where id=any(${tx.array(ids)}::uuid[]) order by starts_at desc,id`;
+  });
+}

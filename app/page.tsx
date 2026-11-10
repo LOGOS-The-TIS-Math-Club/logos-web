@@ -1,3 +1,4 @@
+import { RecurringMeeting } from "../components/recurring-meeting.tsx";
 import { Suspense } from "react";
 import { HomeBanner } from "../components/home-banner.tsx";
 import { ContentImage } from "../components/content-image.tsx";
@@ -143,6 +144,7 @@ export default function Home() {
   return (
     <div className="homepage">
       <HomeBanner />
+      <Suspense fallback={<p role="status">Loading recurring meetings...</p>}><RecurringMeeting /></Suspense>
       <Suspense
         fallback={
           <div className="home-loading" role="status">
@@ -168,3 +170,5 @@ export default function Home() {
     </div>
   );
 }
+
+export const dynamic = "force-dynamic";

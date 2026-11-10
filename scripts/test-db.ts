@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { verifyLeadership } from "../tests/leadership-database.ts";
 import { verifyRuntime } from "../tests/runtime-database.ts";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, mkdir, rm } from "node:fs/promises";
@@ -7,6 +8,9 @@ import { migrate } from "./migrations.ts";
 import { verifyImportRollback } from "../tests/import-database.ts";
 import { verifyApi } from "../tests/api-database.ts";
 import { verifyAuth } from "../tests/auth-database.ts";
+import { verifySignIn } from "../tests/sign-in-database.ts";
+import { verifyApply, verifyUnconfiguredApply } from "../tests/apply-database.ts";
+import { verifyDashboard } from "../tests/dashboard-database.ts";
 import { verifyMeetings } from "../tests/meetings-database.ts";
 import { verifyContentReplay } from "../tests/content-replay-database.ts";
 import { verifyContent } from "../tests/content-database.ts";
@@ -80,6 +84,13 @@ try {
   await verifyMembership(sql);
   await reset();
   await verifyAuth(sql);
+  await verifySignIn(sql);
+  await reset();
+  await verifyUnconfiguredApply(sql);
+  await verifyApply(sql);
+  await reset();
+  await verifyDashboard(sql);
+  await verifyLeadership(sql);
   await reset();
   await verifyApi(sql);
   await sql.unsafe(
@@ -97,6 +108,12 @@ try {
   try {
     await verifyRuntime(runtime);
     await verifyApi(runtime);
+    await reset();
+    await verifyUnconfiguredApply(runtime);
+    await verifyApply(runtime);
+    await reset();
+    await verifyDashboard(runtime);
+    await verifyLeadership(runtime);
     await reset();
     await verifyPublicSessions(runtime);
     await verifyContentReplay(runtime, false);

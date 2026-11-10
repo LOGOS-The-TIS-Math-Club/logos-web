@@ -64,7 +64,15 @@ export async function verifyAuth(sql: postgres.Sql) {
 
   const clubClaims = claims("mathclub@tokyois.com", `club-${suffix}`);
   const clubId = await associateGoogleIdentity(sql, `auth-club-${suffix}`, clubClaims);
+  assert.equal(await hasAccess(sql, clubId, "admin"), false);
+  assert.equal(await hasAccess(sql, clubId, "member"), false);
+  assert.equal((await sql`select count(*)::int as n from people.role_grants where identity_id=${clubId}`)[0].n, 0);
+  await sql`insert into people.role_grants(identity_id,role) values (${clubId},'admin')`;
+  assert.equal(await associateGoogleIdentity(sql, `auth-club-${suffix}`, clubClaims), clubId);
   assert.equal(await hasAccess(sql, clubId, "admin"), true);
+  await sql`delete from people.role_grants where identity_id=${clubId} and role='admin'`;
+  await associateGoogleIdentity(sql, `auth-club-${suffix}`, clubClaims);
+  assert.equal(await hasAccess(sql, clubId, "admin"), false);
   const studentEmail = `ordinary-${suffix}@tokyois.com`;
   const studentId = await associateGoogleIdentity(sql, `auth-student-${suffix}`, claims(studentEmail, `student-${suffix}`));
   assert.equal(await hasAccess(sql, studentId, "admin"), false);

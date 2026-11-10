@@ -24,5 +24,5 @@ export function formatDisplayDate(
       .formatToParts(date)
       .map(({ type, value }) => [type, value]),
   );
-  return `${year}/${day}/${month}`;
+  return `${year}/${month}/${day}`;
 }

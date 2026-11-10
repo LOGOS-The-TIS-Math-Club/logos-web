@@ -155,7 +155,14 @@ export async function getAdminMemberDetail(
     const attendanceRecords = await tx<
       { status: AttendanceStatus }[]
     >`select status from meetings.eligible_attendance(${member}, now())`;
+    const records = await tx`select a.session_id, a.status, s.title, s.starts_at
+      from meetings.attendance a join meetings.session_times s on s.id=a.session_id
+      where a.member_id=${member} order by s.starts_at desc,s.id`;
+    const periods = await tx`select starts_on,ends_on,status,departure_reason from members.state_periods
+      where member_id=${member} order by starts_on desc`;
     return {
+      records,
+      periods,
       member: withCurrentGrade(card),
       private: { notes: privateNotes?.notes ?? "" },
       applications,

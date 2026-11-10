@@ -10,12 +10,16 @@ import {
   privateHeaders,
 } from "./http.ts";
 import { submitApplication } from "../applications/operations.ts";
+import { getOwnApplicationEntry } from "../applications/entry.ts";
 import { getOwnApplications } from "../access/operations.ts";
 import * as applications from "../applications/review.ts";
 import * as members from "../membership/operations.ts";
 import * as sessions from "../sessions/calendar.ts";
 import * as attendance from "../attendance/operations.ts";
 import * as content from "../content/operations.ts";
+import { getDashboardData, getPersonalData } from "../dashboard/operations.ts";
+
+import { getRecurringSettings, saveRecurringSettings, getPublicRecurring } from "../sessions/recurring.ts";
 
 const revision = z.number().int().positive();
 const uuid = z.uuid();
@@ -60,6 +64,7 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
 
       if (method === "GET" && path[0] === "public") {
         if (path.length === 2) {
+          if (path[1] === "recurring-meeting") return json(await getPublicRecurring(sql));
           if (path[1] === "stories")
             return json(await content.getPublishedStories(sql));
           if (path[1] === "announcements")
@@ -86,6 +91,8 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
         const actor = await user();
         if (method === "GET" && path.length === 1) return json(actor);
         if (path[1] === "applications") {
+          if (path.length === 3 && path[2] === "entry" && method === "GET")
+            return json(await getOwnApplicationEntry(sql, actor.id));
           if (path.length === 2 && method === "GET")
             return json(await getOwnApplications(sql, actor.id));
           if (path.length === 2 && method === "POST")
@@ -133,6 +140,14 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
           }
         }
       }
+      if (path[0] === "dashboard" && method === "GET" && (path.length === 1 || (path.length === 2 && path[1] === "records"))) {
+        const actor = await user();
+        return json(path.length === 1 ? await getDashboardData(sql,actor) : await getPersonalData(sql,actor));
+      }
+      if (path[0] === "calendar" && path.length === 2 && path[1] === "hierarchy" && method === "GET") {
+        const actor = await user();
+        return json(await sessions.getCalendarHierarchy(sql,actor.id));
+      }
       if (path[0] === "calendar" && path.length === 1 && method === "GET") {
         const actor = await user();
         return json(await sessions.getCurrentCalendar(sql, actor.id));
@@ -172,11 +187,16 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
       }
       if (path[0] === "admin") {
         const actor = await admin();
+        if (path[1] === "recurring-meeting" && path.length === 2) {
+          if (method === "GET") return json(await getRecurringSettings(sql, actor));
+          if (method === "PUT") return json(await saveRecurringSettings(sql, actor, await body()));
+        }
         if (path[1] === "applications") {
           if (path.length === 2 && method === "GET")
             return json(
               await applications.listApplicationQueue(sql, actor, {
                 status: url.searchParams.get("status") ?? "submitted",
+                offset: url.searchParams.has("offset") ? Number(url.searchParams.get("offset")) : 0,
               }),
             );
           if (path.length === 3 && method === "GET")
@@ -424,7 +444,7 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
                 );
               if (kind === "leadership")
                 return json(
-                  await content.createLeadershipProfile(sql, actor, b),
+                  await content.createLeadershipProfile(sql, actor, b, upload),
                   201,
                 );
               if (kind === "resources")
@@ -465,6 +485,7 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
                     entity,
                     rev(b),
                     b,
+                    upload,
                   ),
                 );
               if (kind === "resources")

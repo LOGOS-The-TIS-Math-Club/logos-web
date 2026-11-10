@@ -72,13 +72,6 @@ export async function associateGoogleIdentity(
       [person] =
         await tx`insert into people.identities(auth_user_id,google_subject,email,school_verified) values(${userId},${claims.sub},${email},true) returning *`;
     }
-    // Explicit club-account grant; leadership titles never confer authority.
-    if (email === "mathclub@tokyois.com") {
-      const grants =
-        await tx`insert into people.role_grants(identity_id,role,granted_by) values(${person!.id},'admin',${person!.id}) on conflict do nothing returning identity_id`;
-      if (grants.length)
-        await tx`insert into operations.change_history(actor_id,action,entity_id) values(${person!.id},'access.club_admin_granted',${person!.id})`;
-    }
     return person!.id as string;
   });
 }

@@ -1,4 +1,4 @@
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import Link from "next/link";
 
 /*
@@ -10,12 +10,13 @@ import Link from "next/link";
  * the two label layers the effect needs.
  */
 
-export type ActionVariant = "primary" | "outline" | "quiet";
+export type ActionVariant = "primary" | "outline" | "quiet" | "danger";
 
 const variantClass: Record<ActionVariant, string> = {
   primary: "action-primary",
   outline: "",
   quiet: "action-quiet",
+  danger: "action-danger",
 };
 
 function classes(variant: ActionVariant, className?: string) {
@@ -41,6 +42,11 @@ export interface ActionLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement>
   readonly href: string;
   readonly variant?: ActionVariant;
   readonly children: ReactNode;
+}
+
+export function ActionButton({ variant = "outline", className, children, type = "button", ...props }:
+  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ActionVariant; ref?: Ref<HTMLButtonElement> }) {
+  return <button type={type} className={classes(variant, className)} {...props}><Layers>{children}</Layers></button>;
 }
 
 export function ActionLink({

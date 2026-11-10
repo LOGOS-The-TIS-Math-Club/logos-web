@@ -1,3 +1,4 @@
+import { RecurringMeeting } from "../../components/recurring-meeting.tsx";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageBanner } from "../../components/page-banner.tsx";
@@ -148,6 +149,7 @@ export default function MeetingsPage() {
           <Programme content={programme} />
         </Suspense>
       </RevealSection>
+      <Suspense fallback={<p role="status">Loading recurring meetings...</p>}><RecurringMeeting /></Suspense>
       <RevealSection
         className="home-section"
         aria-labelledby="meeting-details-heading"
@@ -159,8 +161,9 @@ export default function MeetingsPage() {
         <div className="plated">
           <div className="home-panel">
             <p className="muted">
-              Session dates, materials, and attendance are private. Member services are not available in this public preview.
+              Session dates, materials, and attendance are private. Sign in to open member services.
             </p>
+            <ActionLink href="/dashboard">Open member dashboard</ActionLink>
           </div>
         </div>
       </RevealSection>
@@ -173,3 +176,5 @@ export default function MeetingsPage() {
     </div>
   );
 }
+
+export const dynamic = "force-dynamic";
