@@ -152,14 +152,18 @@ async function readUpload(file: File, altText: string) {
 
 function SavedPostImage({ id, alt, name }: { id: string; alt: string; name: string }) {
   return (
-    <div className="admin-post-image">
+    <>
       <img className="admin-image" src={`/api/admin/content/images/${id}`} alt={alt} loading="lazy" />
       <label className="application-check">
         <input type="checkbox" name={name} /> Remove {alt || "this image"}
       </label>
-    </div>
+    </>
   );
 }
+type GalleryEntry =
+  | { key: string; id: string; alt: string; removeField: string }
+  | { key: string; id: string; file: File };
+
 export function ContentEditor({ kind, id }: { kind: string; id: string }) {
   const supportsGallery = kind === "stories" || kind === "announcements";
   const allowed = kinds.some((k) => k[0] === kind);
@@ -186,6 +190,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
   const [savedId, setSavedId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [files, setFiles] = useState<{ id: string; file: File }[]>([]);
+  const [imageOrder, setImageOrder] = useState<string[]>([]);
   const [preview, setPreview] = useState("");
   const [publication, setPublication] = useState<boolean | undefined>();
   const [conflict, setConflict] = useState(false);
@@ -199,6 +204,27 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
     return () => URL.revokeObjectURL(url);
   }, [file]);
   const existing = id === "new" ? null : read.data;
+  const savedImages: GalleryEntry[] = [
+    ...(existing?.image_id ? [{ key: "original", id: existing.image_id, alt: "", removeField: "removeImage" }] : []),
+    ...(existing?.additional_images ?? []).map((image, index) => ({
+      ...image, key: `saved-${index}-${image.id}`, removeField: `remove-image-${image.id}`,
+    })),
+  ];
+  const gallery: GalleryEntry[] = [...savedImages, ...files.map((entry) => ({ ...entry, key: entry.id }))];
+  const orderedGallery = kind === "stories" ? [
+    ...imageOrder.flatMap((key) => gallery.filter((entry) => entry.key === key)),
+    ...gallery.filter((entry) => !imageOrder.includes(entry.key)),
+  ] : gallery;
+
+  function moveImage(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= orderedGallery.length) return;
+    const order = orderedGallery.map((entry) => entry.key);
+    [order[index], order[target]] = [order[target], order[index]];
+    setImageOrder(order);
+    setDirty(true);
+  }
+
   const publicAfterSave =
     publication ??
     (kind === "announcements"
@@ -224,6 +250,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
       else {
         setFile(null);
         setFiles([]);
+        setImageOrder([]);
         read.refresh();
         setRevision((v) => v + 1);
       }
@@ -297,9 +324,17 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
         body.removeImageIds = (existing?.additional_images ?? [])
           .filter((image) => v[`remove-image-${image.id}`] === "on")
           .map((image) => image.id);
-        body.uploads = await Promise.all(files.map(({ id, file }) =>
+        const uploads = orderedGallery.filter((entry) => "file" in entry);
+        body.uploads = await Promise.all(uploads.map(({ id, file }) =>
           readUpload(file, String(v[`alt-${id}`] ?? "").trim()),
         ));
+        if (kind === "stories" && existing && imageOrder.length) {
+          const retained = savedImages.filter((entry) => "removeField" in entry && v[entry.removeField] !== "on");
+          const defaultOrder = [...retained, ...uploads].map((entry) => entry.key);
+          body.imageOrder = orderedGallery
+            .filter((entry) => "file" in entry || v[entry.removeField] !== "on")
+            .map((entry) => defaultOrder.indexOf(entry.key));
+        }
       } else if (kind === "leadership") {
         if (file) body.upload = await readUpload(file, String(v.altText ?? ""));
         else
@@ -359,6 +394,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                 setSavedId(null);
                 setFile(null);
                 setFiles([]);
+                setImageOrder([]);
                 setPublication(undefined);
                 setRevision((v) => v + 1);
                 setMessage("");
@@ -383,6 +419,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
               snapshot.current = null;
               setFile(null);
               setFiles([]);
+              setImageOrder([]);
               setPublication(undefined);
               setConflict(false);
               setRevision((v) => v + 1);
@@ -590,20 +627,31 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                         }}
                       />
                       <p className="admin-hint">Up to 8 images per post, 2 MiB each, and 3 MiB of new images per save.</p>
-                      {existing?.image_id ? (
-                        <SavedPostImage id={existing.image_id} alt="" name="removeImage" />
+                      {kind === "stories" && orderedGallery.length > 1 ? (
+                        <p className="admin-hint">Images appear in this order. The first image opens the gallery.</p>
                       ) : null}
-                      {existing?.additional_images?.map(image => (
-                        <SavedPostImage key={image.id} {...image} name={`remove-image-${image.id}`} />
-                      ))}
-                      {files.map(({ id, file }) => (
-                        <div key={id} className="admin-post-image">
-                          <p>{file.name} · {Math.ceil(file.size / 1024)} KB</p>
-                          <Field name={`alt-${id}`} label="Alt text (for screen readers)" required maxLength={300} />
-                          <ActionButton onClick={() => {
-                            setFiles(current => current.filter(entry => entry.id !== id));
-                            setDirty(true);
-                          }}>Remove selected image</ActionButton>
+                      {orderedGallery.map((entry, index) => (
+                        <div key={entry.key} className="admin-post-image">
+                          {"file" in entry ? (
+                            <>
+                              <p>{entry.file.name} · {Math.ceil(entry.file.size / 1024)} KB</p>
+                              <Field name={`alt-${entry.id}`} label="Alt text (for screen readers)" required maxLength={300} />
+                              <ActionButton onClick={() => {
+                                setFiles(current => current.filter(image => image.id !== entry.id));
+                                setDirty(true);
+                              }}>Remove selected image</ActionButton>
+                            </>
+                          ) : (
+                            <SavedPostImage id={entry.id} alt={entry.alt} name={entry.removeField} />
+                          )}
+                          {kind === "stories" && orderedGallery.length > 1 ? (
+                            <div className="dashboard-actions">
+                              <ActionButton aria-label={`Move image ${index + 1} earlier`}
+                                disabled={index === 0} onClick={() => moveImage(index, -1)}>Move earlier</ActionButton>
+                              <ActionButton aria-label={`Move image ${index + 1} later`}
+                                disabled={index === orderedGallery.length - 1} onClick={() => moveImage(index, 1)}>Move later</ActionButton>
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>

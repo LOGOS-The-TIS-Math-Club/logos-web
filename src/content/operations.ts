@@ -164,6 +164,31 @@ async function saveGallery(
   }
 }
 
+async function reorderStoryImages(
+  tx: Tx, story: { id: string; image_id: string | null }, order: number[],
+) {
+  const links = await tx<{ image_id: string }[]>`select image_id from content.post_images
+    where story_id=${story.id} order by position`;
+  const images = links.map((link) => link.image_id);
+  if (story.image_id) images.unshift(story.image_id);
+  if (order.length !== images.length || new Set(order).size !== images.length ||
+      order.some((index) => index >= images.length)) {
+    throw new BackendError("INVALID_INPUT", "Image order must include each image exactly once.", 422);
+  }
+  if (order.every((index, position) => index === position)) return;
+
+  const keepLegacy = story.image_id && order[0] === 0;
+  if (story.image_id && !keepLegacy) {
+    await tx`update content.stories set image_id=null where id=${story.id}`;
+  }
+  await tx`delete from content.post_images where story_id=${story.id}`;
+  const gallery = keepLegacy ? order.slice(1) : order;
+  for (const [position, index] of gallery.entries()) {
+    await tx`insert into content.post_images(story_id, image_id, position)
+      values (${story.id}, ${images[index]}, ${position})`;
+  }
+}
+
 export interface PublicStory {
   id: string;
   title: string;
@@ -390,6 +415,9 @@ export async function updateStory(sql: postgres.Sql, actorId: string, id: string
   const revision = revisionInput.parse(expectedRevision);
   const input = storyInput.parse(raw);
   const gallery = galleryInput(raw, uploads);
+  const { imageOrder } = z.object({
+    imageOrder: z.array(z.number().int().min(0).max(MAX_POST_IMAGES - 1)).max(MAX_POST_IMAGES).optional(),
+  }).parse(raw);
   if (upload && gallery.images.length)
     throw new BackendError("INVALID_INPUT", "Use either upload or uploads, not both.", 422);
   if (upload && input.imageId != null) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
@@ -404,8 +432,11 @@ export async function updateStory(sql: postgres.Sql, actorId: string, id: string
       where id=${storyId} and revision=${revision} returning *`;
     if (!row) await requireExistingOrConflict(tx, "content.stories", storyId);
     await saveGallery(tx, actor, "story_id", { id: row.id, image_id: row.image_id }, gallery);
+    if (imageOrder) await reorderStoryImages(tx, { id: row.id, image_id: row.image_id }, imageOrder);
     await recordHistory(tx, actor, "content.story.updated", storyId, { title: input.title, revision: row.revision });
-    return row;
+    if (!imageOrder) return row;
+    const [updated] = await tx`select * from content.stories where id=${storyId}`;
+    return updated;
   });
 }
 

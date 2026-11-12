@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ActionLink } from "../../components/action.tsx";
-import { ContentImage } from "../../components/content-image.tsx";
+import { PublicProfile } from "../../components/public-profile.tsx";
 import { getPublishedLeadership } from "../../src/content/operations.ts";
 import { readPublic } from "../../src/content/public-read.ts";
 import { getDatabase } from "../../src/server/database.ts";
@@ -20,12 +20,8 @@ async function People({ content }: {
   );
   if (!result.data.length) return <p className="home-rule muted">Named profiles have not been published yet.</p>;
   return <ul className="people-list">{result.data.map(person => (
-    <li key={person.id} className="plated"><article className="home-panel" aria-labelledby={`person-${person.id}`}>
-      <p className="eyebrow">{person.title}</p>
-      <h3 id={`person-${person.id}`}>{person.display_name}</h3>
-      {person.image_id ? <ContentImage id={person.image_id} alt={person.display_name} width={null} height={null} unavailableMessage="Profile image unavailable." /> : null}
-      {person.biography.trim() ? <p className="muted person-biography">{person.biography}</p> : null}
-    </article></li>
+    <PublicProfile key={person.id} name={person.display_name} status={person.title}
+      imageId={person.image_id} biography={person.biography} />
   ))}</ul>;
 }
 

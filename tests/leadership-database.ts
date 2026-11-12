@@ -153,6 +153,32 @@ export async function verifyLeadership(sql: postgres.Sql) {
     assert.equal((await anonymous(get("public/images/" + draftImages[0].id))).status, 404);
     assert.equal((await anonymous(get("public/images/" + draftImages[1].id))).status, 200);
   }
+  const legacyStory = {
+    requestId: randomUUID(),
+    title: "Story with an original portrait",
+    occurredOn: "2026-11-12",
+    upload: uploads[0],
+    published: true,
+  };
+  const originalResponse = await writeContent("stories", "POST", legacyStory);
+  assert.equal(originalResponse.status, 201, await originalResponse.clone().text());
+  const original = (await originalResponse.json()).data;
+  const storyPath = "stories/" + original.id;
+  const orderEdit = {
+    title: legacyStory.title, occurredOn: legacyStory.occurredOn, published: true,
+    revision: original.revision, uploads: [uploads[1]],
+  };
+  const invalidOrder = await writeContent(storyPath, "PUT", { ...orderEdit, imageOrder: [1, 1] });
+  assert.equal(invalidOrder.status, 422, await invalidOrder.clone().text());
+  const reordered = await writeContent(storyPath, "PUT", { ...orderEdit, imageOrder: [1, 0] });
+  assert.equal(reordered.status, 200, await reordered.clone().text());
+  const publicStories = (await (await anonymous(get("public/stories"))).json()).data;
+  const orderedStory = publicStories.find((story: { id: string }) => story.id === original.id);
+  assert.equal(orderedStory.image_id, null);
+  assert.deepEqual(orderedStory.additional_images.map((item: { alt: string }) => item.alt),
+    ["Second image", "First image"]);
+  assert.equal(orderedStory.additional_images[1].id, original.image_id);
+  assert.equal((await anonymous(get("public/images/" + original.image_id))).status, 200);
   const queue = await api(get("admin/applications?offset=not-a-number"));
   assert.equal(queue.status, 400);
 }

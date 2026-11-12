@@ -1758,14 +1758,194 @@ main:has(.homepage, .about-page, .join-page, .meetings-page, .story-page) {
 .info-note { font-size: 14px; margin-top: 20px; }
 
 .people-list {
-  list-style: none;
+  --profile-inset: clamp(10px, 2.5vw, 22px);
   padding: 0;
-  margin: 12px 0 0;
+  margin: 4px 0 0;
   display: grid;
-  gap: 32px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 3vw, 28px);
 }
-.people-list .content-image { max-height: 360px; width: auto; margin-block: 24px; }
-.person-biography { white-space: pre-wrap; overflow-wrap: anywhere; }
+.person-card {
+  position: relative;
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  gap: 8px;
+  padding: var(--profile-inset);
+  border-radius: var(--radius-panel);
+  overflow-wrap: anywhere;
+}
+.person-card::before { z-index: -2; }
+.person-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--color-border-strong);
+  border-radius: inherit;
+  background: var(--color-surface-raised);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .05);
+  transition: border-color 220ms ease, background-color 220ms ease;
+}
+.person-card:has(.person-name button:is(:hover, :focus-visible))::after {
+  background: var(--color-surface-lifted);
+  border-color: var(--color-sand-muted);
+}
+.person-card .person-status {
+  margin: 0;
+  padding-inline-end: 24px;
+  font-size: clamp(10px, 1.5vw, 12px);
+}
+.public-info-page .person-name {
+  margin: 0 0 clamp(2px, 1vw, 8px);
+  font-size: clamp(15px, 3.5vw, 25px);
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+.person-name button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.person-name button::after { content: ""; position: absolute; inset: 0; }
+.person-card:has(.person-name button:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.person-open-icon {
+  position: absolute;
+  top: var(--profile-inset);
+  right: var(--profile-inset);
+  color: var(--color-primary);
+  line-height: 0;
+}
+.person-open-icon svg {
+  width: clamp(14px, 2.5vw, 20px);
+  height: auto;
+  transition: transform 220ms var(--ease-out-expo);
+}
+.person-card:has(.person-name button:is(:hover, :focus-visible)) .person-open-icon svg { transform: translateX(3px); }
+.person-portrait {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+}
+.person-portrait .content-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  margin: 0;
+}
+.person-portrait .image-unavailable {
+  position: relative;
+  z-index: 1;
+  padding: 4px;
+  border: 0;
+  text-align: center;
+}
+.person-monogram {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(119deg, rgb(227 207 164 / .045) 0 1px, transparent 1px 9px);
+  color: var(--color-sand-muted);
+  font: 400 clamp(24px, 6vw, 58px) / 1 var(--font-heading);
+  letter-spacing: -.06em;
+}
+.person-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  width: min(840px, calc(100% - 24px));
+  height: fit-content;
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--color-foreground);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-lifted);
+}
+.person-dialog::backdrop { background: rgb(14 11 8 / .76); }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-motion="on"] .person-dialog[open]::backdrop {
+    animation: person-backdrop-in 360ms var(--ease-out-quint) both;
+  }
+}
+@keyframes person-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+html:has(.person-dialog[open]) { overflow: hidden; }
+.person-dialog-content {
+  --profile-dialog-inset: clamp(16px, 4vw, 32px);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "portrait heading" "portrait biography";
+  align-items: start;
+  gap: 20px clamp(24px, 4vw, 38px);
+  padding: var(--profile-dialog-inset);
+  text-align: left;
+}
+.person-dialog-close {
+  position: absolute;
+  top: calc(var(--profile-dialog-inset) - 6px);
+  right: calc(var(--profile-dialog-inset) - 6px);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-muted-foreground);
+  border: 1px solid transparent;
+  border-radius: var(--radius-component);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+.person-dialog-close:hover { color: var(--color-foreground); border-color: var(--color-border-strong); }
+.person-dialog-heading {
+  grid-area: heading;
+  padding: 12px 44px 16px 0;
+  border-bottom: 1px solid var(--color-border-strong);
+  overflow-wrap: anywhere;
+}
+.person-dialog-heading .eyebrow { margin: 0 0 8px; }
+.public-info-page .person-dialog h2 {
+  margin: 0;
+  font-size: clamp(25px, 4vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+.person-dialog-portrait { grid-area: portrait; aspect-ratio: 4 / 5; width: 100%; }
+.person-biography { grid-area: biography; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .person-dialog-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: "heading" "portrait" "biography";
+    gap: 16px;
+  }
+  .person-dialog-heading { padding-top: 0; }
+  .person-dialog-portrait { max-width: 250px; justify-self: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .person-card::before, .person-card::after, .person-open-icon svg { transition: none; }
+  .person-card:hover::before { translate: 10px 10px; }
+  .person-card:has(.person-name button:is(:hover, :focus-visible)) .person-open-icon svg { transform: none; }
+}
 @media (min-width: 1024px) {
   .hero-field .ascii-fallback {
     left: max(592px, calc((100% - 1280px) / 2 + 592px));
