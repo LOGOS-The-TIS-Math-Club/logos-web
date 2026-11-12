@@ -223,7 +223,6 @@ export function MemberDetail({ id }: { id: string }) {
                     label="Member since"
                     type="date"
                     value={m.joined_on}
-                    hint="Correcting this date can change which sessions count toward attendance."
                     required
                   />
                 ) : (
