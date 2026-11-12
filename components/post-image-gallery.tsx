@@ -27,11 +27,10 @@ export function PostImageGallery({
   const [documentVisible, setDocumentVisible] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [paused, setPaused] = useState(false);
   const motionEnabled = useMotionEnabled();
   const index = Math.min(selection.index, Math.max(0, count - 1));
   const autoplay = multiple && motionEnabled && systemMotion;
-  const playing = autoplay && documentVisible && inView && !hovered && !focused && !paused;
+  const playing = autoplay && documentVisible && inView && !hovered && !focused;
 
   useEffect(() => {
     if (!multiple) return;
@@ -145,35 +144,22 @@ export function PostImageGallery({
             move(event.key === "ArrowLeft" ? -1 : 1);
           }}
         >
-          <div className="post-image-toolbar">
-            <button type="button" aria-label="Previous image" onClick={() => move(-1)}>
-              <DashboardIcon name="left" />
-            </button>
-            <span className="sr-only" aria-live={playing ? "off" : "polite"}>
-              Image {index + 1} of {count}
-              {slides[index].alt ? `: ${slides[index].alt}` : null}
-            </span>
-            <button type="button" aria-label="Next image" onClick={() => move(1)}>
-              <DashboardIcon name="right" />
-            </button>
-            {autoplay ? (
-              <button type="button" className="post-image-autoplay" data-paused={paused}
-                aria-label={paused ? "Resume slideshow" : "Pause slideshow"}
-                onClick={() => setPaused((value) => !value)}>
-                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
-                  <path className="post-image-play-icon" d="M8 5l11 7-11 7z" />
-                  <path className="post-image-pause-icon" d="M9 5v14m6-14v14" />
-                </svg>
-              </button>
-            ) : null}
-          </div>
+          <span className="sr-only" aria-live={playing ? "off" : "polite"}>
+            Image {index + 1} of {count}
+            {slides[index].alt ? `: ${slides[index].alt}` : null}
+          </span>
+          <button type="button" className="post-image-arrow" aria-label="Previous image" onClick={() => move(-1)}>
+            <DashboardIcon name="left" />
+          </button>
           <div className="post-image-index" role="group" aria-label="Choose an image">
             {slides.map(({ id }, slide) => (
               <button type="button" key={id} aria-label={`Show image ${slide + 1} of ${count}`}
                 aria-current={slide === index ? "true" : undefined} onClick={() => goTo(slide)} />
             ))}
           </div>
+          <button type="button" className="post-image-arrow" aria-label="Next image" onClick={() => move(1)}>
+            <DashboardIcon name="right" />
+          </button>
         </div>
       ) : null}
     </div>
