@@ -23,3 +23,11 @@ export function sessionEditorDateTime(startsAt: string) {
 export function dateInputValue(value: string) {
   return value.slice(0, 10);
 }
+
+// Term editors show the last included day; the API stores the next day.
+export function shiftCalendarDay(value: string, days: -1 | 1) {
+  const date = new Date(`${dateInputValue(value)}T00:00:00Z`);
+  if (!Number.isFinite(date.getTime())) return value;
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().split("T")[0];
+}

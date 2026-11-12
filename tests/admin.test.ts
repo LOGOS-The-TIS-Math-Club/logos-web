@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   sessionEditorDateTime,
   dateInputValue,
+  shiftCalendarDay,
 } from "../src/admin/presentation.ts";
 import { recurringInput } from "../src/sessions/recurring.ts";
 test("session editing restores Tokyo date and time from an unambiguous instant", () => {
@@ -45,6 +46,18 @@ test("recurring settings remain withheld by default and validate public schedule
 test("native date inputs preserve date-only days from serialized database values", () => {
   assert.equal(dateInputValue("2030-08-01T00:00:00.000Z"), "2030-08-01");
   assert.equal(dateInputValue("2030-08-01"), "2030-08-01");
+});
+
+test("term last days round-trip through the exclusive API boundary", () => {
+  for (const [lastDay, boundary] of [
+    ["2026-11-13", "2026-11-14"],
+    ["2026-12-31", "2027-01-01"],
+    ["2028-02-29", "2028-03-01"],
+  ] as const) {
+    assert.equal(shiftCalendarDay(lastDay, 1), boundary);
+    assert.equal(shiftCalendarDay(`${boundary}T00:00:00.000Z`, -1), lastDay);
+  }
+  assert.equal(shiftCalendarDay("", 1), "");
 });
 
 test("leadership destinations accept implemented tools and reject unfinished paths", () => {

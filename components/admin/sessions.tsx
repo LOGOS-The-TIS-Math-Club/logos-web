@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { DashboardIcon } from "../dashboard/icon.tsx";
 import { ApplicationInput } from "../application-input.tsx";
-import { sessionEditorDateTime } from "../../src/admin/presentation.ts";
+import { sessionEditorDateTime, shiftCalendarDay } from "../../src/admin/presentation.ts";
 import { useState, useEffect, useRef } from "react";
 import { ActionButton, ActionLink } from "../action.tsx";
 import { DraftGuard } from "../dashboard/draft-guard.tsx";
@@ -733,7 +733,11 @@ export function CalendarSettings() {
             ]}
           />
         </div>
-        <p>End dates are exclusive. Terms must fit their academic year.</p>
+        <p>
+          {kind === "terms"
+            ? "Sessions can take place on the last day. Terms must fit their academic year."
+            : "Academic years start on August 1 and end before August 1 of the following year."}
+        </p>
         <AdminForm
           feedback={message}
           method="post"
@@ -755,7 +759,7 @@ export function CalendarSettings() {
                   revision: current?.revision,
                   ...(kind === "academic-years"
                     ? { startYear: Number(b.startYear) }
-                    : {}),
+                    : { endsOn: shiftCalendarDay(String(b.endsOn ?? ""), 1) }),
                 },
               );
               setDirty(false);
@@ -809,14 +813,18 @@ export function CalendarSettings() {
             />
             <Field
               name="endsOn"
-              label="Ends before"
+              label={kind === "terms" ? "Last day (included)" : "Ends before"}
               type="date"
-              value={current?.ends_on}
+              value={
+                kind === "terms" && current
+                  ? shiftCalendarDay(current.ends_on, -1)
+                  : current?.ends_on
+              }
               required
             />
             <div className="admin-save-bar">
               <span className="admin-hint">
-                {dirty ? "Unsaved calendar changes" : "End dates are exclusive"}
+                {dirty ? "Unsaved calendar changes" : ""}
               </span>
               <ActionButton type="submit" variant="primary">
                 {pending ? "Saving..." : "Save calendar record"}
