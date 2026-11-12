@@ -2134,9 +2134,9 @@ a, img, svg { -webkit-user-drag: none; }
  .admin-session-save > .action { width:auto; }
 }
 
-.admin-back { display:inline-flex; align-items:center; justify-self:start; gap:8px; min-height:44px; padding:8px 0; color:var(--color-foreground); font-size:16px; font-weight:700; text-decoration:none; }
-.admin-back:hover > span { text-decoration:underline; text-underline-offset:5px; text-decoration-thickness:1px; }
-.admin-back:focus-visible { outline:2px solid var(--color-primary); outline-offset:4px; }
+.back-link { display:inline-flex; align-items:center; justify-self:start; gap:8px; min-height:44px; padding:8px 0; color:var(--color-foreground); font-size:16px; font-weight:700; text-decoration:none; }
+.back-link:hover > span { text-decoration:underline; text-underline-offset:5px; text-decoration-thickness:1px; }
+.back-link:focus-visible { outline:2px solid var(--color-primary); outline-offset:4px; }
 .admin-page .admin-utility.action { min-height:36px; padding:6px 0; border-color:transparent; background:transparent; color:var(--color-muted-foreground); font-size:14px; }
 .admin-page .admin-utility.action:hover { color:var(--color-foreground); }
 .admin-utility .action-label { display:inline-flex; align-items:center; gap:9px; }

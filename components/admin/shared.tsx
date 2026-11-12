@@ -17,6 +17,7 @@ import {
   ApplicationTextarea,
 } from "../application-input.tsx";
 import Link from "next/link";
+import { BackLink } from "../back-link.tsx";
 import { DashboardIcon } from "../dashboard/icon.tsx";
 import { ActionButton } from "../action.tsx";
 import { AdminRequestError, adminRequest } from "../../src/admin/request.ts";
@@ -398,10 +399,5 @@ export function AdminBack({
   href?: string;
   children?: ReactNode;
 }) {
-  return (
-    <Link href={href} className="admin-back">
-      <DashboardIcon name="left" />
-      <span>{children}</span>
-    </Link>
-  );
+  return <BackLink href={href}>{children}</BackLink>;
 }

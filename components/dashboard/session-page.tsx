@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ActionLink } from "../action.tsx";
+import { BackLink } from "../back-link.tsx";
 import { AccessMessage, SessionFacts, Materials } from "./shared.tsx";
 import type { ProtectedState, Session } from "../../src/dashboard/types.ts";
 import {
@@ -100,10 +101,7 @@ export function SessionPage({
   return (
     <div className="dashboard-page dashboard-detail">
       <div className="dashboard-actions">
-        <ActionLink href={back} variant="quiet">
-          <DashboardIcon name="left" />
-          Sessions
-        </ActionLink>
+        <BackLink href={back}>Session list</BackLink>
         <ActionLink href="/auth/sign-in" variant="quiet">
           Your account
         </ActionLink>
