@@ -1,5 +1,13 @@
 import { isLeadershipPath } from "../admin/navigation.ts";
 import type { CurrentUser } from "./current-user.ts";
+import type { AccountState } from "./account-state.ts";
+
+export function accountHeaderLinks(status: AccountState["status"]) {
+  const account = "/auth/sign-in";
+  return status === "anonymous" || status === "unconfigured"
+    ? [{ label: "Apply", href: "/apply" }, { label: "Sign in", href: account }]
+    : [{ label: "Account", href: account }];
+}
 
 // Explicit routes prevent redirects into API endpoints, Auth callbacks or unknown pages.
 const publicPages = new Set(["/", "/about", "/story", "/meetings", "/join", "/privacy", "/members"]);

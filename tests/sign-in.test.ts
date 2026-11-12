@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { internalDestination, returnDestination, accountDestinations } from "../src/auth/navigation.ts";
+import { internalDestination, returnDestination, accountDestinations, accountHeaderLinks } from "../src/auth/navigation.ts";
 import { resolveAccount } from "../src/auth/account-state.ts";
 import { completeSignIn } from "../src/auth/complete.ts";
 import { isSignInConfigured } from "../src/auth/config.ts";
@@ -9,6 +9,19 @@ import { BackendError } from "../src/server/errors.ts";
 const applicant = { id: "synthetic", email: "synthetic@tokyois.com", member: false, admin: false };
 const member = { ...applicant, member: true };
 const admin = { ...member, admin: true };
+
+test("the header replaces Apply and Sign in with Account after sign-in", () => {
+  assert.deepEqual(accountHeaderLinks("anonymous"), [
+    { label: "Apply", href: "/apply" },
+    { label: "Sign in", href: "/auth/sign-in" },
+  ]);
+  assert.deepEqual(accountHeaderLinks("signed-in"), [
+    { label: "Account", href: "/auth/sign-in" },
+  ]);
+  assert.deepEqual(accountHeaderLinks("unconfigured"), accountHeaderLinks("anonymous"));
+  for (const status of ["denied", "unavailable"] as const)
+    assert.deepEqual(accountHeaderLinks(status), accountHeaderLinks("signed-in"));
+});
 
 test("return URLs reject external, encoded, normalized and Auth/API destinations", () => {
   for (const value of ["https://evil.invalid", "//evil.invalid", "/\\evil.invalid", "/%2f%2fevil.invalid", "/%5cevil", "/about/../", "/about\n", "javascript:alert(1)", ["/about"]]) {

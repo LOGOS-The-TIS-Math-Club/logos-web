@@ -1,11 +1,13 @@
 "use client";
 import type { ReactNode } from "react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation.js";
 import { ActionLink } from "./action.tsx";
 import { LogosLockup, LogosLogomark } from "./marks.tsx";
 import { MotionControl, MotionProvider } from "./motion-control.tsx";
+import type { AccountState } from "../src/auth/account-state.ts";
+import { accountHeaderLinks } from "../src/auth/navigation.ts";
 const links = [
   { href: "/about", label: "About" },
   { href: "/story", label: "Story" },
@@ -22,6 +24,35 @@ export function Shell({
   motion: "on" | "off";
 }) {
   const [open, setOpen] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<AccountState["status"] | null>(null);
+  useEffect(() => {
+    let pending: AbortController | undefined;
+    async function refreshAccount() {
+      pending?.abort();
+      const request = new AbortController();
+      pending = request;
+      try {
+        const response = await fetch("/api/account", {
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: request.signal,
+        });
+        if (!response.ok) throw new Error("Account check failed");
+        const result: { data: AccountState } = await response.json();
+        if (!request.signal.aborted) setAccountStatus(result.data.status);
+      } catch {
+        if (!request.signal.aborted) setAccountStatus("unavailable");
+      }
+    }
+    void refreshAccount();
+    window.addEventListener("focus", refreshAccount);
+    window.addEventListener("pageshow", refreshAccount);
+    return () => {
+      pending?.abort();
+      window.removeEventListener("focus", refreshAccount);
+      window.removeEventListener("pageshow", refreshAccount);
+    };
+  }, []);
   const toggle = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const content = useRef<HTMLDivElement>(null);
@@ -115,21 +146,17 @@ export function Shell({
                 {navigation()}
               </ul>
             </div>
-            <ActionLink
-              variant="primary"
-              className="action-sm"
-              href="/apply"
-              onClick={() => setOpen(false)}
-            >
-              Apply
-            </ActionLink>
-            <ActionLink
-              className="action-sm"
-              href="/auth/sign-in"
-              onClick={() => setOpen(false)}
-            >
-              Sign in
-            </ActionLink>
+            {accountStatus && accountHeaderLinks(accountStatus).map(({ label, href }) => (
+              <ActionLink
+                key={href}
+                variant={label === "Apply" ? "primary" : undefined}
+                className="action-sm"
+                href={href}
+                onClick={() => setOpen(false)}
+              >
+                {label}
+              </ActionLink>
+            ))}
           </nav>
         </div>
       </header>
