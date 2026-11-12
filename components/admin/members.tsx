@@ -217,6 +217,18 @@ export function MemberDetail({ id }: { id: string }) {
                   value={m.grade_academic_year}
                   required
                 />
+                {m.joined_on ? (
+                  <Field
+                    name="joinedOn"
+                    label="Member since"
+                    type="date"
+                    value={m.joined_on}
+                    hint="Correcting this date can change which sessions count toward attendance."
+                    required
+                  />
+                ) : (
+                  <p className="admin-hint">No membership start date is recorded.</p>
+                )}
                 <Field
                   name="privateNotes"
                   label="Private admin notes"

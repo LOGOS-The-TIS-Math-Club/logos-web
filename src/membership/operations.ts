@@ -14,6 +14,7 @@ const memberCardInput = z.object({
   displayName: z.string().trim().min(1).max(80),
   grade: z.number().int().min(9).max(12),
   gradeAcademicYear: z.number().int().min(1900).max(2200),
+  joinedOn: z.iso.date().optional(),
   privateNotes: z.string().trim().max(4000).default(""),
 });
 const stateInput = z
@@ -129,11 +130,13 @@ export async function getAdminMemberDetail(
         status: string | null;
         departure_reason: string | null;
         state_since: string | null;
+        joined_on: string | null;
       })[]
     >`select m.id, m.identity_id, m.display_name, m.grade,
         m.grade_academic_year, m.created_at, m.updated_at, m.revision,
         i.email, i.enabled, i.school_verified,
-        r.status, r.departure_reason, r.state_since
+        r.status, r.departure_reason, r.state_since,
+        (select min(effective_on)::text from members.state_changes where member_id=m.id) as joined_on
       from members.memberships m
       join people.identities i on i.id=m.identity_id
       left join members.current_roster r on r.id=m.id
@@ -234,11 +237,30 @@ export async function updateMemberCard(
         grade=${input.grade}, grade_academic_year=${input.gradeAcademicYear}, revision=revision+1
       where id=${member} and revision=${revision} returning id, display_name, grade, grade_academic_year, updated_at, revision`;
     if (!updated) await requireMemberOrConflict(tx, member);
+    const details: Record<string, string | number> = { revision: updated.revision };
+    if (input.joinedOn !== undefined) {
+      const [first, next] = await tx<{ date: string }[]>`select effective_on::text as date
+        from members.state_changes where member_id=${member}
+        order by effective_on limit 2 for update`;
+      if (!first || (next && input.joinedOn >= next.date)) {
+        throw new z.ZodError([{
+          code: "custom",
+          path: ["joinedOn"],
+          message: first
+            ? "The join date must be before the next membership status change."
+            : "No membership history is available to correct.",
+        }]);
+      }
+      if (first.date !== input.joinedOn) {
+        await tx`update members.state_changes set effective_on=${input.joinedOn}::text::date
+          where member_id=${member} and effective_on=${first.date}::text::date`;
+        details.previousJoinedOn = first.date;
+        details.joinedOn = input.joinedOn;
+      }
+    }
     await tx`insert into members.private_notes(member_id, notes) values (${member}, ${input.privateNotes})
       on conflict(member_id) do update set notes=excluded.notes`;
-    await recordHistory(tx, actor, "membership.card_updated", member, {
-      revision: updated.revision,
-    });
+    await recordHistory(tx, actor, "membership.card_updated", member, details);
     return updated;
   });
 }

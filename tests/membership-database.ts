@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import type postgres from "postgres";
+import { ZodError } from "zod";
 import { BackendError } from "../src/server/errors.ts";
 import { academicYearAt } from "../src/membership/grade.ts";
 import {
@@ -113,6 +114,7 @@ export async function verifyMembership(sql: postgres.Sql) {
   assert.equal(await acceptApplicationReview(sql, admin.id, application.id, 2, card), memberId);
   assert.deepEqual((await listMembers(sql, admin.id)).map((row) => row.id), [memberId]);
   const adminMember = await getAdminMemberDetail(sql, admin.id, memberId);
+  assert.equal(adminMember.member.joined_on, today);
   assert.equal(adminMember.private.notes, card.privateNotes);
   assert.equal(adminMember.applications[0].join_reason, input.joinReason);
   const ownMember = await getOwnMemberDetail(sql, student.id);
@@ -138,6 +140,35 @@ export async function verifyMembership(sql: postgres.Sql) {
   await assert.rejects(changeMembershipState(sql, admin.id, memberId, 2, {
     effectiveOn: today, status: "active",
   }), expectBackendError("CONFLICT"));
+
+  const [session] = await sql`insert into meetings.sessions(academic_year_id,starts_at_local,duration_minutes,title)
+    select id, ${today}::text::date::timestamp, 60, 'Join date correction test'
+    from meetings.academic_years where start_year=${gradeYear} returning id`;
+  await sql`insert into meetings.attendance(member_id,session_id,status,recorded_by)
+    values (${memberId},${session.id},'present',${admin.id})`;
+  const memberCard = {
+    displayName: "Updated Test Member", grade: 10, gradeAcademicYear: gradeYear,
+    privateNotes: "Updated private note",
+  };
+  await assert.rejects(updateMemberCard(sql, admin.id, memberId, 3, {
+    ...memberCard, joinedOn: tomorrowDate,
+  }), (error: unknown) => error instanceof ZodError &&
+    error.issues.some(issue => issue.path[0] === "joinedOn" &&
+      issue.message.includes("before the next membership status change")));
+  const corrected = await updateMemberCard(sql, admin.id, memberId, 3, {
+    ...memberCard, joinedOn: "2025-03-14",
+  });
+  assert.equal(corrected.revision, 4);
+  const correctedMember = await getAdminMemberDetail(sql, admin.id, memberId);
+  assert.equal(correctedMember.member.joined_on, "2025-03-14");
+  assert.equal(correctedMember.records.find(record => record.session_id === session.id)?.status, "present");
+  const dates = await sql`select effective_on::text as date, status from members.state_changes
+    where member_id=${memberId} order by effective_on`;
+  assert.deepEqual(dates.map(({ date, status }) => [date, status]), [
+    ["2025-03-14", "active"], [tomorrowDate, "paused"],
+  ]);
+  const correction = correctedMember.history.find(entry => entry.details.joinedOn);
+  assert.equal(correction?.details.previousJoinedOn, today);
 
   const restriction = await createReapplicationRestriction(sql, admin.id, student.id, {
     reason: "Temporary reapplication pause",
