@@ -1979,3 +1979,7 @@ a, img, svg { -webkit-user-drag: none; }
  .admin-page .dashboard-filters { grid-template-columns:minmax(0,1fr); }
  .admin-filter-bar > .admin-filter { flex-basis:100%; }
 }
+.admin-post-images, .admin-post-image { display: grid; gap: 12px; min-width: 0; }
+.admin-post-image { padding: 16px; border: 1px solid var(--color-border); overflow-wrap: anywhere; }
+.admin-post-image > .action { justify-self: start; }
+.post-image-gallery { display: grid; gap: 20px; min-width: 0; }

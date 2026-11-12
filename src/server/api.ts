@@ -17,6 +17,7 @@ import * as members from "../membership/operations.ts";
 import * as sessions from "../sessions/calendar.ts";
 import * as attendance from "../attendance/operations.ts";
 import * as content from "../content/operations.ts";
+import { MAX_POST_IMAGES, MAX_UPLOAD_BYTES } from "../content/image-limits.ts";
 import { getDashboardData, getPersonalData } from "../dashboard/operations.ts";
 
 import { getRecurringSettings, saveRecurringSettings, getPublicRecurring } from "../sessions/recurring.ts";
@@ -407,39 +408,29 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
               return json(await content.getAdminClubInfo(sql, actor));
           }
           if (method === "POST" || method === "PUT") {
-            const b = await body(3 * 1024 * 1024);
-            let upload;
-            if (b.upload !== undefined) {
-              const u = z
-                .object({
-                  base64: z
-                    .string()
-                    .max(2_796_204)
-                    .regex(/^[A-Za-z0-9+/]*={0,2}$/),
-                  mimeType: z.enum([
-                    "image/jpeg",
-                    "image/png",
-                    "image/webp",
-                    "image/gif",
-                  ]),
-                  altText: z.string().min(1).max(300),
-                })
-                .parse(b.upload);
-              upload = {
-                data: Buffer.from(u.base64, "base64"),
-                mimeType: u.mimeType,
-                altText: u.altText,
-              };
-            }
+            const supportsGallery = kind === "stories" || kind === "announcements";
+            // Base64 expands 3 MiB to 4 MiB. Leave space for form fields below the hosting limit.
+            const b = await body(supportsGallery ? MAX_UPLOAD_BYTES * 4 / 3 + 64 * 1024 : 3 * 1024 * 1024);
+            const wireImage = z.object({
+              base64: z.string().max(2_796_204).regex(/^[A-Za-z0-9+/]*={0,2}$/),
+              mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+              altText: z.string().min(1).max(300),
+            }).transform(({ base64, ...image }) => ({
+              ...image, data: Buffer.from(base64, "base64"),
+            }));
+            const upload = wireImage.optional().parse(b.upload);
+            const uploads = supportsGallery
+              ? z.array(wireImage).max(MAX_POST_IMAGES).default([]).parse(b.uploads)
+              : [];
             if (method === "POST" && !entity) {
               if (kind === "stories")
                 return json(
-                  await content.createStory(sql, actor, b, upload),
+                  await content.createStory(sql, actor, b, upload, uploads),
                   201,
                 );
               if (kind === "announcements")
                 return json(
-                  await content.createAnnouncement(sql, actor, b, upload),
+                  await content.createAnnouncement(sql, actor, b, upload, uploads),
                   201,
                 );
               if (kind === "leadership")
@@ -464,6 +455,7 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
                     rev(b),
                     b,
                     upload,
+                    uploads,
                   ),
                 );
               if (kind === "announcements")
@@ -475,6 +467,7 @@ export function createApi({ sql, currentUser, appUrl }: ApiDependencies) {
                     rev(b),
                     b,
                     upload,
+                    uploads,
                   ),
                 );
               if (kind === "leadership")

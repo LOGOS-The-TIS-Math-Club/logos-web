@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ActionButton, ActionLink } from "../action.tsx";
 import { DashboardIcon } from "./icon.tsx";
 import { ContentImage } from "../content-image.tsx";
+import { PostImageGallery } from "../post-image-gallery.tsx";
 import { AccessMessage, SessionFacts, Materials } from "./shared.tsx";
 import { SessionBrowser } from "./session-browser.tsx";
 import { Records } from "./records.tsx";
@@ -261,6 +262,7 @@ export function Dashboard({
                         unavailableMessage="Announcement image unavailable."
                       />
                     ) : null}
+                    <PostImageGallery images={item.additionalImages} />
                   </li>
                 ))}
               </ul>

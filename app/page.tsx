@@ -2,6 +2,7 @@ import { RecurringMeeting } from "../components/recurring-meeting.tsx";
 import { Suspense } from "react";
 import { HomeBanner } from "../components/home-banner.tsx";
 import { ContentImage } from "../components/content-image.tsx";
+import { PostImageGallery } from "../components/post-image-gallery.tsx";
 import { ActionLink } from "../components/action.tsx";
 import {
   getClubInfo,
@@ -125,6 +126,7 @@ async function HomeUpdates({
                       height={item.image_height}
                     />
                   ) : null}
+                  <PostImageGallery images={item.additional_images} />
                 </article>
               </li>
             ))}

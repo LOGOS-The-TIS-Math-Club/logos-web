@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ActionButton, ActionLink } from "../action.tsx";
 import { DraftGuard } from "../dashboard/draft-guard.tsx";
 import { adminRequest, AdminRequestError } from "../../src/admin/request.ts";
+import { MAX_IMAGE_BYTES, MAX_POST_IMAGES, MAX_UPLOAD_BYTES } from "../../src/content/image-limits.ts";
 import {
   useRead,
   AdminBack,
@@ -39,6 +40,7 @@ type Content = {
   body?: string;
   biography?: string;
   image_id?: string | null;
+  additional_images?: { id: string; alt: string }[];
   member_id?: string | null;
   sort_order?: number;
   published?: boolean;
@@ -134,7 +136,8 @@ function ContentRecords({ kind }: { kind: string }) {
   );
 }
 async function readUpload(file: File, altText: string) {
-  if (file.size > 2097152)
+  if (!altText.trim()) throw new Error(`Add alt text for ${file.name}.`);
+  if (file.size > MAX_IMAGE_BYTES)
     throw new Error("Choose an image no larger than 2 MiB.");
   if (
     !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)
@@ -146,7 +149,19 @@ async function readUpload(file: File, altText: string) {
     binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
   return { base64: btoa(binary), mimeType: file.type, altText };
 }
+
+function SavedPostImage({ id, alt, name }: { id: string; alt: string; name: string }) {
+  return (
+    <div className="admin-post-image">
+      <img className="admin-image" src={`/api/admin/content/images/${id}`} alt={alt} loading="lazy" />
+      <label className="application-check">
+        <input type="checkbox" name={name} /> Remove {alt || "this image"}
+      </label>
+    </div>
+  );
+}
 export function ContentEditor({ kind, id }: { kind: string; id: string }) {
+  const supportsGallery = kind === "stories" || kind === "announcements";
   const allowed = kinds.some((k) => k[0] === kind);
   const singular: Record<string, string> = {
     stories: "story",
@@ -170,6 +185,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
   } | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<{ id: string; file: File }[]>([]);
   const [preview, setPreview] = useState("");
   const [publication, setPublication] = useState<boolean | undefined>();
   const [conflict, setConflict] = useState(false);
@@ -207,6 +223,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
       if (isNew && kind !== "club-info") setSavedId(result.id);
       else {
         setFile(null);
+        setFiles([]);
         read.refresh();
         setRevision((v) => v + 1);
       }
@@ -267,7 +284,23 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                     published: v.published === "on",
                     memberId: existing?.member_id ?? null,
                   };
-      if (["stories", "announcements", "leadership"].includes(kind)) {
+      if (supportsGallery) {
+        const retained = (existing?.additional_images ?? []).filter(
+          (image) => v[`remove-image-${image.id}`] !== "on",
+        );
+        const legacy = v.removeImage === "on" ? null : existing?.image_id ?? null;
+        if (files.length + retained.length + Number(!!legacy) > MAX_POST_IMAGES)
+          throw new Error(`A post can have at most ${MAX_POST_IMAGES} images.`);
+        if (files.reduce((total, { file }) => total + file.size, 0) > MAX_UPLOAD_BYTES)
+          throw new Error("New images must total 3 MiB or less per save. Add the rest in a later edit.");
+        body.imageId = legacy;
+        body.removeImageIds = (existing?.additional_images ?? [])
+          .filter((image) => v[`remove-image-${image.id}`] === "on")
+          .map((image) => image.id);
+        body.uploads = await Promise.all(files.map(({ id, file }) =>
+          readUpload(file, String(v[`alt-${id}`] ?? "").trim()),
+        ));
+      } else if (kind === "leadership") {
         if (file) body.upload = await readUpload(file, String(v.altText ?? ""));
         else
           body.imageId =
@@ -325,6 +358,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
               onClick={() => {
                 setSavedId(null);
                 setFile(null);
+                setFiles([]);
                 setPublication(undefined);
                 setRevision((v) => v + 1);
                 setMessage("");
@@ -348,6 +382,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
               setUncertain(false);
               snapshot.current = null;
               setFile(null);
+              setFiles([]);
               setPublication(undefined);
               setConflict(false);
               setRevision((v) => v + 1);
@@ -534,7 +569,45 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                       value={existing?.sort_order ?? 0}
                     />
                   ) : null}
-                  {["stories", "announcements", "leadership"].includes(kind) ? (
+                  {supportsGallery ? (
+                    <div className="admin-post-images">
+                      <label htmlFor="content-gallery">Add images (optional)</label>
+                      <input
+                        id="content-gallery"
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        onChange={(e) => {
+                          const selected = Array.from(e.currentTarget.files ?? []);
+                          e.currentTarget.value = "";
+                          if (!selected.length) return;
+                          if (files.length + selected.length > MAX_POST_IMAGES) {
+                            setMessage(new Error(`Select at most ${MAX_POST_IMAGES} new images at a time.`));
+                            return;
+                          }
+                          setFiles((current) => [...current, ...selected.map(file => ({ id: crypto.randomUUID(), file }))]);
+                          setDirty(true);
+                        }}
+                      />
+                      <p className="admin-hint">Up to 8 images per post, 2 MiB each, and 3 MiB of new images per save.</p>
+                      {existing?.image_id ? (
+                        <SavedPostImage id={existing.image_id} alt="" name="removeImage" />
+                      ) : null}
+                      {existing?.additional_images?.map(image => (
+                        <SavedPostImage key={image.id} {...image} name={`remove-image-${image.id}`} />
+                      ))}
+                      {files.map(({ id, file }) => (
+                        <div key={id} className="admin-post-image">
+                          <p>{file.name} · {Math.ceil(file.size / 1024)} KB</p>
+                          <Field name={`alt-${id}`} label="Alt text (for screen readers)" required maxLength={300} />
+                          <ActionButton onClick={() => {
+                            setFiles(current => current.filter(entry => entry.id !== id));
+                            setDirty(true);
+                          }}>Remove selected image</ActionButton>
+                        </div>
+                      ))}
+                    </div>
+                  ) : kind === "leadership" ? (
                     <>
                       <label htmlFor="content-image">
                         Image (optional, up to 2 MiB)
@@ -560,7 +633,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                       {file ? (
                         <Field
                           name="altText"
-                          label="Image description"
+                          label="Alt text (for screen readers)"
                           required
                           maxLength={300}
                         />

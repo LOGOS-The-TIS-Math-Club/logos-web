@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { MAX_IMAGE_BYTES } from "./image-limits.ts";
 
 const contentId = z.uuid().transform(value => value.toLowerCase());
 
 const imageBytes = z.custom<Uint8Array>(
-  (value) => value instanceof Uint8Array && value.byteLength > 0 && value.byteLength <= 2_097_152,
+  (value) => value instanceof Uint8Array && value.byteLength > 0 && value.byteLength <= MAX_IMAGE_BYTES,
   "Image must contain between 1 byte and 2 MiB",
 );
 

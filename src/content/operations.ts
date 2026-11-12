@@ -4,6 +4,7 @@ import { createContentOnce } from "./replay.ts";
 import type postgres from "postgres";
 import { z } from "zod";
 import { BackendError } from "../server/errors.ts";
+import { MAX_POST_IMAGES, MAX_UPLOAD_BYTES } from "./image-limits.ts";
 import {
   announcementInput,
   creationRequestInput,
@@ -115,6 +116,54 @@ async function insertImage(tx: Tx, actor: string, image: Awaited<ReturnType<type
   return row.id as string;
 }
 
+type PostImageParent = "story_id" | "announcement_id";
+export type PostImage = {
+  id: string;
+  alt: string;
+  width: number | null;
+  height: number | null;
+};
+
+// Queries using this projection alias their post as p.
+function additionalImages(sql: postgres.Sql | Tx, parent: PostImageParent) {
+  return sql`coalesce((select json_agg(json_build_object(
+    'id', img.id, 'alt', img.alt_text, 'width', img.width, 'height', img.height
+  ) order by pi.position)
+  from content.post_images pi join content.images img on img.id=pi.image_id
+  where pi.${sql(parent)}=p.id), '[]'::json)`;
+}
+
+function galleryInput(raw: unknown, uploads: Upload[], creating = false) {
+  const { removeImageIds } = z.object({
+    removeImageIds: z.array(z.uuid()).max(creating ? 0 : MAX_POST_IMAGES).default([]),
+  }).parse(raw);
+  const images = z.array(imageInput).max(MAX_POST_IMAGES).parse(uploads);
+  if (images.reduce((total, image) => total + image.data.byteLength, 0) > MAX_UPLOAD_BYTES)
+    throw new BackendError("TOO_LARGE", "New images must total 3 MiB or less.", 413);
+  return { images, removeImageIds };
+}
+
+async function saveGallery(
+  tx: Tx, actor: string, parent: PostImageParent, post: { id: string; image_id: string | null },
+  gallery: ReturnType<typeof galleryInput>,
+) {
+  const { images, removeImageIds } = gallery;
+  if (!images.length && !removeImageIds.length && !post.image_id) return;
+  if (removeImageIds.length)
+    await tx`delete from content.post_images where ${tx(parent)}=${post.id}
+      and image_id=any(${tx.array(removeImageIds)}::uuid[])`;
+  const [current] = await tx`select count(*)::int as count, coalesce(max(position), -1)::int as last
+    from content.post_images where ${tx(parent)}=${post.id}`;
+  if (current.count + images.length + Number(post.image_id !== null) > MAX_POST_IMAGES)
+    throw new BackendError("INVALID_INPUT", `A post can have at most ${MAX_POST_IMAGES} images.`, 422);
+  let position = current.last as number;
+  for (const upload of images) {
+    const imageId = await insertImage(tx, actor, await validateImage(upload));
+    await tx`insert into content.post_images(${tx(parent)}, image_id, position)
+      values (${post.id}, ${imageId}, ${++position})`;
+  }
+}
+
 export interface PublicStory {
   id: string;
   title: string;
@@ -124,16 +173,18 @@ export interface PublicStory {
   image_alt: string | null;
   image_width: number | null;
   image_height: number | null;
+  additional_images: PostImage[];
   published: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
 export function getPublishedStories(sql: postgres.Sql) {
-  return sql<PublicStory[]>`select s.id, s.title, s.occurred_on, s.description, s.image_id, s.published, s.created_at, s.updated_at,
-    i.alt_text as image_alt, i.width as image_width, i.height as image_height
-    from content.stories s left join content.images i on i.id=s.image_id
-    where s.published order by s.occurred_on desc, s.created_at desc, s.id`;
+  return sql<PublicStory[]>`select p.id, p.title, p.occurred_on, p.description, p.image_id, p.published, p.created_at, p.updated_at,
+    i.alt_text as image_alt, i.width as image_width, i.height as image_height,
+    ${additionalImages(sql, "story_id")} as additional_images
+    from content.stories p left join content.images i on i.id=p.image_id
+    where p.published order by p.occurred_on desc, p.created_at desc, p.id`;
 }
 
 export interface PublicAnnouncement {
@@ -144,16 +195,18 @@ export interface PublicAnnouncement {
   image_alt: string | null;
   image_width: number | null;
   image_height: number | null;
+  additional_images: PostImage[];
   published_at: Date;
   created_at: Date;
   updated_at: Date;
 }
 
 export function getPublishedAnnouncements(sql: postgres.Sql) {
-  return sql<PublicAnnouncement[]>`select a.id, a.title, a.body, a.image_id, a.published_at, a.created_at, a.updated_at,
-    i.alt_text as image_alt, i.width as image_width, i.height as image_height
-    from content.announcements a left join content.images i on i.id=a.image_id
-    where a.published_at <= now() order by a.published_at desc, a.id`;
+  return sql<PublicAnnouncement[]>`select p.id, p.title, p.body, p.image_id, p.published_at, p.created_at, p.updated_at,
+    i.alt_text as image_alt, i.width as image_width, i.height as image_height,
+    ${additionalImages(sql, "announcement_id")} as additional_images
+    from content.announcements p left join content.images i on i.id=p.image_id
+    where p.published_at <= now() order by p.published_at desc, p.id`;
 }
 
 export function getPublishedLeadership(sql: postgres.Sql) {
@@ -185,7 +238,8 @@ export async function getAdminStory(sql: postgres.Sql, actorId: string, id: stri
   const storyId = uuid(id);
   return sql.begin(async (tx) => {
     await requireAdmin(tx, actor);
-    const [row] = await tx`select * from content.stories where id=${storyId}`;
+    const [row] = await tx`select p.*, ${additionalImages(tx, "story_id")} as additional_images
+      from content.stories p where p.id=${storyId}`;
     if (!row) throw new BackendError("NOT_FOUND", "Story was not found", 404);
     return row;
   });
@@ -205,7 +259,8 @@ export async function getAdminAnnouncement(sql: postgres.Sql, actorId: string, i
   const announcementId = uuid(id);
   return sql.begin(async (tx) => {
     await requireAdmin(tx, actor);
-    const [row] = await tx`select * from content.announcements where id=${announcementId}`;
+    const [row] = await tx`select p.*, ${additionalImages(tx, "announcement_id")} as additional_images
+      from content.announcements p where p.id=${announcementId}`;
     if (!row) throw new BackendError("NOT_FOUND", "Announcement was not found", 404);
     return row;
   });
@@ -286,6 +341,10 @@ export async function getPublicImage(sql: postgres.Sql, id: string) {
       exists (select 1 from content.stories s where s.image_id=i.id and s.published)
       or exists (select 1 from content.announcements a where a.image_id=i.id and a.published_at <= now())
       or exists (select 1 from content.leadership_profiles l where l.image_id=i.id and l.published)
+      or exists (select 1 from content.post_images pi
+        left join content.stories s on s.id=pi.story_id
+        left join content.announcements a on a.id=pi.announcement_id
+        where pi.image_id=i.id and (s.published or a.published_at <= now()))
     )`;
   if (!row) throw new BackendError("NOT_FOUND", "Image was not found", 404);
   return row;
@@ -303,28 +362,36 @@ export async function getAdminImage(sql: postgres.Sql, actorId: string, id: stri
   });
 }
 
-export async function createStory(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload) {
+export async function createStory(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload, uploads: Upload[] = []) {
   const actor = uuid(actorId);
   const input = storyInput.parse(raw);
+  const gallery = galleryInput(raw, uploads, true);
+  if (upload && gallery.images.length)
+    throw new BackendError("INVALID_INPUT", "Use either upload or uploads, not both.", 422);
   const { requestId } = creationRequestInput.parse(raw);
   const selectedImage = upload === undefined ? undefined : imageInput.parse(upload);
   if (selectedImage && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
-  return createContentOnce(sql, actor, "story", requestId, { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage) }, async (tx) => {
+  return createContentOnce(sql, actor, "story", requestId, { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage),
+    ...(gallery.images.length ? { uploads: gallery.images.map(uploadFingerprint) } : {}) }, async (tx) => {
     const image = await validateImage(selectedImage);
     const imageId = image ? await insertImage(tx, actor, image) : input.imageId ?? null;
     const [row] = await tx`insert into content.stories(title, occurred_on, description, image_id, published, created_by)
       values (${input.title}, ${input.occurredOn}::text::date, ${input.description}, ${imageId}, ${input.published}, ${actor})
       returning *`;
+    await saveGallery(tx, actor, "story_id", { id: row.id, image_id: row.image_id }, gallery);
     await recordHistory(tx, actor, "content.story.created", row.id, { title: input.title });
     return row;
   });
 }
 
-export async function updateStory(sql: postgres.Sql, actorId: string, id: string, expectedRevision: number, raw: unknown, upload?: Upload) {
+export async function updateStory(sql: postgres.Sql, actorId: string, id: string, expectedRevision: number, raw: unknown, upload?: Upload, uploads: Upload[] = []) {
   const actor = uuid(actorId);
   const storyId = uuid(id);
   const revision = revisionInput.parse(expectedRevision);
   const input = storyInput.parse(raw);
+  const gallery = galleryInput(raw, uploads);
+  if (upload && gallery.images.length)
+    throw new BackendError("INVALID_INPUT", "Use either upload or uploads, not both.", 422);
   if (upload && input.imageId != null) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
   return sql.begin(async (tx) => {
     await requireAdmin(tx, actor);
@@ -336,32 +403,41 @@ export async function updateStory(sql: postgres.Sql, actorId: string, id: string
       published=${input.published}, revision=revision+1
       where id=${storyId} and revision=${revision} returning *`;
     if (!row) await requireExistingOrConflict(tx, "content.stories", storyId);
+    await saveGallery(tx, actor, "story_id", { id: row.id, image_id: row.image_id }, gallery);
     await recordHistory(tx, actor, "content.story.updated", storyId, { title: input.title, revision: row.revision });
     return row;
   });
 }
 
-export async function createAnnouncement(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload) {
+export async function createAnnouncement(sql: postgres.Sql, actorId: string, raw: unknown, upload?: Upload, uploads: Upload[] = []) {
   const actor = uuid(actorId);
   const input = announcementInput.parse(raw);
+  const gallery = galleryInput(raw, uploads, true);
+  if (upload && gallery.images.length)
+    throw new BackendError("INVALID_INPUT", "Use either upload or uploads, not both.", 422);
   const { requestId } = creationRequestInput.parse(raw);
   const selectedImage = upload === undefined ? undefined : imageInput.parse(upload);
   if (selectedImage && input.imageId) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
-  return createContentOnce(sql, actor, "announcement", requestId, { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage) }, async (tx) => {
+  return createContentOnce(sql, actor, "announcement", requestId, { ...input, imageId: input.imageId ?? null, upload: uploadFingerprint(selectedImage),
+    ...(gallery.images.length ? { uploads: gallery.images.map(uploadFingerprint) } : {}) }, async (tx) => {
     const image = await validateImage(selectedImage);
     const imageId = image ? await insertImage(tx, actor, image) : input.imageId ?? null;
     const [row] = await tx`insert into content.announcements(title, body, image_id, published_at, created_by)
       values (${input.title}, ${input.body}, ${imageId}, case when ${input.published} then now() else null end, ${actor}) returning *`;
+    await saveGallery(tx, actor, "announcement_id", { id: row.id, image_id: row.image_id }, gallery);
     await recordHistory(tx, actor, "content.announcement.created", row.id, { title: input.title });
     return row;
   });
 }
 
-export async function updateAnnouncement(sql: postgres.Sql, actorId: string, id: string, expectedRevision: number, raw: unknown, upload?: Upload) {
+export async function updateAnnouncement(sql: postgres.Sql, actorId: string, id: string, expectedRevision: number, raw: unknown, upload?: Upload, uploads: Upload[] = []) {
   const actor = uuid(actorId);
   const announcementId = uuid(id);
   const revision = revisionInput.parse(expectedRevision);
   const input = announcementInput.parse(raw);
+  const gallery = galleryInput(raw, uploads);
+  if (upload && gallery.images.length)
+    throw new BackendError("INVALID_INPUT", "Use either upload or uploads, not both.", 422);
   if (upload && input.imageId != null) throw new z.ZodError([{ code: "custom", path: ["imageId"], message: "Choose an image ID or upload an image" }]);
   return sql.begin(async (tx) => {
     await requireAdmin(tx, actor);
@@ -374,6 +450,7 @@ export async function updateAnnouncement(sql: postgres.Sql, actorId: string, id:
       revision=revision+1
       where id=${announcementId} and revision=${revision} returning *`;
     if (!row) await requireExistingOrConflict(tx, "content.announcements", announcementId);
+    await saveGallery(tx, actor, "announcement_id", { id: row.id, image_id: row.image_id }, gallery);
     await recordHistory(tx, actor, "content.announcement.updated", announcementId, { title: input.title, revision: row.revision });
     return row;
   });

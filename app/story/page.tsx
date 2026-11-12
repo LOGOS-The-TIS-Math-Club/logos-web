@@ -4,6 +4,7 @@ import { PageBanner } from "../../components/page-banner.tsx";
 import { ActionLink } from "../../components/action.tsx";
 import { RevealSection } from "../../components/reveal-section.tsx";
 import { ContentImage } from "../../components/content-image.tsx";
+import { PostImageGallery } from "../../components/post-image-gallery.tsx";
 import {
   getPublishedStories,
   type PublicStory,
@@ -73,6 +74,7 @@ async function StoryEntries({
                 </figure>
               </div>
             ) : null}
+            <PostImageGallery images={entry.additional_images} story priority={index === 0 && !entry.image_id} />
             {entry.description.trim() ? (
               <div className="story-description muted">
                 {entry.description

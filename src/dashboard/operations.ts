@@ -183,6 +183,7 @@ export async function getDashboardData(
           imageAlt: row.image_alt ?? "",
           imageWidth: row.image_width,
           imageHeight: row.image_height,
+          additionalImages: row.additional_images,
         })),
       ),
     ]);

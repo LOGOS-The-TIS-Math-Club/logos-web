@@ -2,6 +2,7 @@ import type {
   AttendanceStatus,
   attendanceSummary,
 } from "../attendance/summary.ts";
+import type { PostImage } from "../content/operations.ts";
 export type Read<T> =
   { status: "available"; data: T } | { status: "unavailable" };
 export type ProtectedState<T> =
@@ -86,6 +87,7 @@ export interface DashboardData {
       imageAlt: string;
       imageWidth: number | null;
       imageHeight: number | null;
+      additionalImages: PostImage[];
     }[]
   >;
 }
