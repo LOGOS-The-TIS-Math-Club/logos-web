@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PostImage } from "../src/content/operations.ts";
 import { ContentImage } from "./content-image.tsx";
 import { DashboardIcon } from "./dashboard/icon.tsx";
+import { useMotionEnabled } from "./motion-control.tsx";
+
+const ADVANCE_MS = 6000;
 
 export function PostImageGallery({
   images, primary, story = false, priority = false,
@@ -14,33 +17,124 @@ export function PostImageGallery({
   priority?: boolean;
 }) {
   const slides = primary ? [primary, ...images] : images;
-  const [selection, setSelection] = useState(0);
-  if (!slides.length) return null;
-  const index = Math.min(selection, slides.length - 1);
-  const { id, alt, width, height } = slides[index];
-  const multiple = slides.length > 1;
-  function move(direction: -1 | 1) {
-    setSelection((current) =>
-      (Math.min(current, slides.length - 1) + direction + slides.length) % slides.length,
+  const count = slides.length;
+  const multiple = count > 1;
+  const root = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const [selection, setSelection] = useState({ index: 0, previous: 0 });
+  const [inView, setInView] = useState(false);
+  const [systemMotion, setSystemMotion] = useState(false);
+  const [documentVisible, setDocumentVisible] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const motionEnabled = useMotionEnabled();
+  const index = Math.min(selection.index, Math.max(0, count - 1));
+  const autoplay = multiple && motionEnabled && systemMotion;
+  const playing = autoplay && documentVisible && inView && !hovered && !focused && !paused;
+
+  useEffect(() => {
+    if (!multiple) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      setSystemMotion(!motion.matches);
+      setDocumentVisible(!document.hidden);
+    };
+    sync();
+    motion.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      motion.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [multiple]);
+
+  useEffect(() => {
+    if (!multiple || !root.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.intersectionRatio >= 0.35),
+      { threshold: 0.35 },
     );
+    observer.observe(root.current);
+    return () => observer.disconnect();
+  }, [multiple]);
+
+  useEffect(() => {
+    if (!playing) return;
+    const timer = window.setTimeout(() => {
+      setSelection({ index: (index + 1) % count, previous: index });
+    }, ADVANCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [playing, count, index]);
+
+  if (!count) return null;
+
+  function goTo(next: number) {
+    if (next !== index) setSelection({ index: next, previous: index });
   }
+
+  function move(direction: -1 | 1) {
+    goTo((index + direction + count) % count);
+  }
+
   return (
     <div
+      ref={root}
       className="post-image-gallery"
       data-multiple={multiple}
       role={multiple ? "group" : undefined}
       aria-label={multiple ? (story ? "Story image gallery" : "Announcement image gallery") : undefined}
+      onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
+      }}
     >
-      <div className="post-image-stage">
-        <ContentImage
-          key={id}
-          id={id}
-          alt={alt}
-          width={width}
-          height={height}
-          priority={priority && index === 0}
-          unavailableMessage={story ? "Story image unavailable." : "Announcement image unavailable."}
-        />
+      <div
+        className="post-image-stage"
+        onTouchStart={(event) => {
+          if (!multiple || event.touches.length !== 1) { touchStart.current = null; return; }
+          const { clientX, clientY } = event.touches[0];
+          touchStart.current = { x: clientX, y: clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = touchStart.current;
+          touchStart.current = null;
+          if (!start || event.touches.length) return;
+          const dx = event.changedTouches[0].clientX - start.x;
+          const dy = event.changedTouches[0].clientY - start.y;
+          if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.4)
+            move(dx < 0 ? 1 : -1);
+        }}
+        onTouchCancel={() => { touchStart.current = null; }}
+      >
+        {slides.map(({ id, alt, width, height }, slide) => {
+          const active = slide === index;
+          const next = (index + 1) % count;
+          const previous = (index - 1 + count) % count;
+          const nearby = active || slide === selection.previous || slide === previous || slide === next;
+          return (
+            <div
+              className="post-image-slide"
+              key={id}
+              data-active={active}
+              data-side={slide === previous || (slide !== next && slide < index) ? "left" : "right"}
+              inert={!active}
+            >
+              {nearby ? (
+                <ContentImage
+                  id={id}
+                  alt={alt}
+                  width={width}
+                  height={height}
+                  priority={(priority && slide === 0) || (inView && slide === next)}
+                  unavailableMessage={story ? "Story image unavailable." : "Announcement image unavailable."}
+                />
+              ) : null}
+            </div>
+          );
+        })}
       </div>
       {multiple ? (
         <div
@@ -51,16 +145,33 @@ export function PostImageGallery({
             move(event.key === "ArrowLeft" ? -1 : 1);
           }}
         >
-          <button type="button" aria-label="Previous image" onClick={() => move(-1)}>
-            <DashboardIcon name="left" />
-          </button>
-          <span className="datum muted" aria-live="polite">
-            <span className="sr-only">Image </span>{index + 1} of {slides.length}
-            {alt ? <span className="sr-only">: {alt}</span> : null}
-          </span>
-          <button type="button" aria-label="Next image" onClick={() => move(1)}>
-            <DashboardIcon name="right" />
-          </button>
+          <div className="post-image-toolbar">
+            <button type="button" aria-label="Previous image" onClick={() => move(-1)}>
+              <DashboardIcon name="left" />
+            </button>
+            <span className="datum muted" aria-live={playing ? "off" : "polite"}>
+              <span className="sr-only">Image </span>{index + 1} of {count}
+              {slides[index].alt ? <span className="sr-only">: {slides[index].alt}</span> : null}
+            </span>
+            <button type="button" aria-label="Next image" onClick={() => move(1)}>
+              <DashboardIcon name="right" />
+            </button>
+            {autoplay ? (
+              <button type="button" aria-label={paused ? "Resume slideshow" : "Pause slideshow"}
+                onClick={() => setPaused((value) => !value)}>
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+                  <path d={paused ? "M8 5l11 7-11 7z" : "M9 5v14m6-14v14"} />
+                </svg>
+              </button>
+            ) : null}
+          </div>
+          <div className="post-image-index" role="group" aria-label="Choose an image">
+            {slides.map(({ id }, slide) => (
+              <button type="button" key={id} aria-label={`Show image ${slide + 1} of ${count}`}
+                aria-current={slide === index ? "true" : undefined} onClick={() => goTo(slide)} />
+            ))}
+          </div>
         </div>
       ) : null}
     </div>

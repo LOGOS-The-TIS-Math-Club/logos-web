@@ -7,6 +7,10 @@ const MotionContext = createContext<{
   toggle: () => void;
 } | null>(null);
 
+export function useMotionEnabled() {
+  return useContext(MotionContext)?.enabled ?? false;
+}
+
 export function MotionProvider({ motion, children }: {
   motion: "on" | "off";
   children: ReactNode;
