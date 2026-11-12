@@ -44,6 +44,12 @@ export function clientError(error: unknown): BackendError {
       "This record changed or already exists. Reload and try again.",
       409,
     );
+  if (code === "23P01" && (error as { constraint_name?: string }).constraint_name === "academic_years_nonoverlapping")
+    return new BackendError(
+      "CONFLICT",
+      "These dates overlap another academic year. Choose a range that does not overlap.",
+      409,
+    );
   if (
     code === "23514" ||
     code === "23503" ||

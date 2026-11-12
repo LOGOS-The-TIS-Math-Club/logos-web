@@ -736,7 +736,7 @@ export function CalendarSettings() {
         <p>
           {kind === "terms"
             ? "Sessions can take place on the last day. Terms must fit their academic year."
-            : "Academic years start on August 1 and end before August 1 of the following year."}
+            : "Choose the first and last day. Academic years cannot overlap."}
         </p>
         <AdminForm
           feedback={message}
@@ -757,9 +757,10 @@ export function CalendarSettings() {
                   ...b,
                   id: current?.id ?? creationId,
                   revision: current?.revision,
+                  endsOn: shiftCalendarDay(String(b.endsOn ?? ""), 1),
                   ...(kind === "academic-years"
                     ? { startYear: Number(b.startYear) }
-                    : { endsOn: shiftCalendarDay(String(b.endsOn ?? ""), 1) }),
+                    : {}),
                 },
               );
               setDirty(false);
@@ -813,12 +814,12 @@ export function CalendarSettings() {
             />
             <Field
               name="endsOn"
-              label={kind === "terms" ? "Last day (included)" : "Ends before"}
+              label="Last day (included)"
               type="date"
               value={
-                kind === "terms" && current
+                current
                   ? shiftCalendarDay(current.ends_on, -1)
-                  : current?.ends_on
+                  : undefined
               }
               required
             />

@@ -37,14 +37,18 @@ export async function verifyMeetings(sql: postgres.Sql) {
   await sql`insert into people.role_grants(identity_id,role) values (${admin.id},'admin'),(${student.id},'member')`;
   const yearInput = {
     id: randomUUID(), name: `Meetings ${suffix}`, startYear: 2027,
-    startsOn: '2027-08-01', endsOn: '2028-08-01',
+    startsOn: '2027-08-02', endsOn: '2028-06-13',
   };
   await expectFailure(() => createAcademicYear(sql, outsider.id, yearInput), '42501');
-  await expectFailure(() => createAcademicYear(sql, admin.id, {
-    ...yearInput, id: randomUUID(), startsOn: '2027-07-31',
-  }), '23514');
   const year = await createAcademicYear(sql, admin.id, yearInput);
   assert.equal(year.revision, 1);
+  const [savedYear] = await sql`select starts_on::text, ends_on::text from meetings.academic_years where id=${year.id}`;
+  assert.equal(savedYear.starts_on, yearInput.startsOn);
+  assert.equal(savedYear.ends_on, yearInput.endsOn);
+  await expectFailure(() => createAcademicYear(sql, admin.id, {
+    id: randomUUID(), name: `Overlap ${suffix}`, startYear: 2028,
+    startsOn: '2028-06-12', endsOn: '2029-06-13',
+  }), '23P01');
   const updatedYear = await updateAcademicYear(sql, admin.id, year.revision, {
     ...yearInput, name: `Updated ${suffix}`,
   });
@@ -54,7 +58,7 @@ export async function verifyMeetings(sql: postgres.Sql) {
   }), 'CONFLICT');
   const termInput = {
     id: randomUUID(), academicYearId: year.id, name: 'Term',
-    startsOn: '2027-08-01', endsOn: '2028-08-01',
+    startsOn: '2027-08-02', endsOn: '2028-06-13',
   };
   await expectFailure(() => createTerm(sql, outsider.id, termInput), '42501');
   await expectFailure(() => createTerm(sql, admin.id, {
