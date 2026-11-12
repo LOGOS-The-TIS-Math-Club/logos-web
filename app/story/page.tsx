@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { PageBanner } from "../../components/page-banner.tsx";
 import { ActionLink } from "../../components/action.tsx";
 import { RevealSection } from "../../components/reveal-section.tsx";
-import { ContentImage } from "../../components/content-image.tsx";
 import { PostImageGallery } from "../../components/post-image-gallery.tsx";
 import {
   getPublishedStories,
@@ -59,22 +58,15 @@ async function StoryEntries({
               </time>
               <h3 id={`story-${entry.id}`}>{entry.title}</h3>
             </div>
-            {entry.image_id ? (
-              <div className="plated">
-                <figure className="home-panel story-figure">
-                  <ContentImage
-                    key={entry.image_id}
-                    id={entry.image_id}
-                    alt={entry.image_alt ?? ""}
-                    width={entry.image_width}
-                    height={entry.image_height}
-                    unavailableMessage="Story image unavailable."
-                    priority={index === 0}
-                  />
-                </figure>
-              </div>
-            ) : null}
-            <PostImageGallery images={entry.additional_images} story priority={index === 0 && !entry.image_id} />
+            <PostImageGallery
+              images={entry.additional_images}
+              primary={entry.image_id ? {
+                id: entry.image_id, alt: entry.image_alt ?? "",
+                width: entry.image_width, height: entry.image_height,
+              } : undefined}
+              story
+              priority={index === 0}
+            />
             {entry.description.trim() ? (
               <div className="story-description muted">
                 {entry.description

@@ -1475,15 +1475,6 @@ main:has(.homepage, .about-page, .join-page, .meetings-page, .story-page) {
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
-.story-figure {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-.story-figure .content-image {
-  width: 100%;
-  max-height: none;
-}
 .story-description {
   display: grid;
   gap: 16px;
@@ -1982,4 +1973,44 @@ a, img, svg { -webkit-user-drag: none; }
 .admin-post-images, .admin-post-image { display: grid; gap: 12px; min-width: 0; }
 .admin-post-image { padding: 16px; border: 1px solid var(--color-border); overflow-wrap: anywhere; }
 .admin-post-image > .action { justify-self: start; }
-.post-image-gallery { display: grid; gap: 20px; min-width: 0; }
+.post-image-gallery {
+  --gallery-height: clamp(10rem, 38vw, 20rem);
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+.post-image-stage {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 8px;
+}
+.post-image-gallery[data-multiple="true"] .post-image-stage { height: var(--gallery-height); }
+.post-image-stage > .content-image {
+  width: auto;
+  height: auto;
+  max-height: calc(var(--gallery-height) - 16px);
+  margin: 0;
+  object-position: center;
+}
+.post-image-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.post-image-controls > button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+}
+.post-image-controls > button:hover { background: var(--color-surface-lifted); }
+.post-image-controls > button:focus-visible { outline-offset: -3px; }

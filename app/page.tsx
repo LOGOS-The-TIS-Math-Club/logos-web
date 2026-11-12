@@ -1,7 +1,6 @@
 import { RecurringMeeting } from "../components/recurring-meeting.tsx";
 import { Suspense } from "react";
 import { HomeBanner } from "../components/home-banner.tsx";
-import { ContentImage } from "../components/content-image.tsx";
 import { PostImageGallery } from "../components/post-image-gallery.tsx";
 import { ActionLink } from "../components/action.tsx";
 import {
@@ -116,17 +115,13 @@ async function HomeUpdates({
                   </time>
                   <h3>{item.title}</h3>
                   <p className="announcement-body muted">{item.body}</p>
-                  {item.image_id && item.image_width && item.image_height ? (
-                    <ContentImage
-                      unavailableMessage="Announcement image unavailable."
-                      key={item.image_id}
-                      id={item.image_id}
-                      alt={item.image_alt ?? ""}
-                      width={item.image_width}
-                      height={item.image_height}
-                    />
-                  ) : null}
-                  <PostImageGallery images={item.additional_images} />
+                  <PostImageGallery
+                    images={item.additional_images}
+                    primary={item.image_id ? {
+                      id: item.image_id, alt: item.image_alt ?? "",
+                      width: item.image_width, height: item.image_height,
+                    } : undefined}
+                  />
                 </article>
               </li>
             ))}

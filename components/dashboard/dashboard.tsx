@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ActionButton, ActionLink } from "../action.tsx";
 import { DashboardIcon } from "./icon.tsx";
-import { ContentImage } from "../content-image.tsx";
 import { PostImageGallery } from "../post-image-gallery.tsx";
 import { AccessMessage, SessionFacts, Materials } from "./shared.tsx";
 import { SessionBrowser } from "./session-browser.tsx";
@@ -253,16 +252,13 @@ export function Dashboard({
                     </time>
                     <h3>{item.title}</h3>
                     <p className="dashboard-prose muted">{item.body}</p>
-                    {item.imageId && item.imageWidth && item.imageHeight ? (
-                      <ContentImage
-                        id={item.imageId}
-                        alt={item.imageAlt}
-                        width={item.imageWidth}
-                        height={item.imageHeight}
-                        unavailableMessage="Announcement image unavailable."
-                      />
-                    ) : null}
-                    <PostImageGallery images={item.additionalImages} />
+                    <PostImageGallery
+                      images={item.additionalImages}
+                      primary={item.imageId ? {
+                        id: item.imageId, alt: item.imageAlt,
+                        width: item.imageWidth, height: item.imageHeight,
+                      } : undefined}
+                    />
                   </li>
                 ))}
               </ul>
