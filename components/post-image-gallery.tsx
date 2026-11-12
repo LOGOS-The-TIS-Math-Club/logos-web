@@ -149,19 +149,21 @@ export function PostImageGallery({
             <button type="button" aria-label="Previous image" onClick={() => move(-1)}>
               <DashboardIcon name="left" />
             </button>
-            <span className="datum muted" aria-live={playing ? "off" : "polite"}>
-              <span className="sr-only">Image </span>{index + 1} of {count}
-              {slides[index].alt ? <span className="sr-only">: {slides[index].alt}</span> : null}
+            <span className="sr-only" aria-live={playing ? "off" : "polite"}>
+              Image {index + 1} of {count}
+              {slides[index].alt ? `: ${slides[index].alt}` : null}
             </span>
             <button type="button" aria-label="Next image" onClick={() => move(1)}>
               <DashboardIcon name="right" />
             </button>
             {autoplay ? (
-              <button type="button" aria-label={paused ? "Resume slideshow" : "Pause slideshow"}
+              <button type="button" className="post-image-autoplay" data-paused={paused}
+                aria-label={paused ? "Resume slideshow" : "Pause slideshow"}
                 onClick={() => setPaused((value) => !value)}>
                 <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={paused ? "M8 5l11 7-11 7z" : "M9 5v14m6-14v14"} />
+                  <path className="post-image-play-icon" d="M8 5l11 7-11 7z" />
+                  <path className="post-image-pause-icon" d="M9 5v14m6-14v14" />
                 </svg>
               </button>
             ) : null}

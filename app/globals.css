@@ -2037,15 +2037,33 @@ a, img, svg { -webkit-user-drag: none; }
   flex-wrap: wrap;
 }
 .post-image-toolbar { gap: 6px; }
-.post-image-toolbar > .datum { min-width: 7ch; text-align: center; }
 .post-image-controls button {
   display: grid;
   place-items: center;
   border: 0;
   background: transparent;
   color: var(--color-primary);
+  border-radius: 4px;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 .post-image-toolbar > button { width: 44px; height: 44px; }
+.post-image-toolbar > button > svg {
+  transition: transform 180ms var(--ease-out-quint);
+}
+.post-image-toolbar > button:active > svg { transform: translateY(1px); }
+.post-image-autoplay path {
+  transform-origin: center;
+  transition: opacity 180ms ease, transform 220ms var(--ease-out-quint);
+}
+.post-image-play-icon,
+.post-image-autoplay[data-paused="true"] .post-image-pause-icon {
+  opacity: 0;
+  transform: scale(0.75);
+}
+.post-image-autoplay[data-paused="true"] .post-image-play-icon {
+  opacity: 1;
+  transform: none;
+}
 .post-image-index > button { width: 28px; height: 28px; padding: 0; }
 .post-image-index > button::before {
   content: "";
@@ -2054,8 +2072,11 @@ a, img, svg { -webkit-user-drag: none; }
   border-radius: 99px;
   background: var(--color-muted-foreground);
   opacity: 0.5;
-  transition: width 180ms ease, opacity 180ms ease;
+  transition: width 240ms var(--ease-out-quint), opacity 180ms ease,
+    background-color 180ms ease;
 }
+.post-image-index > button:hover::before,
+.post-image-index > button:focus-visible::before { opacity: 0.85; }
 .post-image-index > button[aria-current="true"]::before {
   width: 16px;
   background: var(--color-primary);
@@ -2065,5 +2086,8 @@ a, img, svg { -webkit-user-drag: none; }
 .post-image-controls button:focus-visible { outline-offset: -3px; }
 @media (prefers-reduced-motion: reduce) {
   .post-image-gallery[data-multiple="true"] .post-image-slide,
+  .post-image-controls button,
+  .post-image-toolbar > button > svg,
+  .post-image-autoplay path,
   .post-image-index > button::before { transition: none; }
 }
