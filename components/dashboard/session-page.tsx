@@ -100,12 +100,7 @@ export function SessionPage({
   const { session, canReportAbsence } = state.data;
   return (
     <div className="dashboard-page dashboard-detail">
-      <div className="dashboard-actions">
-        <BackLink href={back}>Session list</BackLink>
-        <ActionLink href="/auth/sign-in" variant="quiet">
-          Your account
-        </ActionLink>
-      </div>
+      <BackLink href={back}>Session list</BackLink>
       <div className="dashboard-heading">
         <div>
           <p className="eyebrow">LOGOS / SESSION</p>
