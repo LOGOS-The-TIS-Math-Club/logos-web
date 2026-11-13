@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@neondatabase/auth": "^0.7.0-beta",
+    "@vercel/analytics": "^2.0.1",
     "jose": "^6.2.13",
     "next": "^16.4.3",
     "postgres": "3.4.9",

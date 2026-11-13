@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Lato, JetBrains_Mono, Montserrat } from "next/font/google";
 import { cookies } from "next/headers.js";
+import { WebAnalytics } from "../components/web-analytics.tsx";
 import { Shell } from "../components/shell.tsx";
 import "./globals.css";
 const lato = Lato({
@@ -42,6 +43,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
     >
       <body>
         <Shell motion={motion}>{children}</Shell>
+        {process.env.VERCEL_ENV === "production" ? <WebAnalytics /> : null}
       </body>
     </html>
   );

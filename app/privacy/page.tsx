@@ -42,6 +42,10 @@ export default function PrivacyPage() {
         <p className="muted">Public pages do not display application answers, attendance, absence notices, private member identities, or administrative notes. People profiles are separate published content: a display name, role, biography, and image may be shown when a profile is published.</p>
         <p className="muted">Public meeting information is limited to the latest completed session’s title and description and the current term’s non-cancelled session titles. Session dates, locations, and materials remain private. Access to Google Drive files is controlled separately by Google Drive permissions.</p>
       </section>
+      <section aria-labelledby="analytics-heading">
+        <h2 id="analytics-heading">Website analytics</h2>
+        <p className="muted">We use Vercel Web Analytics to count visits to public information pages. The site excludes application, sign-in, member, and leadership pages from page view tracking.</p>
+      </section>
       <section aria-labelledby="requests-heading">
         <p className="eyebrow">04 / Questions and requests</p>
         <h2 id="requests-heading">Corrections, withdrawal, and deletion</h2>
