@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { BackLink } from "../back-link.tsx";
 import { DashboardIcon } from "../dashboard/icon.tsx";
+import { DatePicker } from "../dashboard/date-picker.tsx";
 import { ActionButton } from "../action.tsx";
 import { AdminRequestError, adminRequest } from "../../src/admin/request.ts";
 import { dateInputValue } from "../../src/admin/presentation.ts";
@@ -88,7 +89,9 @@ export function Field({
 }) {
   const feedback = useContext(FeedbackContext);
   const controls = useContext(ControlContext);
-  const [selection, setSelection] = useState(String(value));
+  const [selection, setSelection] = useState(() =>
+    type === "date" ? dateInputValue(String(value)) : String(value),
+  );
   const error = feedback?.fields
     ?.filter((f) => f.field.split(".").at(-1) === name)
     .map((f) => f.message)
@@ -142,17 +145,28 @@ export function Field({
           maxLength={maxLength}
           rows={4}
         />
+      ) : type === "date" ? (
+        <DatePicker
+          id={name}
+          name={name}
+          value={selection}
+          required={required}
+          disabled={controls.disabled}
+          invalid={!!error}
+          describedBy={description}
+          onChange={(next) => {
+            if (next === selection) return;
+            setSelection(next);
+            controls.changed();
+          }}
+        />
       ) : (
         <ApplicationInput
           {...accessibility}
           id={name}
           name={name}
           type={type}
-          defaultValue={
-            type === "date" && typeof value === "string"
-              ? dateInputValue(value)
-              : value
-          }
+          defaultValue={value}
           required={required}
           maxLength={maxLength}
         />

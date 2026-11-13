@@ -1640,7 +1640,9 @@ main:has(.homepage, .about-page, .join-page, .meetings-page, .story-page) {
 .dashboard-footnote { margin: 0; font-size: 12px; line-height: 1.6; color: var(--color-subtle-foreground); }
 .dashboard-empty { color: var(--color-muted-foreground); padding-block: 12px; font-size: 14px; }
 .dashboard-date-picker { position: relative; }
-.dashboard-date-trigger .dashboard-icon { width: 18px; height: 18px; color: var(--color-muted-foreground); }
+.dashboard-date-validation { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; clip-path: inset(50%); overflow: hidden; }
+.dashboard-date-trigger .dashboard-icon { width: 18px; height: 18px; margin-inline-start: auto; color: var(--color-muted-foreground); }
+.dashboard-date-trigger[aria-expanded="true"] { border-color: var(--color-primary-muted); }
 .dashboard-date-popover { overflow-y: auto; overscroll-behavior: contain; position: absolute; top: calc(100% + 8px); inset-inline-start: 0; z-index: 40; width: min(320px, 100%); padding: 14px; border: 1px solid var(--color-border-input); background: var(--color-surface-raised); border-radius: 7px; box-shadow: var(--shadow-lifted); animation: application-select-enter 150ms var(--ease-out-quint); }
 .dashboard-date-picker[data-side="top"] .dashboard-date-popover { top: auto; bottom: calc(100% + 8px); }
 .dashboard-date-popover .dashboard-calendar-heading { margin: 0 0 12px; gap: 8px; grid-template-columns: 34px minmax(0, 1fr) 34px; }

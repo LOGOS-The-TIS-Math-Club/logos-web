@@ -21,14 +21,23 @@ export function DatePicker({
   value,
   onChange,
   disabled,
+  name = "sessionDate",
+  required = false,
+  invalid,
+  describedBy,
 }: {
   id: string;
   value: string;
   onChange: (day: string) => void;
   disabled: boolean;
+  name?: string;
+  required?: boolean;
+  invalid?: boolean;
+  describedBy?: string;
 }) {
   const today = tokyoDay(new Date());
   const [open, setOpen] = useState(false);
+  const [missing, setMissing] = useState(false);
   const [month, setMonth] = useState((value || today).slice(0, 7));
   const [active, setActive] = useState(value || today);
   const [placement, setPlacement] = useState({ above: false, space: 380 });
@@ -59,6 +68,7 @@ export function DatePicker({
     trigger.current?.focus();
   }
   function choose(day: string) {
+    setMissing(false);
     onChange(day);
     close();
   }
@@ -85,7 +95,10 @@ export function DatePicker({
     } else if (event.key === "PageUp" || event.key === "PageDown")
       next = dayInMonth(
         day,
-        shiftMonth(month, event.key === "PageUp" ? -1 : 1),
+        shiftMonth(
+          month,
+          (event.key === "PageUp" ? -1 : 1) * (event.shiftKey ? 12 : 1),
+        ),
       );
     else return;
     event.preventDefault();
@@ -104,10 +117,20 @@ export function DatePicker({
       }}
     >
       <input
-        type="hidden"
-        name="sessionDate"
+        type={required ? "text" : "hidden"}
+        className={required ? "dashboard-date-validation" : undefined}
+        name={name}
         value={value}
         disabled={disabled}
+        required={required}
+        aria-hidden={required ? true : undefined}
+        tabIndex={-1}
+        onChange={() => {}}
+        onInvalid={(event) => {
+          event.preventDefault();
+          setMissing(true);
+          trigger.current?.focus();
+        }}
       />
       <button
         id={id}
@@ -116,9 +139,15 @@ export function DatePicker({
         className="application-select-trigger dashboard-date-trigger"
         disabled={disabled}
         aria-labelledby={`${id}-label ${id}-value`}
+        aria-invalid={invalid || missing || undefined}
+        aria-describedby={
+          [describedBy, missing ? `${id}-required` : undefined]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
         aria-haspopup="dialog"
         aria-expanded={open && !disabled}
-        aria-controls={`${id}-calendar`}
+        aria-controls={open && !disabled ? `${id}-calendar` : undefined}
         onClick={() => {
           if (open) setOpen(false);
           else {
@@ -145,13 +174,18 @@ export function DatePicker({
         </span>
         <DashboardIcon name="calendar" />
       </button>
+      {missing ? (
+        <p className="field-error" id={`${id}-required`} role="alert">
+          Choose a date before saving.
+        </p>
+      ) : null}
       {open && !disabled ? (
         <div
           id={`${id}-calendar`}
           className="dashboard-date-popover"
           style={{ maxHeight: placement.space }}
           role="dialog"
-          aria-label="Choose absence date"
+          aria-labelledby={`${id}-label`}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.preventDefault();
