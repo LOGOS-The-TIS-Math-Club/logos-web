@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { LoadingImage } from "../content-image.tsx";
 import { DashboardIcon } from "../dashboard/icon.tsx";
 import { useEffect, useRef, useState } from "react";
 import { ActionButton, ActionLink } from "../action.tsx";
@@ -153,7 +154,7 @@ async function readUpload(file: File, altText: string) {
 function SavedPostImage({ id, alt, name }: { id: string; alt: string; name: string }) {
   return (
     <>
-      <img className="admin-image" src={`/api/admin/content/images/${id}`} alt={alt} loading="lazy" />
+      <LoadingImage className="admin-image" src={`/api/admin/content/images/${id}`} alt={alt} />
       <label className="application-check">
         <input type="checkbox" name={name} /> Remove {alt || "this image"}
       </label>
@@ -671,7 +672,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                       />
                       {preview ? (
                         <figure className="admin-upload-preview">
-                          <img src={preview} alt="Selected image preview" />
+                          <LoadingImage className="admin-image" src={preview} alt="Selected image preview" priority />
                           <figcaption>
                             {file?.name} · {Math.ceil((file?.size ?? 0) / 1024)}{" "}
                             KB
@@ -688,7 +689,7 @@ export function ContentEditor({ kind, id }: { kind: string; id: string }) {
                       ) : null}
                       {existing?.image_id ? (
                         <>
-                          <img
+                          <LoadingImage
                             className="admin-image"
                             src={`/api/admin/content/images/${existing.image_id}`}
                             alt="Current content image"

@@ -141,7 +141,7 @@ export default function Home() {
   return (
     <div className="homepage">
       <HomeBanner />
-      <Suspense fallback={<p role="status">Loading recurring meetings...</p>}><RecurringMeeting /></Suspense>
+      <Suspense fallback={<p role="status">Loading recurring meetings...</p>}><RecurringMeeting cards /></Suspense>
       <Suspense
         fallback={
           <div className="home-loading" role="status">

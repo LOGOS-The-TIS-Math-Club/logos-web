@@ -4,6 +4,8 @@ const paths = {
   arrow: "M5 12h14m-6-6 6 6-6 6",
   calendar: "M8 3v4m8-4v4M4 10h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z",
   clock: "M12 8v4l3 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z",
+  timer: "M9 2h6m-3 0v3m6 2 2-2m-8 4v4m8 0a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z",
+  location: "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Zm-5 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
   folder: "M3 7V5h6l2 2h10v13H3V7Z",
   refresh: "M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 14 6M4 12a8 8 0 0 0 14 6",
   report: "M8 3h8v4H8V3ZM8 5H5v16h14V5h-3M8 12h8m-8 4h5",
